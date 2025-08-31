@@ -10,6 +10,8 @@
 
 ---
 
+# Study Multiply – Go Beyond
+
 ## 📚 概要 (Overview)
 
 このアプリケーションは、学習に特化したInstagramのようなものです。ユーザーは日々の学習内容や時間を記録し、それを仲間と共有することができます。これにより、自身の学習ログや日記として機能するだけでなく、他者の学習意欲を刺激するプラットフォームとなることを目指します。
@@ -27,6 +29,90 @@
 
 * **目標設定システム**:
     * 長期的・短期的な学習目標を設定し、進捗を記録・管理できます
+
+
+## 目標（現在の到達目標）
+- **UI設計（Figma 等）**  
+  - 主要画面のワイヤー → モック → デザインシステム（色・タイポ・コンポーネント）
+  - モバイル優先・レスポンシブ方針の確立
+- **フロントエンド（UIをウェブサイト化）**  
+  - Figma → React + Vite で実装（状態管理・ルーティング・アクセシビリティ）
+  - 学習記録一覧、投稿フォーム、プロフィール、設定の最小機能
+- **バックエンド（Gemini / Firebase 等のAPI利用）**  
+  - Firebase 認証・DB（Firestore）・ストレージの採用
+  - Gemini API による要約／自動フラッシュカードの試作
+  - セキュリティルールの基本整備
+
+---
+
+## インストール & 開発方法（Getting Started）
+
+### 前提条件
+- Node.js 18+
+- npm または yarn
+- Git
+
+### セットアップ
+```bash
+git clone <YOUR_REPO_URL>
+cd study-multiply-go-beyond
+npm install
+npm run dev
+# ブラウザ: http://localhost:5173
+```
+
+### ビルド & プレビュー
+```bash
+npm run build
+npm run preview
+```
+
+### 環境変数（Vite 例）
+`./.env`（または `.env.local`）に以下を設定：
+```
+VITE_FIREBASE_API_KEY=your_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=xxxxxx
+VITE_FIREBASE_APP_ID=1:xxxxxx:web:xxxxxx
+
+VITE_GEMINI_API_KEY=your_gemini_key
+```
+> フロントから参照する値は `VITE_` プレフィックス必須。Firebase の Web 設定はコンソールの「プロジェクトの設定 → アプリを追加」から取得。
+
+### 開発フロー（最小）
+1. **UI確定**：Figma で画面・コンポーネントを定義  
+2. **UI実装**：React でページ/コンポーネント作成 → ルーティング/状態管理  
+3. **API接続**：Firebase 初期化、認証→DB→ストレージ連携  
+4. **AI機能**：Gemini API で要約/カード化のプロトタイプ  
+5. **保護**：Firestore セキュリティルールの基本設定（読み書き条件）  
+6. **ビルド/デプロイ**：`npm run build` → 任意のホスティングへ
+
+### 開発に向けて学ぶべきこと（推奨）
+- **UI/UX**：Figma（Auto Layout、Variants、Style/Token、レスポンシブ設計）  
+- **フロントエンド**：HTML/CSS/最新JS、React（Hooks/Context）、React Router、フォーム/バリデーション、A11y、Vite、（余力で）テスト（Vitest/RTL）  
+- **バックエンド＆API**：Firebase（Auth/Firestore/Storage/ルール）、Gemini API（テキスト生成・要約／プロンプト設計）、非同期処理、エラーハンドリング、データモデリング  
+- **運用**：Git/GitHub（ブランチ・PR）、ESLint/Prettier、デプロイ（Vercel/Netlify/Firebase Hosting）
+
+---
+
+### プロジェクト構成（例）
+```
+src/
+  assets/
+  components/
+  pages/
+  App.jsx
+  main.jsx
+  index.css
+```
+
+### NPM スクリプト（例）
+- `npm run dev`：開発サーバ起動  
+- `npm run build`：本番ビルド  
+- `npm run preview`：ビルド物のローカルプレビュー  
+- `npm run lint`：ESLint 実行
 
 ---
 
