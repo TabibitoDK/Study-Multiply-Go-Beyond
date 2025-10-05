@@ -7,9 +7,9 @@ import TodoWidget from './widgets/TodoWidget.jsx'
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
 
-function WidgetShell({ id, title, canEdit, onRemove, children }) {
+function WidgetShell({ id, title, type, canEdit, onRemove, children }) {
   return (
-    <div className="widget" data-id={id}>
+    <div className="widget" data-id={id} data-type={type}>
       <div className="widget-header">
         <span>{title}</span>
         {canEdit && (
@@ -81,7 +81,7 @@ export default function WidgetCanvas({
 
   function renderWidget(widget) {
     const title = widget.title ?? widget.type[0].toUpperCase() + widget.type.slice(1)
-    const common = { id: widget.id, title, canEdit: editMode, onRemove: removeWidget }
+    const common = { id: widget.id, title, type: widget.type, canEdit: editMode, onRemove: removeWidget }
     if (widget.type === 'clock') return <WidgetShell {...common}><ClockWidget /></WidgetShell>
     if (widget.type === 'timer') return <WidgetShell {...common}><TimerWidget /></WidgetShell>
     if (widget.type === 'todo') return <WidgetShell {...common}><TodoWidget /></WidgetShell>
@@ -122,5 +122,6 @@ export default function WidgetCanvas({
     </ResponsiveGridLayout>
   )
 }
+
 
 

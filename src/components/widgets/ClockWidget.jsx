@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
 
-export default function ClockWidget({ title = 'Clock' }) {
+export default function ClockWidget() {
   const [now, setNow] = useState(dayjs())
 
   useEffect(() => {
@@ -9,10 +9,24 @@ export default function ClockWidget({ title = 'Clock' }) {
     return () => clearInterval(t)
   }, [])
 
+  const hours = now.format('hh')
+  const minutes = now.format('mm')
+  const seconds = now.format('ss')
+  const ampm = now.format('A')
+  const dateLabel = now.format('ddd, MMM D')
+
   return (
-    <div className="widget">
-      <div className="widget-header"><span>{title}</span></div>
-      <div className="clock-time">{now.format('hh:mm:ss A')}</div>
+    <div className="clock-widget">
+      <div className="clock-display">
+        <span className="clock-hours">{hours}</span>
+        <span className="clock-separator">:</span>
+        <span className="clock-minutes">{minutes}</span>
+      </div>
+      <div className="clock-meta">
+        <span className="clock-seconds">{seconds}</span>
+        <span className="clock-ampm">{ampm}</span>
+        <span className="clock-date">{dateLabel}</span>
+      </div>
     </div>
   )
 }
