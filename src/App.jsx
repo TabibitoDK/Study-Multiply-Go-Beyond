@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import Navbar from './components/Navbar.jsx'
 import RightPanel from './components/RightPanel.jsx'
 import WidgetCanvas from './components/WidgetCanvas.jsx'
+import Profile from './pages/Profile.jsx'
 import WidgetPicker from './components/WidgetPicker.jsx'
-import SocialPage from './components/social/SocialPage.jsx'   // <— new
+import SocialPage from './components/social/SocialPage.jsx'   // < Enew
 import { loadState, saveState } from './lib/storage.js'
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('Home');      // <— new
+  const [activeTab, setActiveTab] = useState('Home');      // < Enew
   const [editMode, setEditMode] = useState(false)
   const [layout, setLayout] = useState([])
   const [items, setItems] = useState([])
@@ -29,7 +30,7 @@ export default function App() {
     <div className="container">
       <Navbar
         activeTab={activeTab}
-        onChangeTab={setActiveTab}       // <— allow tab switching
+        onChangeTab={setActiveTab}       // < Eallow tab switching
         onNewTask={handleNewTask}
       />
 
@@ -53,7 +54,7 @@ export default function App() {
 
         {activeTab === 'Social' && <SocialPage />}
 
-        {activeTab === 'Profile' && <div>Profile (coming soon)</div>}
+        {activeTab === 'Profile' && <Profile />}
         {activeTab === 'Calendar' && <div>Calendar (coming soon)</div>}
       </main>
 
@@ -61,3 +62,4 @@ export default function App() {
     </div>
   )
 }
+
