@@ -8,9 +8,9 @@ import TodoWidget from './widgets/TodoWidget.jsx'
 const ResponsiveGridLayout = WidthProvider(Responsive)
 
 const TYPE_PRESETS = {
-  clock: { minW: 4, minH: 4, defaultW: 4, defaultH: 4 },
-  timer: { minW: 6, minH: 5, defaultW: 6, defaultH: 5 },
-  todo: { minW: 4, minH: 5, defaultW: 5, defaultH: 5 },
+  clock: { minW: 3, minH: 3, defaultW: 3, defaultH: 3 },
+  timer: { minW: 5, minH: 4, defaultW: 5, defaultH: 4 },
+  todo: { minW: 4, minH: 4, defaultW: 4, defaultH: 4 },
 }
 
 function WidgetShell({ id, title, type, canEdit, onRemove, children }) {
@@ -143,7 +143,7 @@ export default function WidgetCanvas({
       className="layout"
       breakpoints={breakpoints}
       cols={cols}
-      rowHeight={56}
+      rowHeight={48}
       isDraggable={editMode}
       isResizable={editMode}
       margin={[12, 12]}
