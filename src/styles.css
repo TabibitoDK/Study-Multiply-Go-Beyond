@@ -103,3 +103,164 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: ui-san
   padding: 8px 10px; background: var(--bg); border-radius: 12px;
 }
 .kbd { padding: 2px 6px; border: 1px solid var(--ring); border-radius: 6px; font-size: 12px; background: #fff; }
+
+.logo-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+
+/* --- Social page --- */
+.social-wrap {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.composer {
+  background: var(--panel);
+  border: 1px solid var(--ring);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+.composer-head {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.composer-row {
+  display: grid;
+  grid-template-columns: 1fr 150px 160px auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.textarea { resize: vertical; }
+
+.post {
+  background: var(--panel);
+  border: 1px solid var(--ring);
+  border-radius: 18px;
+  margin-bottom: 22px;
+  overflow: hidden;
+}
+
+.post-head {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 16px 16px 0 16px;
+}
+
+.post-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--muted); }
+.post-name { font-weight: 800; }
+.post-handle { font-size: 12px; color: var(--subtext); margin-top: 2px; }
+
+.post-body { padding: 8px 16px 12px 16px; }
+.post-text { margin: 0 0 10px 0; }
+
+.post-meta-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.pill {
+  font-size: 12px; color: var(--text);
+  background: var(--bg); border: 1px solid var(--ring);
+  padding: 4px 8px; border-radius: 999px;
+}
+
+.post-images { display: flex; gap: 12px; }
+.post-img-placeholder {
+  width: 110px; height: 110px; background: var(--muted); border-radius: 10px;
+}
+
+.post-foot {
+  border-top: 1px solid var(--ring);
+  padding: 10px 16px;
+  color: var(--subtext);
+  font-size: 12px;
+}
+
+
+/* --- Floating Action Button --- */
+.fab {
+  position: fixed;
+  bottom: 28px;
+  right: 36px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--text);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  transition: background 0.2s, transform 0.1s;
+  z-index: 20;
+}
+.fab:hover { background: #000; transform: translateY(-2px); }
+
+/* --- Modal Overlay --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+}
+
+.modal {
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 640px;
+  max-width: 95%;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.25);
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.modal-row {
+  display: grid;
+  grid-template-columns: 1fr 150px 160px;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+

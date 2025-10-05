@@ -1,26 +1,30 @@
-import { Plus } from 'lucide-react'
-
-export default function Navbar({ activeTab = 'Home', onNewTask }) {
+// ...
+export default function Navbar({ activeTab='Home', onNewTask, onChangeTab }) {
+  const TABS = ['Home','Social','Profile','Calendar'];   // <— changed
   return (
     <header className="navbar">
       <div className="brand">
-        <div className="logo">Logo</div>
-        <div>
-          <div style={{ fontWeight: 800 }}>Website name</div>
+        <img src="/Logo Ver01.png" alt="Study Multiply Go Beyond logo" className="logo-img" />
+        <div className="brand-text">
+          <div className="brand-title">Study Multiply Go Beyond</div>
         </div>
       </div>
 
       <nav className="tabs" role="tablist" aria-label="Pages">
-        {['Home','Record','Profile','Calendar'].map(t => (
-          <button key={t} className={`tab ${activeTab===t?'active':''}`}>{t}</button>
+        {TABS.map(t => (
+          <button
+            key={t}
+            className={`tab ${activeTab===t?'active':''}`}
+            onClick={() => onChangeTab?.(t)}
+          >
+            {t}
+          </button>
         ))}
       </nav>
 
       <div className="nav-actions">
-        <button className="btn" onClick={onNewTask}>
-          <Plus size={18} style={{ marginRight: 6 }} /> New Task
-        </button>
+        <button className="btn" onClick={onNewTask}>New Task</button>
       </div>
     </header>
-  )
+  );
 }
