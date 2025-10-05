@@ -1,32 +1,63 @@
-import React, { useState } from "react";
-import "./Profile.css";
+import React, { useEffect, useState } from "react"
+import "./Profile.css"
+import PostModal from "../components/social/PostModal.jsx"
+import PostCard from "../components/social/PostCard.jsx"
+
+const STORAGE_KEY = "smgb-profile-posts-v1"
+
+function createId(prefix = "profile-post") {
+  const cryptoApi = typeof globalThis !== "undefined" ? globalThis.crypto : undefined
+  if (cryptoApi && typeof cryptoApi.randomUUID === "function") {
+    return `${prefix}-${cryptoApi.randomUUID()}`
+  }
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function seedPosts() {
+  return [
+    {
+      id: createId(),
+      authorName: "Nickname",
+      authorHandle: "username",
+      text: "Today I studied calculus for 2 hours!",
+      book: null,
+      duration: "2h",
+      subject: "Calculus",
+      images: [],
+      createdAt: new Date().toISOString(),
+    },
+  ]
+}
 
 export default function Profile() {
-  const [posts, setPosts] = useState([
-    { id: 1, name: "Nickname", username: "@username", content: "Today I studied calculus for 2 hours!" },
-  ]);
-  const [newPost, setNewPost] = useState("");
+  const [posts, setPosts] = useState(() => {
+    if (typeof window === "undefined") return seedPosts()
+    try {
+      const stored = window.localStorage.getItem(STORAGE_KEY)
+      const parsed = stored ? JSON.parse(stored) : null
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed
+    } catch {}
+    return seedPosts()
+  })
+  const [modalOpen, setModalOpen] = useState(false)
 
-  const addPost = () => {
-    if (newPost.trim() === "") return;
-    const post = {
-      id: Date.now(),
-      name: "Nickname",
-      username: "@username",
-      content: newPost,
-    };
-    setPosts([post, ...posts]);
-    setNewPost("");
-  };
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(posts))
+    } catch {}
+  }, [posts])
+
+  function handleAddPost(post) {
+    setPosts(prev => [post, ...prev])
+  }
 
   return (
     <div className="profile-container">
-      {/* Profile Banner */}
-      <div className="profile-banner"></div>
+      <div className="profile-banner" />
 
-      {/* Profile Info */}
       <div className="profile-header">
-        <div className="profile-avatar"></div>
+        <div className="profile-avatar" />
         <div className="profile-info">
           <h2>Nickname</h2>
           <p>@username</p>
@@ -37,7 +68,6 @@ export default function Profile() {
       <hr className="divider" />
 
       <div className="profile-content">
-        {/* Left Side - Tasks and Goals */}
         <div className="left-side">
           <div className="card">
             <h3>Task</h3>
@@ -56,33 +86,23 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Right Side - Posts */}
         <div className="right-side">
-          <div className="add-post">
-            <textarea
-              value={newPost}
-              onChange={(e) => setNewPost(e.target.value)}
-              placeholder="Share what you studied today..."
-            />
-            <button onClick={addPost}>Post</button>
+          <div className="profile-posts-header">
+            <h3>Recent Posts</h3>
+            <button className="btn ghost" onClick={() => setModalOpen(true)}>
+              New Post
+            </button>
           </div>
 
-          <div className="posts">
-            {posts.map((post) => (
-              <div className="post-card" key={post.id}>
-                <div className="post-header">
-                  <div className="post-avatar"></div>
-                  <div>
-                    <h4>{post.name}</h4>
-                    <p>{post.username}</p>
-                  </div>
-                </div>
-                <p className="post-content">{post.content}</p>
-              </div>
+          <div className="profile-post-list">
+            {posts.map(post => (
+              <PostCard key={post.id} post={post} />
             ))}
           </div>
         </div>
       </div>
+
+      <PostModal open={modalOpen} onClose={() => setModalOpen(false)} onSubmit={handleAddPost} />
     </div>
-  );
+  )
 }
