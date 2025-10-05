@@ -70,18 +70,43 @@ export default function Profile() {
       <div className="profile-content">
         <div className="left-side">
           <div className="card">
-            <h3>Task</h3>
-            <ul>
-              <li>Finish homework</li>
-              <li>Review notes</li>
-            </ul>
+            <h3>Introduction</h3>
+            <p className="profile-about">
+              Third-year student passionate about math, languages, and helping friends stay motivated. I love building study plans that balance deep focus with creative breaks.
+            </p>
+          </div>
+
+          <div className="card">
+            <h3>Target Achievement</h3>
+            <div className="profile-target">
+              <span className="profile-target-item">University of Tokyo - Global Studies</span>
+              <span className="profile-target-item">JLPT N1 Certification</span>
+            </div>
           </div>
 
           <div className="card">
             <h3>Goals</h3>
+            <div className="goal-section">
+              <h4>Long-Term</h4>
+              <ul className="goal-list">
+                <li>Publish a study guide for multilingual learners.</li>
+                <li>Complete a research internship focused on learning science.</li>
+              </ul>
+            </div>
+            <div className="goal-section">
+              <h4>Short-Term</h4>
+              <ul className="goal-list">
+                <li>Finish the current semester with a GPA above 3.8.</li>
+                <li>Lead a weekly peer study circle for calculus.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="card">
+            <h3>Tasks</h3>
             <ul>
-              <li>Score A in math</li>
-              <li>Read 10 books this semester</li>
+              <li>Finish homework</li>
+              <li>Review notes</li>
             </ul>
           </div>
         </div>

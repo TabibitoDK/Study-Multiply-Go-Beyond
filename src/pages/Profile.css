@@ -89,3 +89,57 @@
   border-radius: 12px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.04);
 }
+.profile-about {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.profile-target {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-target-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--ring);
+  font-weight: 600;
+}
+
+.card h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--subtext);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.goal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.goal-section:first-of-type {
+  margin-top: 0;
+}
+
+.goal-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.goal-list li {
+  line-height: 1.4;
+}
