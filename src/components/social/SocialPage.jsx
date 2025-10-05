@@ -43,7 +43,7 @@ export default function SocialPage() {
         {posts.map(p => <PostCard key={p.id} post={p} />)}
       </div>
 
-      <button className="fab" onClick={() => setOpen(true)} title="Add new post">
+      <button className="fab fab-social" onClick={() => setOpen(true)} title="Add new post">
         <Plus size={28} />
       </button>
 
