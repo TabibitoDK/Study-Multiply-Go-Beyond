@@ -18,6 +18,9 @@ export default function CalendarPage() {
       return {}
     }
   })
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedDay, setSelectedDay] = useState(null)
+  const [draftText, setDraftText] = useState('')
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -25,6 +28,17 @@ export default function CalendarPage() {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(events))
     } catch {}
   }, [events])
+
+  useEffect(() => {
+    if (!modalOpen) return
+    function onKeyDown(event) {
+      if (event.key === 'Escape') {
+        closeModal()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [modalOpen])
 
   const monthLabel = useMemo(
     () => new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' }),
@@ -44,6 +58,17 @@ export default function CalendarPage() {
     const days = Array.from({ length: daysInMonth }, (_, idx) => idx + 1)
     return [...blanks, ...days]
   }, [firstDay, daysInMonth])
+
+  const selectedDateLabel = useMemo(() => {
+    if (!selectedDay) return ''
+    return `${monthLabel} ${selectedDay}, ${currentYear}`
+  }, [selectedDay, monthLabel, currentYear])
+
+  const selectedEvents = useMemo(() => {
+    if (!selectedDay) return []
+    const key = keyForDay(selectedDay)
+    return events[key] ?? []
+  }, [selectedDay, events, currentMonth, currentYear])
 
   function changeMonth(offset) {
     setCurrentMonth(prevMonth => {
@@ -77,25 +102,39 @@ export default function CalendarPage() {
     return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
   }
 
-  function handleAddEvent(day) {
-    const dateKey = keyForDay(day)
-    if (typeof window === 'undefined') return
-    const text = window.prompt('Add task or event:')
-    if (!text || !text.trim()) return
-    const entry = text.trim()
+  function openModalForDay(day) {
+    setSelectedDay(day)
+    setDraftText('')
+    setModalOpen(true)
+  }
+
+  function closeModal() {
+    setModalOpen(false)
+    setDraftText('')
+    setSelectedDay(null)
+  }
+
+  function handleSaveEvent(event) {
+    event.preventDefault()
+    if (!selectedDay) return
+    const text = draftText.trim()
+    if (!text) return
+    const dateKey = keyForDay(selectedDay)
     setEvents(prev => {
       const next = { ...prev }
       const existing = next[dateKey] ?? []
-      next[dateKey] = [...existing, entry]
+      next[dateKey] = [...existing, text]
       return next
     })
+    setDraftText('')
+    setModalOpen(false)
   }
 
-  function handleKeyDown(event, day) {
+  function handleDayKeyDown(event, day) {
     if (!day) return
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
-      handleAddEvent(day)
+      openModalForDay(day)
     }
   }
 
@@ -158,8 +197,8 @@ export default function CalendarPage() {
                 className={classes}
                 role={day ? 'button' : undefined}
                 tabIndex={day ? 0 : -1}
-                onClick={() => day && handleAddEvent(day)}
-                onKeyDown={event => handleKeyDown(event, day)}
+                onClick={() => day && openModalForDay(day)}
+                onKeyDown={event => handleDayKeyDown(event, day)}
               >
                 {day && (
                   <>
@@ -184,7 +223,40 @@ export default function CalendarPage() {
           })}
         </div>
       </div>
+
+      {modalOpen && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal calendar-modal" onClick={event => event.stopPropagation()}>
+            <h2 className="modal-title">Add calendar note</h2>
+            <p className="calendar-modal-subtitle">{selectedDateLabel}</p>
+
+            {selectedEvents.length > 0 && (
+              <div className="calendar-modal-existing">
+                <span className="calendar-modal-section">Existing notes</span>
+                <ul>
+                  {selectedEvents.map((text, index) => (
+                    <li key={index}>{text}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <form className="calendar-modal-form" onSubmit={handleSaveEvent}>
+              <textarea
+                className="input calendar-modal-textarea"
+                rows={4}
+                placeholder="What will you study?"
+                value={draftText}
+                onChange={event => setDraftText(event.target.value)}
+              />
+              <div className="modal-actions">
+                <button type="button" className="btn ghost" onClick={closeModal}>Cancel</button>
+                <button type="submit" className="btn">Save note</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-
