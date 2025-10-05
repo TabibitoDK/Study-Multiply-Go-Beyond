@@ -1,35 +1,73 @@
-import dayjs from 'dayjs';
+﻿import dayjs from 'dayjs'
 
-export default function PostCard({ post }) {
+function formatNumber(value) {
+  return new Intl.NumberFormat('en-US').format(value ?? 0)
+}
+
+export default function PostCard({ post, onSelectProfile }) {
+  const author = post.author
+  const timestamp = dayjs(post.timestamp)
+
+  function handleProfileClick() {
+    if (author?.id && typeof onSelectProfile === 'function') {
+      onSelectProfile(author.id)
+    }
+  }
+
+  const tags = Array.isArray(post.tags)
+    ? post.tags.map(tag => (tag.startsWith('#') ? tag : `#${tag}`))
+    : []
+
   return (
     <article className="post">
       <header className="post-head">
-        <div className="post-avatar" />
+        <button
+          type="button"
+          className="post-avatar-button"
+          onClick={handleProfileClick}
+          aria-label={author?.name ? `View ${author.name}'s profile` : 'View profile'}
+        >
+          <div
+            className="post-avatar"
+            style={author?.profileImage ? { backgroundImage: `url(${author.profileImage})` } : undefined}
+          />
+        </button>
         <div>
-          <div className="post-name">{post.authorName}</div>
-          <div className="post-handle">@{post.authorHandle}</div>
+          <button type="button" className="post-author-button" onClick={handleProfileClick}>
+            <span className="post-name">{author?.name ?? 'Unknown User'}</span>
+          </button>
+          <div className="post-handle">@{author?.username ?? 'unknown'}</div>
         </div>
       </header>
 
       <div className="post-body">
-        {post.text && <p className="post-text">{post.text}</p>}
+        {post.content && <p className="post-text">{post.content}</p>}
 
-        <div className="post-meta-grid">
-          {post.book && <span className="pill">📖 {post.book}</span>}
-          {post.duration && <span className="pill">⏱ {post.duration}</span>}
-          {post.subject && <span className="pill">🏷 {post.subject}</span>}
-        </div>
+        {post.image && (
+          <img
+            className="post-image"
+            src={`${post.image}?auto=compress&fit=crop&w=1200&q=80`}
+            alt=""
+            loading="lazy"
+          />
+        )}
 
-        {post.images?.length > 0 && (
-          <div className="post-images">
-            {post.images.map((_, i) => <div key={i} className="post-img-placeholder" />)}
+        {tags.length > 0 && (
+          <div className="post-meta-grid">
+            {tags.map(tag => (
+              <span key={tag} className="pill">{tag}</span>
+            ))}
           </div>
         )}
       </div>
 
       <footer className="post-foot">
-        <span className="time">{dayjs(post.createdAt).format('HH:mm • MMM D YYYY')}</span>
+        <span className="time">{timestamp.isValid() ? timestamp.format('MMM D, YYYY at HH:mm') : ''}</span>
+        <div className="post-stats">
+          <span>{formatNumber(post.likes)} Likes</span>
+          <span>{formatNumber(post.comments)} Comments</span>
+        </div>
       </footer>
     </article>
-  );
+  )
 }

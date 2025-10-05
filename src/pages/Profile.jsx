@@ -1,68 +1,58 @@
-import React, { useEffect, useState } from "react"
+﻿import dayjs from "dayjs"
 import "./Profile.css"
-import PostModal from "../components/social/PostModal.jsx"
 import PostCard from "../components/social/PostCard.jsx"
+import { profiles, getProfileById } from "../lib/profiles.js"
+import { getPostsByUser } from "../lib/posts.js"
 
-const STORAGE_KEY = "smgb-profile-posts-v1"
+export default function Profile({ profileId = 1, currentUserId = 1, onSelectProfile }) {
+  const resolvedProfile = getProfileById(profileId) ?? getProfileById(currentUserId) ?? profiles[0]
+  const isCurrentUser = resolvedProfile.id === currentUserId
 
-function createId(prefix = "profile-post") {
-  const cryptoApi = typeof globalThis !== "undefined" ? globalThis.crypto : undefined
-  if (cryptoApi && typeof cryptoApi.randomUUID === "function") {
-    return `${prefix}-${cryptoApi.randomUUID()}`
-  }
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-}
+  const posts = getPostsByUser(resolvedProfile.id).map(post => ({
+    ...post,
+    author: resolvedProfile,
+  }))
 
-function seedPosts() {
-  return [
-    {
-      id: createId(),
-      authorName: "Nickname",
-      authorHandle: "username",
-      text: "Today I studied calculus for 2 hours!",
-      book: null,
-      duration: "2h",
-      subject: "Calculus",
-      images: [],
-      createdAt: new Date().toISOString(),
-    },
-  ]
-}
-
-export default function Profile() {
-  const [posts, setPosts] = useState(() => {
-    if (typeof window === "undefined") return seedPosts()
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY)
-      const parsed = stored ? JSON.parse(stored) : null
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed
-    } catch {}
-    return seedPosts()
-  })
-  const [modalOpen, setModalOpen] = useState(false)
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(posts))
-    } catch {}
-  }, [posts])
-
-  function handleAddPost(post) {
-    setPosts(prev => [post, ...prev])
-  }
+  const joinedDate = dayjs(resolvedProfile.joined)
+  const tags = Array.isArray(resolvedProfile.tags) ? resolvedProfile.tags : []
 
   return (
     <div className="profile-container">
-      <div className="profile-banner" />
+      <div
+        className="profile-banner"
+        style={resolvedProfile.backgroundImage ? { backgroundImage: `url(${resolvedProfile.backgroundImage})` } : undefined}
+      />
 
       <div className="profile-header">
-        <div className="profile-avatar" />
-        <div className="profile-info">
-          <h2>Nickname</h2>
-          <p>@username</p>
+        <div className="profile-avatar">
+          {resolvedProfile.profileImage && (
+            <img src={resolvedProfile.profileImage} alt={`${resolvedProfile.name} avatar`} loading="lazy" />
+          )}
         </div>
-        <button className="edit-btn">edit</button>
+        <div className="profile-info">
+          <h2>{resolvedProfile.name}</h2>
+          <p>@{resolvedProfile.username}</p>
+          <div className="profile-meta">
+            {resolvedProfile.location && <span>{resolvedProfile.location}</span>}
+            {resolvedProfile.joined && (
+              <span>
+                Joined {joinedDate.isValid() ? joinedDate.format("MMMM YYYY") : resolvedProfile.joined}
+              </span>
+            )}
+          </div>
+        </div>
+        <button
+          type="button"
+          className="edit-btn"
+          onClick={() => {
+            if (!isCurrentUser && typeof onSelectProfile === "function") {
+              onSelectProfile(currentUserId)
+            }
+          }}
+          disabled={isCurrentUser}
+        >
+          {isCurrentUser ? "Your Profile" : "View My Profile"}
+        </button>
       </div>
 
       <hr className="divider" />
@@ -70,64 +60,52 @@ export default function Profile() {
       <div className="profile-content">
         <div className="left-side">
           <div className="card">
-            <h3>Introduction</h3>
-            <p className="profile-about">
-              Third-year student passionate about math, languages, and helping friends stay motivated. I love building study plans that balance deep focus with creative breaks.
-            </p>
+            <h3>About</h3>
+            <p className="profile-about">{resolvedProfile.bio}</p>
           </div>
 
           <div className="card">
-            <h3>Target Achievement</h3>
-            <div className="profile-target">
-              <span className="profile-target-item">University of Tokyo - Global Studies</span>
-              <span className="profile-target-item">JLPT N1 Certification</span>
+            <h3>Stats</h3>
+            <div className="profile-stats">
+              <div>
+                <span className="profile-stat-value">{resolvedProfile.followers}</span>
+                <span className="profile-stat-label">Followers</span>
+              </div>
+              <div>
+                <span className="profile-stat-value">{resolvedProfile.following}</span>
+                <span className="profile-stat-label">Following</span>
+              </div>
+              <div>
+                <span className="profile-stat-value">{resolvedProfile.posts}</span>
+                <span className="profile-stat-label">Posts</span>
+              </div>
             </div>
           </div>
 
           <div className="card">
-            <h3>Goals</h3>
-            <div className="goal-section">
-              <h4>Long-Term</h4>
-              <ul className="goal-list">
-                <li>Publish a study guide for multilingual learners.</li>
-                <li>Complete a research internship focused on learning science.</li>
-              </ul>
+            <h3>Interests</h3>
+            <div className="profile-tags">
+              {tags.map(tag => (
+                <span key={tag} className="profile-tag">{tag}</span>
+              ))}
+              {tags.length === 0 && <span className="profile-tag">No tags yet</span>}
             </div>
-            <div className="goal-section">
-              <h4>Short-Term</h4>
-              <ul className="goal-list">
-                <li>Finish the current semester with a GPA above 3.8.</li>
-                <li>Lead a weekly peer study circle for calculus.</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="card">
-            <h3>Tasks</h3>
-            <ul>
-              <li>Finish homework</li>
-              <li>Review notes</li>
-            </ul>
           </div>
         </div>
 
         <div className="right-side">
           <div className="profile-posts-header">
             <h3>Recent Posts</h3>
-            <button className="btn ghost" onClick={() => setModalOpen(true)}>
-              New Post
-            </button>
           </div>
 
           <div className="profile-post-list">
+            {posts.length === 0 && <div className="profile-empty">No posts yet.</div>}
             {posts.map(post => (
-              <PostCard key={post.id} post={post} />
+              <PostCard key={post.id} post={post} onSelectProfile={onSelectProfile} />
             ))}
           </div>
         </div>
       </div>
-
-      <PostModal open={modalOpen} onClose={() => setModalOpen(false)} onSubmit={handleAddPost} />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+﻿import { useState } from 'react'
 import Navbar from './components/Navbar.jsx'
 import RightPanel from './components/RightPanel.jsx'
 import WidgetCanvas from './components/WidgetCanvas.jsx'
@@ -6,17 +6,45 @@ import Profile from './pages/Profile.jsx'
 import WidgetPicker from './components/WidgetPicker.jsx'
 import SocialPage from './components/social/SocialPage.jsx'
 import CalendarPage from './components/CalendarPage.jsx'
+import { profiles, getProfileById, getProfilesExcept } from './lib/profiles.js'
+
+const CURRENT_USER_ID = 1
+
+const presenceByUserId = {
+  2: { status: 'online', activity: 'Pair programming' },
+  3: { status: 'offline', activity: 'Sketching ideas' },
+  4: { status: 'online', activity: 'Soldering PCB' },
+  5: { status: 'offline', activity: 'Language review' },
+}
+
+const derivedFriends = getProfilesExcept(CURRENT_USER_ID).map(profile => {
+  const presence = presenceByUserId[profile.id] ?? { status: 'offline', activity: 'Offline' }
+  return {
+    ...profile,
+    status: presence.status,
+    activity: presence.activity,
+  }
+})
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('Home')
   const [editMode, setEditMode] = useState(false)
   const [layout, setLayout] = useState([])
   const [items, setItems] = useState([])
+  const [selectedProfileId, setSelectedProfileId] = useState(CURRENT_USER_ID)
 
-  // TODO: restore bootstrap + persistence using loadState/saveState if needed
+  const currentUser = getProfileById(CURRENT_USER_ID) ?? profiles[0]
+  const friends = derivedFriends
 
   function handleNewTask() {
     alert('New Task dialog TODO')
+  }
+
+  function handleChangeTab(tab) {
+    setActiveTab(tab)
+    if (tab === 'Profile') {
+      setSelectedProfileId(CURRENT_USER_ID)
+    }
   }
 
   function addWidgetFromCatalog(widget) {
@@ -53,21 +81,16 @@ export default function App() {
       return [...prevItems, { id: idBase, type: widget.type, title: widget?.name ?? widget.type, grid }]
     })
   }
-  const user = useMemo(() => ({ nickname: 'Nickname', username: 'username' }), [])
-  const friends = useMemo(
-    () => [
-      { id: '1', name: 'Alice', status: 'online', activity: 'Study' },
-      { id: '2', name: 'Ben', status: 'offline' },
-      { id: '3', name: 'Chika', status: 'offline' }
-    ],
-    []
-  )
+
+  function openProfile(profileId) {
+    setSelectedProfileId(profileId)
+    setActiveTab('Profile')
+  }
 
   return (
     <div className="container">
-      <Navbar activeTab={activeTab} onChangeTab={setActiveTab} onNewTask={handleNewTask} />
+      <Navbar activeTab={activeTab} onChangeTab={handleChangeTab} onNewTask={handleNewTask} />
 
-      {/* Left content */}
       <main className="canvas-wrap">
         {activeTab === 'Home' && (
           <>
@@ -87,18 +110,19 @@ export default function App() {
           </>
         )}
 
-        {activeTab === 'Social' && <SocialPage />}
+        {activeTab === 'Social' && <SocialPage onSelectProfile={openProfile} />}
 
-        {activeTab === 'Profile' && <Profile />}
+        {activeTab === 'Profile' && (
+          <Profile
+            profileId={selectedProfileId}
+            currentUserId={CURRENT_USER_ID}
+            onSelectProfile={openProfile}
+          />
+        )}
         {activeTab === 'Calendar' && <CalendarPage />}
       </main>
 
-      <RightPanel user={user} friends={friends} />
+      <RightPanel user={currentUser} friends={friends} onSelectUser={openProfile} />
     </div>
   )
 }
-
-
-
-
-

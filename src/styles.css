@@ -1,4 +1,4 @@
-/* =======================================================
+﻿/* =======================================================
    GLOBAL VARIABLES & BASE
    ======================================================= */
 :root {
@@ -895,3 +895,93 @@ body {
   min-height: 110px;
   resize: vertical;
 }
+
+/* === Social and profile data integration adjustments === */
+.panel-button {
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.panel-button:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.avatar {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.friend {
+  cursor: pointer;
+  gap: 12px;
+}
+
+.friend-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.friend-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--muted);
+  background-size: cover;
+  background-position: center;
+}
+
+.friend.panel-button {
+  border: none;
+}
+
+.post-avatar {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.post-avatar-button,
+.post-author-button {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.post-author-button {
+  display: inline-flex;
+  align-items: center;
+}
+
+.post-image {
+  width: 100%;
+  border-radius: 14px;
+  margin-top: 8px;
+  object-fit: cover;
+}
+
+.post-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.post-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--subtext);
+}
+
