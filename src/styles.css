@@ -8,7 +8,7 @@
   --text: #111;
   --subtext: #666;
   --ring: #d3d3d9;
-  --accent: #ff6b6b;
+  --accent: #111;
   --radius: 16px;
   --sidebar-w: 320px; /* Right friends panel width */
 }
@@ -175,31 +175,17 @@ body {
   width: 100%;
   background: var(--panel);
   border: 1px solid var(--ring);
-  border-radius: 16px;
-  padding: 12px;
+  border-radius: 18px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.widget[data-type="timer"] {
-  background: linear-gradient(135deg, rgba(255, 107, 107, 0.95) 0%, rgba(255, 142, 83, 0.95) 100%);
-  border-color: transparent;
-  color: #fff;
-  box-shadow: 0 18px 32px rgba(255, 107, 107, 0.25);
-}
-
-.widget[data-type="timer"] .widget-header span {
-  color: #fff;
-}
-
-.widget[data-type="timer"] .icon-btn {
-  color: #fff;
-}
-
-.widget[data-type="timer"] .icon-btn:hover {
-  background: rgba(255, 255, 255, 0.16);
+.widget:hover {
+  box-shadow: 0 14px 32px rgba(17, 17, 17, 0.08);
+  transform: translateY(-1px);
 }
 
 .widget-header {
@@ -207,6 +193,7 @@ body {
   justify-content: space-between;
   align-items: center;
   font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .icon-btn {
@@ -216,86 +203,59 @@ body {
   padding: 6px;
   border-radius: 8px;
   color: inherit;
+  transition: background 0.2s ease;
 }
 
 .icon-btn:hover {
-  background: var(--bg);
-}
-
-.row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.input {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--ring);
-  background: #fff;
-}
-
-.todo-input {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--ring);
-  background: #fff;
+  background: var(--muted);
 }
 
 .clock-widget {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 12px;
-  padding: 8px 0 4px;
 }
 
 .clock-display {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 10px;
   font-weight: 800;
-  font-size: clamp(2.4rem, 4vw, 3.5rem);
-  letter-spacing: 1px;
+  font-size: clamp(2.8rem, 5vw, 3.6rem);
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
 }
 
 .clock-separator {
-  opacity: 0.6;
+  opacity: 0.45;
 }
 
 .clock-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   font-size: 0.85rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--subtext);
 }
 
-.clock-seconds {
-  font-weight: 700;
-  color: var(--text);
-}
-
+.clock-seconds,
 .clock-ampm {
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text);
 }
 
 .clock-date {
   text-transform: none;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   font-weight: 600;
 }
 
 .timer-widget {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .timer-modes {
@@ -305,25 +265,25 @@ body {
 }
 
 .timer-mode {
-  border: none;
-  background: rgba(255, 255, 255, 0.14);
-  color: inherit;
-  padding: 6px 12px;
+  border: 1px solid var(--ring);
+  background: var(--panel);
+  color: var(--text);
+  padding: 6px 14px;
   border-radius: 999px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .timer-mode.active {
-  background: rgba(255, 255, 255, 0.28);
-  transform: translateY(-1px);
+  background: var(--text);
+  color: #fff;
 }
 
 .timer-display {
-  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-size: clamp(2.6rem, 6vw, 3.8rem);
   font-weight: 800;
-  letter-spacing: 2px;
+  letter-spacing: 0.12em;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
@@ -331,14 +291,14 @@ body {
 .timer-progress {
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--muted);
   overflow: hidden;
 }
 
 .timer-progress-fill {
   height: 100%;
   width: 100%;
-  background: #fff;
+  background: var(--text);
   transform-origin: left;
   transition: transform 0.3s ease;
 }
@@ -350,34 +310,24 @@ body {
 
 .timer-btn {
   flex: 1;
-  border: none;
-  border-radius: 14px;
+  border-radius: 12px;
   font-weight: 700;
   padding: 12px 16px;
   cursor: pointer;
-  transition: transform 0.15s, opacity 0.2s;
+  border: 1px solid var(--ring);
+  background: var(--panel);
+  color: var(--text);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
 }
 
 .timer-btn.primary {
-  background: #fff;
-  color: #ff4b5c;
-}
-
-.timer-btn.primary:hover {
-  transform: translateY(-1px);
-}
-
-.timer-btn.ghost {
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--text);
   color: #fff;
+  border-color: var(--text);
 }
 
-.timer-btn.ghost:hover {
-  opacity: 0.85;
-}
-
-.widget[data-type="timer"] .timer-btn.ghost {
-  border: 1px solid rgba(255, 255, 255, 0.32);
+.timer-btn:hover {
+  transform: translateY(-1px);
 }
 
 .todo-widget {
@@ -390,9 +340,9 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border-radius: 12px;
-  background: var(--bg);
+  background: var(--panel);
   border: 1px solid var(--ring);
 }
 
@@ -405,19 +355,19 @@ body {
 
 .todo-header-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 
 .todo-icon-btn {
   width: 32px;
   height: 32px;
+  border-radius: 10px;
   border: 1px solid var(--ring);
   background: var(--panel);
-  border-radius: 10px;
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
+  transition: background 0.2s ease, transform 0.15s ease;
 }
 
 .todo-icon-btn:hover {
@@ -431,14 +381,15 @@ body {
   gap: 8px;
   border-radius: 14px;
   border: 1px solid var(--ring);
-  background: var(--bg);
-  padding: 6px;
+  background: var(--panel);
+  padding: 6px 8px;
 }
 
 .todo-input-row .todo-input {
+  flex: 1;
   border: none;
   background: transparent;
-  padding: 8px 10px;
+  padding: 8px 6px;
   font-size: 0.95rem;
 }
 
@@ -449,51 +400,50 @@ body {
 .todo-submit {
   width: 36px;
   height: 36px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: none;
-  background: var(--accent);
+  background: var(--text);
   color: #fff;
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: transform 0.15s, filter 0.15s;
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
 
 .todo-submit:hover {
   transform: translateY(-1px);
-  filter: brightness(1.05);
+  filter: brightness(1.1);
 }
 
 .todo-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .todo-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 10px 12px;
   border-radius: 12px;
-  background: var(--bg);
-  border: 1px solid transparent;
-  transition: border-color 0.2s, transform 0.15s, opacity 0.2s;
+  border: 1px solid var(--ring);
+  background: var(--panel);
+  transition: border-color 0.2s ease, opacity 0.2s ease;
 }
 
 .todo-item:hover {
-  border-color: var(--ring);
-  transform: translateY(-1px);
+  border-color: var(--text);
 }
 
 .todo-item.is-done {
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 .todo-toggle {
   border: none;
   background: transparent;
-  color: var(--accent);
+  color: var(--text);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -503,7 +453,6 @@ body {
 .todo-text {
   flex: 1;
   font-size: 0.95rem;
-  line-height: 1.4;
 }
 
 .todo-item.is-done .todo-text {
@@ -518,6 +467,7 @@ body {
   cursor: pointer;
   padding: 4px;
   border-radius: 8px;
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
 .todo-remove:hover {
@@ -529,20 +479,14 @@ body {
   color: var(--subtext);
   font-size: 0.9rem;
   text-align: center;
-  background: var(--bg);
-  border-radius: 12px;
-  padding: 12px;
 }
 
 .todo-footer {
   font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--subtext);
-}
-
-/* =======================================================
-   SOCIAL PAGE FEED
+}\r\n\r\n/* =======================================================\r\n   SOCIAL PAGE FEED
    ======================================================= */
 .social-wrap {
   max-width: 760px;
@@ -951,5 +895,6 @@ body {
   min-height: 110px;
   resize: vertical;
 }
+
 
 

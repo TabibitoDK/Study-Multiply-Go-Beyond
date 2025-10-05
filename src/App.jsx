@@ -27,18 +27,32 @@ export default function App() {
         ? `${widget.type}-${cryptoApi.randomUUID()}`
         : `${widget.type}-${Date.now()}`
 
+    const baseW = typeof size.w === 'number' ? size.w : 4
+    const baseH = typeof size.h === 'number' ? size.h : 3
+    const minW = typeof size.minW === 'number' ? size.minW : baseW
+    const minH = typeof size.minH === 'number' ? size.minH : baseH
+    const widthUnits = Math.max(baseW, minW)
+    const heightUnits = Math.max(baseH, minH)
+
     setLayout(prevLayout => {
-      const nextY = prevLayout.reduce((max, l) => Math.max(max, l.y + l.h), 0)
-      return [...prevLayout, { i: idBase, x: 0, y: nextY, w: size.w, h: size.h }]
+      const cols = 12
+      const perRow = Math.max(1, Math.floor(cols / Math.max(1, widthUnits)))
+      const index = prevLayout.length
+      const x = (index % perRow) * widthUnits
+      const y = Math.floor(index / perRow) * heightUnits
+      return [...prevLayout, { i: idBase, x, y, w: widthUnits, h: heightUnits }]
     })
 
     setItems(prevItems => {
-      const nextY = prevItems.reduce((max, it) => Math.max(max, it.grid.y + it.grid.h), 0)
-      const grid = { x: 0, y: nextY, w: size.w, h: size.h }
+      const cols = 12
+      const perRow = Math.max(1, Math.floor(cols / Math.max(1, widthUnits)))
+      const index = prevItems.length
+      const x = (index % perRow) * widthUnits
+      const y = Math.floor(index / perRow) * heightUnits
+      const grid = { x, y, w: widthUnits, h: heightUnits }
       return [...prevItems, { id: idBase, type: widget.type, title: widget?.name ?? widget.type, grid }]
     })
   }
-
   const user = useMemo(() => ({ nickname: 'Nickname', username: 'username' }), [])
   const friends = useMemo(
     () => [
@@ -83,6 +97,8 @@ export default function App() {
     </div>
   )
 }
+
+
 
 
 
