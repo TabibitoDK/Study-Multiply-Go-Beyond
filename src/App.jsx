@@ -5,6 +5,7 @@ import WidgetCanvas from './components/WidgetCanvas.jsx'
 import Profile from './pages/Profile.jsx'
 import WidgetPicker from './components/WidgetPicker.jsx'
 import SocialPage from './components/social/SocialPage.jsx'
+import CalendarPage from './components/CalendarPage.jsx'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('Home')
@@ -75,12 +76,13 @@ export default function App() {
         {activeTab === 'Social' && <SocialPage />}
 
         {activeTab === 'Profile' && <Profile />}
-        {activeTab === 'Calendar' && <div>Calendar (coming soon)</div>}
+        {activeTab === 'Calendar' && <CalendarPage />}
       </main>
 
       <RightPanel user={user} friends={friends} />
     </div>
   )
 }
+
 
 
