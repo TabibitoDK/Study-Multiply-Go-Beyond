@@ -985,3 +985,91 @@ body {
   color: var(--subtext);
 }
 
+/* =======================================================
+   LANGUAGE SWITCHER
+   ======================================================= */
+.language-switcher {
+  position: relative;
+  display: inline-flex;
+}
+
+.language-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--ring);
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.language-trigger:hover {
+  background: var(--muted);
+}
+
+.language-switcher.is-open .language-trigger,
+.language-trigger:focus-visible {
+  border-color: var(--text);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+  outline: none;
+}
+
+.language-icon {
+  color: var(--text);
+}
+
+.language-label {
+  white-space: nowrap;
+}
+
+.language-caret {
+  transition: transform 0.2s ease;
+}
+
+.language-switcher.is-open .language-caret {
+  transform: rotate(180deg);
+}
+
+.language-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 160px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 16px;
+  background: var(--panel);
+  border: 1px solid var(--ring);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
+  z-index: 20;
+}
+
+.language-option {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.language-option:hover,
+.language-option:focus-visible {
+  background: var(--muted);
+  outline: none;
+}
+
+.language-option.is-active {
+  background: rgba(17, 17, 17, 0.08);
+  font-weight: 700;
+}
+

@@ -1,4 +1,5 @@
 ﻿import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Navbar from './components/Navbar.jsx'
 import RightPanel from './components/RightPanel.jsx'
 import WidgetCanvas from './components/WidgetCanvas.jsx'
@@ -27,7 +28,8 @@ const derivedFriends = getProfilesExcept(CURRENT_USER_ID).map(profile => {
 })
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('Home')
+  const { t } = useTranslation()
+  const [activeTab, setActiveTab] = useState('home')
   const [editMode, setEditMode] = useState(false)
   const [layout, setLayout] = useState([])
   const [items, setItems] = useState([])
@@ -37,12 +39,12 @@ export default function App() {
   const friends = derivedFriends
 
   function handleNewTask() {
-    alert('New Task dialog TODO')
+    alert(t('app.newTaskDialog'))
   }
 
   function handleChangeTab(tab) {
     setActiveTab(tab)
-    if (tab === 'Profile') {
+    if (tab === 'profile') {
       setSelectedProfileId(CURRENT_USER_ID)
     }
   }
@@ -78,13 +80,18 @@ export default function App() {
       const x = (index % perRow) * widthUnits
       const y = Math.floor(index / perRow) * heightUnits
       const grid = { x, y, w: widthUnits, h: heightUnits }
-      return [...prevItems, { id: idBase, type: widget.type, title: widget?.name ?? widget.type, grid }]
+      const titleKey = widget?.titleKey ?? null
+      const fallbackTitle = titleKey ? t(titleKey) : widget?.name ?? widget.type
+      return [
+        ...prevItems,
+        { id: idBase, type: widget.type, titleKey, title: fallbackTitle, grid },
+      ]
     })
   }
 
   function openProfile(profileId) {
     setSelectedProfileId(profileId)
-    setActiveTab('Profile')
+    setActiveTab('profile')
   }
 
   return (
@@ -92,11 +99,11 @@ export default function App() {
       <Navbar activeTab={activeTab} onChangeTab={handleChangeTab} onNewTask={handleNewTask} />
 
       <main className="canvas-wrap">
-        {activeTab === 'Home' && (
+        {activeTab === 'home' && (
           <>
             <div className="canvas-toolbar">
               <button className="btn ghost" onClick={() => setEditMode(m => !m)}>
-                {editMode ? 'Exit Edit' : 'Edit'}
+                {editMode ? t('buttons.exitEdit') : t('buttons.edit')}
               </button>
               {editMode && <WidgetPicker onAdd={addWidgetFromCatalog} />}
             </div>
@@ -110,16 +117,16 @@ export default function App() {
           </>
         )}
 
-        {activeTab === 'Social' && <SocialPage onSelectProfile={openProfile} />}
+        {activeTab === 'social' && <SocialPage onSelectProfile={openProfile} />}
 
-        {activeTab === 'Profile' && (
+        {activeTab === 'profile' && (
           <Profile
             profileId={selectedProfileId}
             currentUserId={CURRENT_USER_ID}
             onSelectProfile={openProfile}
           />
         )}
-        {activeTab === 'Calendar' && <CalendarPage />}
+        {activeTab === 'calendar' && <CalendarPage />}
       </main>
 
       <RightPanel user={currentUser} friends={friends} onSelectUser={openProfile} />

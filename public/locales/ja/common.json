@@ -1,0 +1,74 @@
+﻿{
+  "brand": {
+    "title": "Study Multiply Go Beyond"
+  },
+  "navbar": {
+    "logoAlt": "Study Multiply Go Beyondのロゴ",
+    "tabsAria": "メインナビゲーション"
+  },
+  "nav": {
+    "home": "ホーム",
+    "social": "ソーシャル",
+    "profile": "プロフィール",
+    "calendar": "カレンダー",
+    "newTask": "新しいタスク"
+  },
+  "app": {
+    "newTaskDialog": "この機能は近日公開予定です。"
+  },
+  "buttons": {
+    "edit": "レイアウトを編集",
+    "exitEdit": "編集を終了",
+    "today": "今日",
+    "cancel": "キャンセル"
+  },
+  "rightPanel": {
+    "guest": "ゲスト",
+    "anonymous": "匿名",
+    "friends": "フレンド",
+    "online": "オンライン",
+    "nobodyOnline": "オンラインのフレンドはいません",
+    "badgeOnline": "オンライン",
+    "offline": "オフライン",
+    "nobodyOffline": "オフラインのフレンドはいません",
+    "badgeOffline": "オフライン"
+  },
+  "widgetPicker": {
+    "add": "{{name}}を追加"
+  },
+  "widgets": {
+    "delete": "ウィジェットを削除",
+    "unknown": "不明なウィジェット",
+    "clock": {
+      "name": "時計"
+    },
+    "timer": {
+      "name": "タイマー"
+    },
+    "todo": {
+      "name": "ToDoリスト"
+    }
+  },
+  "languageSwitcher": {
+    "label": "言語を切り替え",
+    "options": {
+      "en": "英語",
+      "ja": "日本語"
+    }
+  },
+  "calendar": {
+    "aria": {
+      "previous": "前の月",
+      "next": "次の月"
+    },
+    "title": "{{year}}年{{month}}",
+    "subtitle": "学習の予定や目標を確認しましょう。",
+    "moreEvents": "ほか{{count}}件",
+    "modal": {
+      "title": "予定を追加",
+      "existing": "登録済みの予定",
+      "placeholder": "予定やメモを入力してください...",
+      "save": "保存する"
+    }
+  }
+}

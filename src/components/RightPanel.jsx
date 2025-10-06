@@ -1,4 +1,7 @@
-﻿export default function RightPanel({ user, friends = [], onSelectUser }) {
+﻿import { useTranslation } from 'react-i18next'
+
+export default function RightPanel({ user, friends = [], onSelectUser }) {
+  const { t } = useTranslation()
   const online = friends.filter(friend => friend.status === 'online')
   const offline = friends.filter(friend => friend.status !== 'online')
 
@@ -20,16 +23,18 @@
           style={user?.profileImage ? { backgroundImage: `url(${user.profileImage})` } : undefined}
         />
         <div>
-          <div style={{ fontWeight: 800 }}>{user?.name ?? 'Guest'}</div>
-          <div style={{ color: 'var(--subtext)', fontSize: 12 }}>@{user?.username ?? 'anonymous'}</div>
+          <div style={{ fontWeight: 800 }}>{user?.name ?? t('rightPanel.guest')}</div>
+          <div style={{ color: 'var(--subtext)', fontSize: 12 }}>@{user?.username ?? t('rightPanel.anonymous')}</div>
         </div>
       </button>
 
       <div className="hr" />
 
-      <div className="section-title">Friends</div>
-      <div className="section-title" style={{ marginTop: 6 }}>Online</div>
-      {online.length === 0 && <div style={{ color: 'var(--subtext)', fontSize: 13 }}>Nobody online right now.</div>}
+      <div className="section-title">{t('rightPanel.friends')}</div>
+      <div className="section-title" style={{ marginTop: 6 }}>{t('rightPanel.online')}</div>
+      {online.length === 0 && (
+        <div style={{ color: 'var(--subtext)', fontSize: 13 }}>{t('rightPanel.nobodyOnline')}</div>
+      )}
       {online.map(friend => (
         <button
           key={friend.id}
@@ -44,12 +49,14 @@
             />
             <span>{friend.name}</span>
           </div>
-          <span className="badge">{friend.activity ?? 'Online'}</span>
+          <span className="badge">{friend.activity ?? t('rightPanel.badgeOnline')}</span>
         </button>
       ))}
 
-      <div className="section-title" style={{ marginTop: 12 }}>Offline</div>
-      {offline.length === 0 && <div style={{ color: 'var(--subtext)', fontSize: 13 }}>No offline friends.</div>}
+      <div className="section-title" style={{ marginTop: 12 }}>{t('rightPanel.offline')}</div>
+      {offline.length === 0 && (
+        <div style={{ color: 'var(--subtext)', fontSize: 13 }}>{t('rightPanel.nobodyOffline')}</div>
+      )}
       {offline.map(friend => (
         <button
           key={friend.id}
@@ -64,7 +71,7 @@
             />
             <span>{friend.name}</span>
           </div>
-          <span className="badge">Offline</span>
+          <span className="badge">{t('rightPanel.badgeOffline')}</span>
         </button>
       ))}
     </aside>

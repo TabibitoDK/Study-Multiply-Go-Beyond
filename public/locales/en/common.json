@@ -1,0 +1,74 @@
+﻿{
+  "brand": {
+    "title": "Study Multiply Go Beyond"
+  },
+  "navbar": {
+    "logoAlt": "Study Multiply Go Beyond logo",
+    "tabsAria": "Main navigation"
+  },
+  "nav": {
+    "home": "Home",
+    "social": "Social",
+    "profile": "Profile",
+    "calendar": "Calendar",
+    "newTask": "New Task"
+  },
+  "app": {
+    "newTaskDialog": "Task creation will be available soon!"
+  },
+  "buttons": {
+    "edit": "Edit layout",
+    "exitEdit": "Done editing",
+    "today": "Today",
+    "cancel": "Cancel"
+  },
+  "rightPanel": {
+    "guest": "Guest",
+    "anonymous": "anonymous",
+    "friends": "Friends",
+    "online": "Online now",
+    "nobodyOnline": "No friends are online right now.",
+    "badgeOnline": "Online",
+    "offline": "Offline",
+    "nobodyOffline": "No friends are offline.",
+    "badgeOffline": "Offline"
+  },
+  "widgetPicker": {
+    "add": "Add {{name}}"
+  },
+  "widgets": {
+    "delete": "Remove widget",
+    "unknown": "Unknown widget",
+    "clock": {
+      "name": "Clock"
+    },
+    "timer": {
+      "name": "Timer"
+    },
+    "todo": {
+      "name": "To-do list"
+    }
+  },
+  "languageSwitcher": {
+    "label": "Change language",
+    "options": {
+      "en": "English",
+      "ja": "Japanese"
+    }
+  },
+  "calendar": {
+    "aria": {
+      "previous": "Previous month",
+      "next": "Next month"
+    },
+    "title": "{{month}} {{year}}",
+    "subtitle": "Plan study sessions and deadlines at a glance.",
+    "moreEvents": "+{{count}} more",
+    "modal": {
+      "title": "Add calendar entry",
+      "existing": "Existing events",
+      "placeholder": "Add study plans or reminders...",
+      "save": "Save event"
+    }
+  }
+}
