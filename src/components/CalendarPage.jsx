@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-
-const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+import { useI18nFormats } from '../lib/i18n-format.js'
 const STORAGE_KEY = 'smgb-calendar-events-v1'
 
 export default function CalendarPage() {
   const today = new Date()
+  const { t } = useTranslation()
+  const { locale, formatDate } = useI18nFormats()
   const [currentMonth, setCurrentMonth] = useState(today.getMonth())
   const [currentYear, setCurrentYear] = useState(today.getFullYear())
   const [events, setEvents] = useState(() => {
@@ -21,6 +23,16 @@ export default function CalendarPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedDay, setSelectedDay] = useState(null)
   const [draftText, setDraftText] = useState('')
+
+  const weekdayLabels = useMemo(() => {
+    const reference = new Date(Date.UTC(2021, 5, 6))
+    const formatter = new Intl.DateTimeFormat(locale, { weekday: 'short' })
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(reference)
+      date.setUTCDate(reference.getUTCDate() + index)
+      return formatter.format(date)
+    })
+  }, [locale])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -40,10 +52,10 @@ export default function CalendarPage() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [modalOpen])
 
-  const monthLabel = useMemo(
-    () => new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' }),
-    [currentMonth, currentYear]
-  )
+  const monthLabel = useMemo(() => {
+    const monthDate = new Date(currentYear, currentMonth, 1)
+    return formatDate(monthDate, { month: 'long' })
+  }, [currentMonth, currentYear, formatDate])
   const daysInMonth = useMemo(
     () => new Date(currentYear, currentMonth + 1, 0).getDate(),
     [currentMonth, currentYear]
@@ -61,8 +73,9 @@ export default function CalendarPage() {
 
   const selectedDateLabel = useMemo(() => {
     if (!selectedDay) return ''
-    return `${monthLabel} ${selectedDay}, ${currentYear}`
-  }, [selectedDay, monthLabel, currentYear])
+    const selectedDate = new Date(currentYear, currentMonth, selectedDay)
+    return formatDate(selectedDate, { dateStyle: 'long' })
+  }, [selectedDay, currentMonth, currentYear, formatDate])
 
   const selectedEvents = useMemo(() => {
     if (!selectedDay) return []
@@ -152,24 +165,24 @@ export default function CalendarPage() {
       <div className="calendar-surface">
         <div className="calendar-header">
           <div className="calendar-nav">
-            <button className="calendar-nav-btn" onClick={handlePrev} aria-label="Previous month">
+            <button className="calendar-nav-btn" onClick={handlePrev} aria-label={t('calendar.aria.previous')}>
               <ChevronLeft size={18} />
             </button>
-            <button className="calendar-nav-btn" onClick={handleNext} aria-label="Next month">
+            <button className="calendar-nav-btn" onClick={handleNext} aria-label={t('calendar.aria.next')}>
               <ChevronRight size={18} />
             </button>
           </div>
           <div className="calendar-title">
-            <h2>{monthLabel} {currentYear}</h2>
-            <p>Plan your study sessions - select a day to add notes.</p>
+            <h2>{t('calendar.title', { month: monthLabel, year: currentYear })}</h2>
+            <p>{t('calendar.subtitle')}</p>
           </div>
           <button className="btn ghost calendar-today-btn" onClick={handleReset}>
-            Today
+            {t('buttons.today')}
           </button>
         </div>
 
         <div className="calendar-weekdays">
-          {WEEKDAY_LABELS.map(label => (
+          {weekdayLabels.map(label => (
             <div key={label} className="calendar-weekday">
               {label}
             </div>
@@ -213,7 +226,9 @@ export default function CalendarPage() {
                         </span>
                       ))}
                       {hiddenCount > 0 && (
-                        <span className="calendar-event calendar-event-more">+{hiddenCount} more</span>
+                        <span className="calendar-event calendar-event-more">
+                          {t('calendar.moreEvents', { count: hiddenCount })}
+                        </span>
                       )}
                     </div>
                   </>
@@ -227,12 +242,12 @@ export default function CalendarPage() {
       {modalOpen && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal calendar-modal" onClick={event => event.stopPropagation()}>
-            <h2 className="modal-title">Add calendar note</h2>
+            <h2 className="modal-title">{t('calendar.modal.title')}</h2>
             <p className="calendar-modal-subtitle">{selectedDateLabel}</p>
 
             {selectedEvents.length > 0 && (
               <div className="calendar-modal-existing">
-                <span className="calendar-modal-section">Existing notes</span>
+                <span className="calendar-modal-section">{t('calendar.modal.existing')}</span>
                 <ul>
                   {selectedEvents.map((text, index) => (
                     <li key={index}>{text}</li>
@@ -245,13 +260,17 @@ export default function CalendarPage() {
               <textarea
                 className="input calendar-modal-textarea"
                 rows={4}
-                placeholder="What will you study?"
+                placeholder={t('calendar.modal.placeholder')}
                 value={draftText}
                 onChange={event => setDraftText(event.target.value)}
               />
               <div className="modal-actions">
-                <button type="button" className="btn ghost" onClick={closeModal}>Cancel</button>
-                <button type="submit" className="btn">Save note</button>
+                <button type="button" className="btn ghost" onClick={closeModal}>
+                  {t('buttons.cancel')}
+                </button>
+                <button type="submit" className="btn">
+                  {t('calendar.modal.save')}
+                </button>
               </div>
             </form>
           </div>

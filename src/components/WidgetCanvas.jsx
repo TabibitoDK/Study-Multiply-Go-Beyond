@@ -1,5 +1,6 @@
 import { Responsive, WidthProvider } from 'react-grid-layout'
 import { useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import ClockWidget from './widgets/ClockWidget.jsx'
 import TimerWidget from './widgets/TimerWidget.jsx'
@@ -13,13 +14,19 @@ const TYPE_PRESETS = {
   todo: { minW: 4, minH: 4, defaultW: 4, defaultH: 4 },
 }
 
-function WidgetShell({ id, title, type, canEdit, onRemove, children }) {
+const TYPE_LABEL_KEYS = {
+  clock: 'widgets.clock.name',
+  timer: 'widgets.timer.name',
+  todo: 'widgets.todo.name',
+}
+
+function WidgetShell({ id, title, type, canEdit, onRemove, deleteLabel, children }) {
   return (
     <div className="widget" data-id={id} data-type={type}>
       <div className="widget-header">
         <span>{title}</span>
         {canEdit && (
-          <button type="button" className="icon-btn" onClick={() => onRemove(id)} title="Delete">
+          <button type="button" className="icon-btn" onClick={() => onRemove(id)} title={deleteLabel} aria-label={deleteLabel}>
             <X size={16} />
           </button>
         )}
@@ -34,6 +41,7 @@ export default function WidgetCanvas({
   items, setItems,
   editMode
 }) {
+  const { t } = useTranslation()
   const breakpoints = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }
   const cols =       { lg: 12,   md: 10,  sm: 8,   xs: 6,   xxs: 4 }
 
@@ -125,12 +133,21 @@ export default function WidgetCanvas({
   }
 
   function renderWidget(widget) {
-    const title = widget.title ?? widget.type[0].toUpperCase() + widget.type.slice(1)
-    const common = { id: widget.id, title, type: widget.type, canEdit: editMode, onRemove: removeWidget }
+    const labelKey = widget.titleKey || TYPE_LABEL_KEYS[widget.type]
+    const fallback = widget.title || widget.type
+    const title = labelKey ? t(labelKey) : fallback
+    const common = {
+      id: widget.id,
+      title,
+      type: widget.type,
+      canEdit: editMode,
+      onRemove: removeWidget,
+      deleteLabel: t('widgets.delete'),
+    }
     if (widget.type === 'clock') return <WidgetShell {...common}><ClockWidget /></WidgetShell>
     if (widget.type === 'timer') return <WidgetShell {...common}><TimerWidget /></WidgetShell>
     if (widget.type === 'todo') return <WidgetShell {...common}><TodoWidget /></WidgetShell>
-    return <div>Unknown widget</div>
+    return <div>{t('widgets.unknown')}</div>
   }
 
   function removeWidget(id) {

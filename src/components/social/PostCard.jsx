@@ -1,22 +1,42 @@
 ﻿import dayjs from 'dayjs'
 
-function formatNumber(value) {
-  return new Intl.NumberFormat('en-US').format(value ?? 0)
+function isFunction(value) {
+  return typeof value === 'function'
 }
 
 export default function PostCard({ post, onSelectProfile }) {
-  const author = post.author
-  const timestamp = dayjs(post.timestamp)
-
-  function handleProfileClick() {
-    if (author?.id && typeof onSelectProfile === 'function') {
-      onSelectProfile(author.id)
-    }
+  if (!post) {
+    return null
   }
 
-  const tags = Array.isArray(post.tags)
-    ? post.tags.map(tag => (tag.startsWith('#') ? tag : `#${tag}`))
-    : []
+  const {
+    author,
+    content,
+    image,
+    likes,
+    comments,
+    timestamp,
+    tags,
+  } = post
+
+  const authorId = author?.id
+  const authorName = author?.name ?? 'Anonymous Student'
+  const authorHandle = author?.username ? `@${author.username}` : '@unknown'
+  const avatarStyle = author?.profileImage ? { backgroundImage: `url(${author.profileImage})` } : undefined
+
+  const likeCount = typeof likes === 'number' ? likes : 0
+  const commentCount = typeof comments === 'number' ? comments : 0
+  const safeTags = Array.isArray(tags) ? tags.filter(Boolean) : []
+
+  const isoTime = typeof timestamp === 'string' ? timestamp : null
+  const createdAt = isoTime ? dayjs(isoTime) : null
+  const formattedTime = createdAt?.isValid() ? createdAt.format('MMM D, YYYY h:mm A') : null
+
+  function handleProfileClick() {
+    if (authorId && isFunction(onSelectProfile)) {
+      onSelectProfile(authorId)
+    }
+  }
 
   return (
     <article className="post">
@@ -25,48 +45,57 @@ export default function PostCard({ post, onSelectProfile }) {
           type="button"
           className="post-avatar-button"
           onClick={handleProfileClick}
-          aria-label={author?.name ? `View ${author.name}'s profile` : 'View profile'}
+          aria-label={`View ${authorName}'s profile`}
         >
-          <div
-            className="post-avatar"
-            style={author?.profileImage ? { backgroundImage: `url(${author.profileImage})` } : undefined}
-          />
+          <div className="post-avatar" style={avatarStyle} />
         </button>
+
         <div>
-          <button type="button" className="post-author-button" onClick={handleProfileClick}>
-            <span className="post-name">{author?.name ?? 'Unknown User'}</span>
+          <button
+            type="button"
+            className="post-author-button"
+            onClick={handleProfileClick}
+            aria-label={`View ${authorName}'s profile`}
+          >
+            <span className="post-name">{authorName}</span>
           </button>
-          <div className="post-handle">@{author?.username ?? 'unknown'}</div>
+          <div className="post-handle">{authorHandle}</div>
         </div>
       </header>
 
       <div className="post-body">
-        {post.content && <p className="post-text">{post.content}</p>}
+        {content && <p className="post-text">{content}</p>}
 
-        {post.image && (
-          <img
-            className="post-image"
-            src={`${post.image}?auto=compress&fit=crop&w=1200&q=80`}
-            alt=""
-            loading="lazy"
-          />
-        )}
-
-        {tags.length > 0 && (
+        {safeTags.length > 0 && (
           <div className="post-meta-grid">
-            {tags.map(tag => (
-              <span key={tag} className="pill">{tag}</span>
+            {safeTags.map(tag => (
+              <span key={tag} className="pill">
+                {tag}
+              </span>
             ))}
           </div>
+        )}
+
+        {typeof image === 'string' && image.trim() !== '' && (
+          <img
+            className="post-image"
+            src={image}
+            alt={`Post from ${authorName}`}
+            loading="lazy"
+          />
         )}
       </div>
 
       <footer className="post-foot">
-        <span className="time">{timestamp.isValid() ? timestamp.format('MMM D, YYYY at HH:mm') : ''}</span>
         <div className="post-stats">
-          <span>{formatNumber(post.likes)} Likes</span>
-          <span>{formatNumber(post.comments)} Comments</span>
+          <span>{likeCount} likes</span>
+          <span>{commentCount} comments</span>
         </div>
+        {formattedTime && (
+          <time className="post-handle" dateTime={isoTime}>
+            {formattedTime}
+          </time>
+        )}
       </footer>
     </article>
   )
