@@ -492,9 +492,14 @@ body {
   max-width: 760px;
   margin: 0 auto;
   position: relative;
+  display: flex;
+  justify-content: center;
 }
 
-.feed { padding-bottom: 120px; }
+.feed {
+  width: min(100%, 520px);
+  padding-bottom: 120px;
+}
 
 .post {
   background: var(--panel);
@@ -965,6 +970,7 @@ body {
 
 .post-image {
   width: 100%;
+  max-height: 360px;
   border-radius: 14px;
   margin-top: 8px;
   object-fit: cover;
