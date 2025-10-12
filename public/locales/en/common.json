@@ -11,6 +11,7 @@
     "social": "Social",
     "profile": "Profile",
     "calendar": "Calendar",
+    "tools": "Tools",
     "newTask": "New Task"
   },
   "app": {
@@ -69,6 +70,32 @@
       "existing": "Existing events",
       "placeholder": "Add study plans or reminders...",
       "save": "Save event"
+    }
+  },
+  "tools": {
+    "title": "Tools hub",
+    "subtitle": "Launch study helpers quickly and keep everything in one place.",
+    "apps": {
+      "immerse": {
+        "title": "Immerse Mode",
+        "description": "Silence distractions and shift into a full-screen focus layout."
+      },
+      "flashcards": {
+        "title": "Flashcards",
+        "description": "Drill key concepts with spaced repetition decks."
+      },
+      "summary": {
+        "title": "Summary",
+        "description": "Upload readings and receive fast, high-level summaries."
+      },
+      "pomodoro": {
+        "title": "Pomodoro",
+        "description": "Break study blocks into focused bursts with smart breaks."
+      }
+    },
+    "chat": {
+      "placeholder": "Ask the workspace assistant...",
+      "send": "Send"
     }
   }
 }

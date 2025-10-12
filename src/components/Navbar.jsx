@@ -7,6 +7,7 @@ const TABS = [
   { key: 'social', labelKey: 'nav.social' },
   { key: 'profile', labelKey: 'nav.profile' },
   { key: 'calendar', labelKey: 'nav.calendar' },
+  { key: 'tools', labelKey: 'nav.tools' },
 ]
 
 export default function Navbar({ activeTab = 'home', onNewTask, onChangeTab }) {

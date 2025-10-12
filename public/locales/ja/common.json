@@ -11,7 +11,8 @@
     "social": "ソーシャル",
     "profile": "プロフィール",
     "calendar": "カレンダー",
-    "newTask": "新しいタスク"
+    "newTask": "新しいタスク",
+    "tools": "ツール"
   },
   "app": {
     "newTaskDialog": "この機能は近日公開予定です。"
@@ -69,6 +70,32 @@
       "existing": "登録済みの予定",
       "placeholder": "予定やメモを入力してください...",
       "save": "保存する"
+    }
+  },
+  "tools": {
+    "title": "Tools hub",
+    "subtitle": "Launch study helpers quickly and keep everything in one place.",
+    "apps": {
+      "immerse": {
+        "title": "Immerse Mode",
+        "description": "Silence distractions and shift into a full-screen focus layout."
+      },
+      "flashcards": {
+        "title": "Flashcards",
+        "description": "Drill key concepts with spaced repetition decks."
+      },
+      "summary": {
+        "title": "Summary",
+        "description": "Upload readings and receive fast, high-level summaries."
+      },
+      "pomodoro": {
+        "title": "Pomodoro",
+        "description": "Break study blocks into focused bursts with smart breaks."
+      }
+    },
+    "chat": {
+      "placeholder": "Ask the workspace assistant...",
+      "send": "Send"
     }
   }
 }

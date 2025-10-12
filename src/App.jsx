@@ -7,6 +7,7 @@ import Profile from './pages/Profile.jsx'
 import WidgetPicker from './components/WidgetPicker.jsx'
 import SocialPage from './components/social/SocialPage.jsx'
 import CalendarPage from './components/CalendarPage.jsx'
+import Tools from './pages/Tools.jsx'
 import { profiles, getProfileById, getProfilesExcept } from './lib/profiles.js'
 
 const CURRENT_USER_ID = 1
@@ -127,6 +128,7 @@ export default function App() {
           />
         )}
         {activeTab === 'calendar' && <CalendarPage />}
+        {activeTab === 'tools' && <Tools />}
       </main>
 
       <RightPanel user={currentUser} friends={friends} onSelectUser={openProfile} />
