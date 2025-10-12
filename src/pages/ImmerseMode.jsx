@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, Cog, Pencil, X } from 'lucide-react'
 import WidgetCanvas from '../components/WidgetCanvas.jsx'
@@ -10,6 +10,8 @@ const DEFAULT_BACKGROUND = {
   color: '#0f172a',
 }
 
+const IMMERSION_STORAGE_KEY = 'immerse-mode-state'
+
 export default function ImmerseMode({ onClose }) {
   const { t } = useTranslation()
   const [editMode, setEditMode] = useState(false)
@@ -18,6 +20,10 @@ export default function ImmerseMode({ onClose }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [background, setBackground] = useState(DEFAULT_BACKGROUND)
   const [draftBackground, setDraftBackground] = useState(DEFAULT_BACKGROUND)
+  const pickerRef = useRef(null)
+  const [pickerHeight, setPickerHeight] = useState(0)
+  const storageReadyRef = useRef(false)
+  const skipNextSaveRef = useRef(false)
 
   useEffect(() => {
     const previous = document.body.style.overflow
@@ -40,6 +46,72 @@ export default function ImmerseMode({ onClose }) {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose, settingsOpen])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const storage = window.sessionStorage
+    if (!storage) {
+      storageReadyRef.current = true
+      return
+    }
+
+    try {
+      const raw = storage.getItem(IMMERSION_STORAGE_KEY)
+      if (!raw) {
+        storageReadyRef.current = true
+        return
+      }
+      const parsed = JSON.parse(raw)
+      if (parsed && Array.isArray(parsed.layout) && Array.isArray(parsed.items)) {
+        skipNextSaveRef.current = true
+        setLayout(parsed.layout)
+        setItems(parsed.items)
+      }
+    } catch {
+      // Ignore malformed storage data and start fresh
+    } finally {
+      storageReadyRef.current = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!storageReadyRef.current) return
+    const storage = window.sessionStorage
+    if (!storage) return
+    if (skipNextSaveRef.current) {
+      skipNextSaveRef.current = false
+      return
+    }
+    try {
+      storage.setItem(
+        IMMERSION_STORAGE_KEY,
+        JSON.stringify({ layout, items })
+      )
+    } catch {
+      // Persisting is best-effort; ignore quota errors
+    }
+  }, [layout, items])
+
+  useLayoutEffect(() => {
+    if (!editMode) return
+    const element = pickerRef.current
+    if (!element) return
+
+    function updateHeight() {
+      setPickerHeight(element.offsetHeight ?? 0)
+    }
+    updateHeight()
+
+    if (typeof ResizeObserver === 'function') {
+      const observer = new ResizeObserver(updateHeight)
+      observer.observe(element)
+      return () => observer.disconnect()
+    }
+
+    window.addEventListener('resize', updateHeight)
+    return () => window.removeEventListener('resize', updateHeight)
+  }, [editMode])
 
   const backgroundStyle = useMemo(() => {
     if (background.type === 'image' && background.value) {
@@ -181,11 +253,22 @@ export default function ImmerseMode({ onClose }) {
           </div>
         </div>
 
-        {editMode && (
-          <div className="immerse-picker">
-            <WidgetPicker onAdd={addWidgetFromCatalog} />
-          </div>
-        )}
+        <div
+          className="immerse-picker"
+          ref={pickerRef}
+          style={
+            editMode
+              ? undefined
+              : {
+                  height: pickerHeight,
+                  visibility: pickerHeight > 0 ? 'hidden' : 'visible',
+                  pointerEvents: 'none',
+                }
+          }
+          aria-hidden={!editMode}
+        >
+          {editMode ? <WidgetPicker onAdd={addWidgetFromCatalog} /> : null}
+        </div>
 
         <div className="immerse-grid">
           <WidgetCanvas

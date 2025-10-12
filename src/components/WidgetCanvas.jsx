@@ -168,7 +168,7 @@ export default function WidgetCanvas({
       layouts={layouts}
       onLayoutChange={onLayoutChange}
       draggableCancel=".todo-input, input, textarea, button"
-      compactType={editMode ? null : 'vertical'}
+      compactType={null}
       preventCollision={!editMode}
     >
       {items.map(item => {
