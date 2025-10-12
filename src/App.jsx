@@ -8,6 +8,7 @@ import WidgetPicker from './components/WidgetPicker.jsx'
 import SocialPage from './components/social/SocialPage.jsx'
 import CalendarPage from './components/CalendarPage.jsx'
 import Tools from './pages/Tools.jsx'
+import ImmerseMode from './pages/ImmerseMode.jsx'
 import { profiles, getProfileById, getProfilesExcept } from './lib/profiles.js'
 
 const CURRENT_USER_ID = 1
@@ -35,6 +36,7 @@ export default function App() {
   const [layout, setLayout] = useState([])
   const [items, setItems] = useState([])
   const [selectedProfileId, setSelectedProfileId] = useState(CURRENT_USER_ID)
+  const [immersiveModeOpen, setImmersiveModeOpen] = useState(false)
 
   const currentUser = getProfileById(CURRENT_USER_ID) ?? profiles[0]
   const friends = derivedFriends
@@ -95,6 +97,18 @@ export default function App() {
     setActiveTab('profile')
   }
 
+  function handleLaunchTool(toolId) {
+    if (toolId === 'immerse') {
+      setImmersiveModeOpen(true)
+      return
+    }
+    console.info('Launch tool placeholder:', toolId)
+  }
+
+  function handleCloseImmerse() {
+    setImmersiveModeOpen(false)
+  }
+
   return (
     <div className="container">
       <Navbar activeTab={activeTab} onChangeTab={handleChangeTab} onNewTask={handleNewTask} />
@@ -128,10 +142,12 @@ export default function App() {
           />
         )}
         {activeTab === 'calendar' && <CalendarPage />}
-        {activeTab === 'tools' && <Tools />}
+        {activeTab === 'tools' && <Tools onLaunchTool={handleLaunchTool} />}
       </main>
 
       <RightPanel user={currentUser} friends={friends} onSelectUser={openProfile} />
+
+      {immersiveModeOpen && <ImmerseMode onClose={handleCloseImmerse} />}
     </div>
   )
 }

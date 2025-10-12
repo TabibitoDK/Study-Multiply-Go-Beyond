@@ -97,5 +97,23 @@
       "placeholder": "Ask the workspace assistant...",
       "send": "Send"
     }
+  },
+  "immerse": {
+    "close": "Exit Immerse Mode",
+    "settings": {
+      "open": "Settings",
+      "title": "Immersive settings",
+      "close": "Close",
+      "typeLabel": "Background type",
+      "mediaLabel": "Media URL",
+      "mediaPlaceholder": "Paste an image or video link...",
+      "colorLabel": "Background color",
+      "apply": "Apply changes",
+      "type": {
+        "image": "Image",
+        "video": "Video",
+        "color": "Solid color"
+      }
+    }
   }
 }

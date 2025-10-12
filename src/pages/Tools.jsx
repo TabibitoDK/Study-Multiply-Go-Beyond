@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 const TOOL_IDS = ['immerse', 'flashcards', 'summary', 'pomodoro']
 
-export default function Tools() {
+export default function Tools({ onLaunchTool }) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState('')
 
@@ -18,6 +18,10 @@ export default function Tools() {
   )
 
   function handleLaunch(toolId) {
+    if (typeof onLaunchTool === 'function') {
+      onLaunchTool(toolId)
+      return
+    }
     console.info('Tool launch placeholder', toolId)
   }
 
