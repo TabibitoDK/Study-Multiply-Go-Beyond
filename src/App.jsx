@@ -43,6 +43,8 @@ export default function App() {
 
   const currentUser = getProfileById(CURRENT_USER_ID) ?? profiles[0]
   const friends = derivedFriends
+  const showRightPanel = activeTab === 'social' || activeTab === 'profile'
+  const containerClass = showRightPanel ? 'container has-sidebar' : 'container'
 
   function handleNewTask() {
     alert(t('app.newTaskDialog'))
@@ -101,7 +103,7 @@ export default function App() {
   }
 
   return (
-    <div className="container">
+    <div className={containerClass}>
       <Navbar activeTab={activeTab} onChangeTab={handleChangeTab} onNewTask={handleNewTask} />
 
       <main className="canvas-wrap">
@@ -134,7 +136,9 @@ export default function App() {
         {activeTab === 'tools' && <Tools onLaunchTool={handleLaunchTool} />}
       </main>
 
-      <RightPanel user={currentUser} friends={friends} onSelectUser={openProfile} />
+      {showRightPanel && (
+        <RightPanel user={currentUser} friends={friends} onSelectUser={openProfile} />
+      )}
 
       {immersiveModeOpen && <ImmerseMode onClose={handleCloseImmerse} />}
     </div>

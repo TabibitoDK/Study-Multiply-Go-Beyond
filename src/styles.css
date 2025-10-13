@@ -39,9 +39,13 @@ body {
    ======================================================= */
 .container {
   display: grid;
-  grid-template-columns: 1fr var(--sidebar-w);
+  grid-template-columns: 1fr;
   grid-template-rows: auto 1fr;
   height: 100%;
+}
+
+.container.has-sidebar {
+  grid-template-columns: 1fr var(--sidebar-w);
 }
 
 .canvas-wrap {
@@ -60,7 +64,7 @@ body {
    NAVBAR
    ======================================================= */
 .navbar {
-  grid-column: 1 / span 2;
+  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: 260px 1fr 260px;
   align-items: center;
@@ -1539,20 +1543,11 @@ body {
   gap: clamp(20px, 3vw, 32px);
   padding: clamp(20px, 4vw, 36px);
   border-radius: 28px;
-  background: linear-gradient(140deg, #ffffff 0%, #f5f7fb 45%, #eef2ff 100%);
-  border: 1px solid var(--ring);
+  background: transparent;
+  border: none;
   color: var(--text);
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+  box-shadow: none;
   overflow: hidden;
-}
-
-.home-dashboard::after {
-  content: '';
-  position: absolute;
-  inset: 55% -25% -40% -25%;
-  background: radial-gradient(circle at top, rgba(99, 102, 241, 0.12), transparent 70%);
-  pointer-events: none;
-  z-index: -1;
 }
 
 .home-hero {
@@ -1560,17 +1555,11 @@ body {
   border-radius: 24px;
   overflow: hidden;
   min-height: 280px;
-  background-size: cover;
-  background-position: center;
+  background: var(--panel);
+  border: 1px solid var(--ring);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
   display: flex;
   align-items: stretch;
-}
-
-.home-hero-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(6px);
 }
 
 .home-hero-content {

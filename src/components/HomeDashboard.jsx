@@ -13,9 +13,6 @@ import ClockWidget from './widgets/ClockWidget.jsx'
 import TimerWidget from './widgets/TimerWidget.jsx'
 import TodoWidget from './widgets/TodoWidget.jsx'
 
-const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1800&q=80'
-
 const NAVIGATION_CARDS = [
   {
     id: 'planner',
@@ -207,8 +204,7 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
 
   return (
     <div className="home-dashboard">
-      <section className="home-hero" style={{ backgroundImage: `url(${HERO_IMAGE})` }}>
-        <div className="home-hero-overlay" />
+      <section className="home-hero">
         <div className="home-hero-content">
           <div className="home-hero-text">
             <span className="home-hero-eyebrow">today&apos;s study board</span>
