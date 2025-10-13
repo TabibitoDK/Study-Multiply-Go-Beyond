@@ -501,7 +501,7 @@ body {
 }\r\n\r\n/* =======================================================\r\n   SOCIAL PAGE FEED
    ======================================================= */
 .social-wrap {
-  max-width: 760px;
+  width: 100%;
   margin: 0 auto;
   position: relative;
   display: flex;
@@ -509,7 +509,8 @@ body {
 }
 
 .feed {
-  width: min(100%, 520px);
+  width: min(100%, 600px);
+  margin: 0 auto;
   padding-bottom: 120px;
 }
 

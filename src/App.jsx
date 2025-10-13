@@ -10,6 +10,7 @@ import CalendarPage from './components/CalendarPage.jsx'
 import Tools from './pages/Tools.jsx'
 import ImmerseMode from './pages/ImmerseMode.jsx'
 import { profiles, getProfileById, getProfilesExcept } from './lib/profiles.js'
+import { getPosts } from './lib/posts.js'
 
 const CURRENT_USER_ID = 1
 
@@ -37,6 +38,12 @@ export default function App() {
   const [items, setItems] = useState([])
   const [selectedProfileId, setSelectedProfileId] = useState(CURRENT_USER_ID)
   const [immersiveModeOpen, setImmersiveModeOpen] = useState(false)
+  const [posts, setPosts] = useState(() =>
+    getPosts().map(post => ({
+      ...post,
+      author: getProfileById(post.userId),
+    }))
+  )
 
   const currentUser = getProfileById(CURRENT_USER_ID) ?? profiles[0]
   const friends = derivedFriends
@@ -109,6 +116,34 @@ export default function App() {
     setImmersiveModeOpen(false)
   }
 
+  function handleCreatePost(draft) {
+    if (!draft) return
+    const author = getProfileById(CURRENT_USER_ID) ?? currentUser ?? profiles[0]
+    const id = typeof draft.id === 'string' && draft.id ? draft.id : `local-${Date.now()}`
+    const contentParts = []
+    if (draft.text && draft.text.trim()) contentParts.push(draft.text.trim())
+    if (draft.book && draft.book.trim()) contentParts.push(`Book: ${draft.book.trim()}`)
+    if (draft.duration && draft.duration.trim()) contentParts.push(`Duration: ${draft.duration.trim()}`)
+    const content = contentParts.join('\n\n') || 'Shared a new update.'
+    const tags = []
+    if (draft.subject && draft.subject.trim()) tags.push(draft.subject.trim())
+
+    setPosts(prev => [
+      {
+        id,
+        userId: author.id,
+        author,
+        content,
+        image: draft.image ?? null,
+        likes: draft.likes ?? 0,
+        comments: draft.comments ?? 0,
+        timestamp: new Date().toISOString(),
+        tags,
+      },
+      ...prev,
+    ])
+  }
+
   return (
     <div className="container">
       <Navbar activeTab={activeTab} onChangeTab={handleChangeTab} onNewTask={handleNewTask} />
@@ -132,12 +167,20 @@ export default function App() {
           </>
         )}
 
-        {activeTab === 'social' && <SocialPage onSelectProfile={openProfile} />}
+        {activeTab === 'social' && (
+          <SocialPage
+            posts={posts}
+            onCreatePost={handleCreatePost}
+            onSelectProfile={openProfile}
+          />
+        )}
 
         {activeTab === 'profile' && (
           <Profile
             profileId={selectedProfileId}
             currentUserId={CURRENT_USER_ID}
+            posts={posts}
+            onCreatePost={handleCreatePost}
             onSelectProfile={openProfile}
           />
         )}

@@ -1,32 +1,65 @@
-﻿import dayjs from "dayjs"
+import { useMemo, useState } from "react"
+import dayjs from "dayjs"
 import "./Profile.css"
 import PostCard from "../components/social/PostCard.jsx"
+import PostModal from "../components/social/PostModal.jsx"
 import { profiles, getProfileById } from "../lib/profiles.js"
 import { getPostsByUser } from "../lib/posts.js"
 
-export default function Profile({ profileId = 1, currentUserId = 1, onSelectProfile }) {
-  const resolvedProfile = getProfileById(profileId) ?? getProfileById(currentUserId) ?? profiles[0]
+export default function Profile({
+  profileId = 1,
+  currentUserId = 1,
+  posts: postsProp,
+  onCreatePost,
+  onSelectProfile,
+}) {
+  const resolvedProfile =
+    getProfileById(profileId) ?? getProfileById(currentUserId) ?? profiles[0]
   const isCurrentUser = resolvedProfile.id === currentUserId
 
-  const posts = getPostsByUser(resolvedProfile.id).map(post => ({
-    ...post,
-    author: resolvedProfile,
-  }))
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const posts = useMemo(() => {
+    const base = Array.isArray(postsProp)
+      ? postsProp
+      : getPostsByUser(resolvedProfile.id)
+    return base
+      .filter(post => post.userId === resolvedProfile.id)
+      .map(post => ({
+        ...post,
+        author: post.author ?? resolvedProfile,
+      }))
+  }, [postsProp, resolvedProfile])
 
   const joinedDate = dayjs(resolvedProfile.joined)
   const tags = Array.isArray(resolvedProfile.tags) ? resolvedProfile.tags : []
+
+  function handleSubmit(draft) {
+    if (typeof onCreatePost === "function") {
+      onCreatePost(draft)
+    }
+    setIsModalOpen(false)
+  }
 
   return (
     <div className="profile-container">
       <div
         className="profile-banner"
-        style={resolvedProfile.backgroundImage ? { backgroundImage: `url(${resolvedProfile.backgroundImage})` } : undefined}
+        style={
+          resolvedProfile.backgroundImage
+            ? { backgroundImage: `url(${resolvedProfile.backgroundImage})` }
+            : undefined
+        }
       />
 
       <div className="profile-header">
         <div className="profile-avatar">
           {resolvedProfile.profileImage && (
-            <img src={resolvedProfile.profileImage} alt={`${resolvedProfile.name} avatar`} loading="lazy" />
+            <img
+              src={resolvedProfile.profileImage}
+              alt={`${resolvedProfile.name} avatar`}
+              loading="lazy"
+            />
           )}
         </div>
         <div className="profile-info">
@@ -36,7 +69,10 @@ export default function Profile({ profileId = 1, currentUserId = 1, onSelectProf
             {resolvedProfile.location && <span>{resolvedProfile.location}</span>}
             {resolvedProfile.joined && (
               <span>
-                Joined {joinedDate.isValid() ? joinedDate.format("MMMM YYYY") : resolvedProfile.joined}
+                Joined{" "}
+                {joinedDate.isValid()
+                  ? joinedDate.format("MMMM YYYY")
+                  : resolvedProfile.joined}
               </span>
             )}
           </div>
@@ -68,15 +104,21 @@ export default function Profile({ profileId = 1, currentUserId = 1, onSelectProf
             <h3>Stats</h3>
             <div className="profile-stats">
               <div>
-                <span className="profile-stat-value">{resolvedProfile.followers}</span>
+                <span className="profile-stat-value">
+                  {resolvedProfile.followers}
+                </span>
                 <span className="profile-stat-label">Followers</span>
               </div>
               <div>
-                <span className="profile-stat-value">{resolvedProfile.following}</span>
+                <span className="profile-stat-value">
+                  {resolvedProfile.following}
+                </span>
                 <span className="profile-stat-label">Following</span>
               </div>
               <div>
-                <span className="profile-stat-value">{resolvedProfile.posts}</span>
+                <span className="profile-stat-value">
+                  {resolvedProfile.posts}
+                </span>
                 <span className="profile-stat-label">Posts</span>
               </div>
             </div>
@@ -86,7 +128,9 @@ export default function Profile({ profileId = 1, currentUserId = 1, onSelectProf
             <h3>Interests</h3>
             <div className="profile-tags">
               {tags.map(tag => (
-                <span key={tag} className="profile-tag">{tag}</span>
+                <span key={tag} className="profile-tag">
+                  {tag}
+                </span>
               ))}
               {tags.length === 0 && <span className="profile-tag">No tags yet</span>}
             </div>
@@ -99,13 +143,36 @@ export default function Profile({ profileId = 1, currentUserId = 1, onSelectProf
           </div>
 
           <div className="profile-post-list">
+            {isCurrentUser && (
+              <article className="post create-post-card">
+                <h4>Share an update</h4>
+                <p>Let others know what you are working on.</p>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  Create Post
+                </button>
+              </article>
+            )}
             {posts.length === 0 && <div className="profile-empty">No posts yet.</div>}
             {posts.map(post => (
-              <PostCard key={post.id} post={post} onSelectProfile={onSelectProfile} />
+              <PostCard
+                key={post.id}
+                post={post}
+                onSelectProfile={onSelectProfile}
+              />
             ))}
           </div>
         </div>
       </div>
+
+      <PostModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+      />
     </div>
   )
 }
