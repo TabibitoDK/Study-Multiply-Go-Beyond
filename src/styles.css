@@ -1530,30 +1530,27 @@ body {
    HOME DASHBOARD
    ======================================================= */
 .home-dashboard {
-  --panel: rgba(20, 20, 24, 0.78);
-  --muted: rgba(255, 255, 255, 0.08);
-  --ring: rgba(255, 255, 255, 0.12);
-  --text: #f5f6f8;
-  --subtext: rgba(243, 245, 247, 0.66);
-  --accent: #f97316;
+  --home-accent: #6366f1;
+  --home-accent-soft: #eef2ff;
+  --home-highlight: #fde68a;
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: clamp(20px, 3vw, 32px);
   padding: clamp(20px, 4vw, 36px);
   border-radius: 28px;
-  background: radial-gradient(110% 130% at 0% 0%, rgba(120, 97, 255, 0.24) 0%, rgba(12, 12, 18, 0.92) 42%, #09090f 100%);
+  background: linear-gradient(140deg, #ffffff 0%, #f5f7fb 45%, #eef2ff 100%);
+  border: 1px solid var(--ring);
   color: var(--text);
-  box-shadow: 0 32px 80px rgba(10, 10, 14, 0.55);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
   overflow: hidden;
-  isolation: isolate;
 }
 
 .home-dashboard::after {
   content: '';
   position: absolute;
-  inset: 40% -20% -30% -20%;
-  background: radial-gradient(circle at top, rgba(249, 115, 22, 0.08) 0%, transparent 70%);
+  inset: 55% -25% -40% -25%;
+  background: radial-gradient(circle at top, rgba(99, 102, 241, 0.12), transparent 70%);
   pointer-events: none;
   z-index: -1;
 }
@@ -1572,18 +1569,19 @@ body {
 .home-hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(120deg, rgba(8, 8, 12, 0.88), rgba(17, 17, 23, 0.45));
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(6px);
 }
 
 .home-hero-content {
   position: relative;
   display: flex;
   flex-wrap: wrap;
-  gap: clamp(24px, 4vw, 48px);
-  padding: clamp(24px, 4vw, 48px);
+  gap: clamp(20px, 5vw, 40px);
+  padding: clamp(24px, 4vw, 44px);
   width: 100%;
-  align-items: flex-start;
   justify-content: space-between;
+  align-items: flex-start;
 }
 
 .home-hero-text {
@@ -1597,7 +1595,7 @@ body {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--subtext);
 }
 
 .home-hero-text h1 {
@@ -1608,14 +1606,14 @@ body {
 }
 
 .home-hero-text h1 span {
-  color: var(--accent);
+  color: var(--home-accent);
 }
 
 .home-hero-text p {
   margin: 0;
   font-size: 1rem;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--subtext);
 }
 
 .home-hero-tags {
@@ -1631,11 +1629,12 @@ body {
   gap: 8px;
   padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--home-accent-soft);
+  border: 1px solid rgba(99, 102, 241, 0.16);
+  color: var(--home-accent);
   font-size: 0.85rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 
 .home-hero-widgets {
@@ -1646,23 +1645,26 @@ body {
 }
 
 .home-card {
-  background: rgba(16, 16, 22, 0.72);
+  background: var(--panel);
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: clamp(18px, 3vw, 26px);
+  border: 1px solid var(--ring);
+  padding: clamp(18px, 3vw, 24px);
   display: flex;
   flex-direction: column;
   gap: 18px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.05);
 }
 
-.home-card::after {
-  content: '';
-  position: absolute;
-  inset: -40% 50% 60% -40%;
-  background: radial-gradient(circle at right, rgba(249, 115, 22, 0.06), transparent 70%);
-  pointer-events: none;
+.home-card.home-quote {
+  background: linear-gradient(135deg, #fff7e6 0%, #ffffff 70%);
+  border-color: rgba(253, 230, 138, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 12px 24px rgba(252, 211, 77, 0.2);
+}
+
+.home-card.home-weather {
+  background: linear-gradient(180deg, #ffffff 0%, #f0f7ff 90%);
 }
 
 .home-hero-card {
@@ -1680,12 +1682,12 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--subtext);
 }
 
 .home-card-subtitle {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--subtext);
 }
 
 .home-section-header {
@@ -1703,7 +1705,7 @@ body {
 
 .home-section-header span {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--subtext);
 }
 
 .home-nav-grid {
@@ -1714,10 +1716,10 @@ body {
 
 .home-nav-card {
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--ring);
   border-radius: 18px;
   padding: 18px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--panel);
   color: inherit;
   text-align: left;
   display: flex;
@@ -1734,13 +1736,14 @@ body {
 
 .home-nav-card span {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--subtext);
 }
 
 .home-nav-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   border-color: var(--nav-accent);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--panel);
+  box-shadow: 0 18px 38px rgba(99, 102, 241, 0.12);
 }
 
 .home-nav-dot {
@@ -1749,7 +1752,7 @@ body {
   border-radius: 50%;
   background: var(--nav-accent);
   margin-top: auto;
-  box-shadow: 0 0 0 6px rgba(249, 115, 22, 0.08);
+  box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.12);
 }
 
 .home-list {
@@ -1769,18 +1772,19 @@ body {
   gap: 16px;
   padding: 12px 14px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ring);
+  background: #f6f7fb;
   color: inherit;
   font-size: 0.92rem;
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.2s ease, background 0.2s ease;
+  transition: transform 0.15s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .home-list li button:hover {
   transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--home-accent);
+  background: #f1f3fd;
+  box-shadow: 0 12px 24px rgba(99, 102, 241, 0.1);
 }
 
 .home-list-icon {
@@ -1803,21 +1807,22 @@ body {
   display: flex;
   justify-content: space-between;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--subtext);
 }
 
 .home-progress-bar {
   position: relative;
   height: 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--muted);
   overflow: hidden;
 }
 
 .home-progress-bar div {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(249, 115, 22, 0.9), rgba(59, 130, 246, 0.8));
+  background: linear-gradient(90deg, var(--home-accent), #22d3ee);
+  border-radius: inherit;
 }
 
 .home-focus-list {
@@ -1830,8 +1835,8 @@ body {
 }
 
 .home-focus-list li {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #f6f8fc;
+  border: 1px solid var(--ring);
   border-radius: 16px;
   padding: 16px;
   display: flex;
@@ -1846,7 +1851,7 @@ body {
 .home-focus-list li p {
   margin: 0;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--subtext);
   line-height: 1.5;
 }
 
@@ -1874,11 +1879,12 @@ body {
 .home-quote p {
   margin: 0;
   line-height: 1.6;
+  color: #8b5d22;
 }
 
 .home-quote span {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: #b26b1f;
 }
 
 .home-weather-now {
@@ -1892,6 +1898,7 @@ body {
 .home-weather-now strong {
   font-size: 2rem;
   font-weight: 800;
+  color: var(--home-accent);
 }
 
 .home-weather-grid {
@@ -1907,8 +1914,8 @@ body {
   gap: 6px;
   padding: 12px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(99, 102, 241, 0.06);
+  border: 1px solid rgba(99, 102, 241, 0.18);
 }
 
 .home-weather-day {
@@ -1926,7 +1933,7 @@ body {
 }
 
 .home-weather-temp.low {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--subtext);
   font-weight: 500;
 }
 
@@ -1948,7 +1955,7 @@ body {
 .home-prompts li p {
   margin: 0;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--subtext);
   line-height: 1.6;
 }
 
@@ -1961,8 +1968,8 @@ body {
 .home-assignment-list article {
   padding: 18px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #f6f8fc;
+  border: 1px solid var(--ring);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1972,7 +1979,7 @@ body {
   display: flex;
   justify-content: space-between;
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--subtext);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -1989,19 +1996,20 @@ body {
   margin: 0;
   font-size: 1rem;
   font-weight: 700;
+  color: var(--text);
 }
 
 .home-assignment-list article p {
   margin: 0;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--subtext);
 }
 
 .home-plant-card img {
   width: 100%;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--ring);
+  background: var(--panel);
   object-fit: cover;
 }
 
@@ -2025,7 +2033,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--subtext);
 }
 
 .home-profile-card li strong {
@@ -2045,7 +2053,8 @@ body {
   width: 100%;
   aspect-ratio: 16 / 9;
   border-radius: 16px;
-  background: rgba(0, 0, 0, 0.3);
+  background: #e8ecff;
+  box-shadow: 0 12px 24px rgba(99, 102, 241, 0.12);
 }
 
 .home-playlist-meta {
@@ -2054,7 +2063,7 @@ body {
   gap: 10px;
   margin-top: 8px;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--text);
 }
 
 .home-calendar {
@@ -2074,18 +2083,18 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--ring);
+  background: var(--panel);
   color: inherit;
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: transform 0.15s ease, background 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
 }
 
 .home-calendar-header button:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 18px rgba(99, 102, 241, 0.12);
 }
 
 .home-calendar-title {
@@ -2099,7 +2108,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--subtext);
   gap: 6px;
 }
 
@@ -2112,102 +2121,25 @@ body {
 .home-calendar-cell {
   height: 44px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
+  background: #f6f8fc;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.home-calendar-cell.is-muted {
-  color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.home-calendar-cell.is-today {
-  background: rgba(249, 115, 22, 0.25);
-  border: 1px solid rgba(249, 115, 22, 0.7);
-  color: #fff;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.18);
-}
-
-.home-dashboard .clock-widget {
-  gap: 10px;
-}
-
-.home-dashboard .clock-meta {
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.home-dashboard .clock-seconds,
-.home-dashboard .clock-ampm {
   color: var(--text);
 }
 
-.home-dashboard .todo-header-bar,
-.home-dashboard .todo-input-row,
-.home-dashboard .todo-item,
-.home-dashboard .todo-footer {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: inherit;
+.home-calendar-cell.is-muted {
+  color: var(--subtext);
+  background: #f0f1f5;
 }
 
-.home-dashboard .todo-input {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: inherit;
-}
-
-.home-dashboard .todo-input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.home-dashboard .todo-icon-btn,
-.home-dashboard .todo-submit,
-.home-dashboard .todo-toggle,
-.home-dashboard .todo-remove {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: inherit;
-}
-
-.home-dashboard .todo-item.is-done {
-  background: rgba(249, 115, 22, 0.12);
-  border-color: rgba(249, 115, 22, 0.3);
-}
-
-.home-dashboard .todo-footer {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.home-dashboard .timer-mode {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.12);
-  color: inherit;
-}
-
-.home-dashboard .timer-mode.active {
-  background: var(--accent);
-  border-color: transparent;
-  color: #111;
-}
-
-.home-dashboard .timer-progress-fill {
-  background: var(--accent);
-}
-
-.home-dashboard .timer-btn {
-  background: rgba(255, 255, 255, 0.05);
-  color: inherit;
-}
-
-.home-dashboard .timer-btn.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #111;
+.home-calendar-cell.is-today {
+  background: var(--home-accent-soft);
+  border: 1px solid var(--home-accent);
+  color: var(--home-accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
 }
 
 @media (min-width: 880px) {

@@ -20,7 +20,7 @@ const NAVIGATION_CARDS = [
   {
     id: 'planner',
     label: 'Study Planner',
-    caption: 'Curate today’s sessions, timers, and breaks.',
+    caption: "Curate today's sessions, timers, and breaks.",
     accent: '#f97316',
     tab: 'tools'
   },
@@ -78,14 +78,14 @@ const WEEK_ASSIGNMENTS = [
     id: 'wk-1',
     course: 'Linear Algebra',
     title: 'Problem Set 5',
-    due: 'Wed · Oct 16',
+    due: 'Wed - Oct 16',
     status: 'In progress'
   },
   {
     id: 'wk-2',
     course: 'Modern Physics',
     title: 'Lab Report Draft',
-    due: 'Fri · Oct 18',
+    due: 'Fri - Oct 18',
     status: 'Needs outline'
   }
 ]
@@ -133,7 +133,7 @@ const PLAYLISTS = [
   },
   {
     id: 'dog-park',
-    title: "vibin' at the dog park · breeze edition",
+    title: "vibin' at the dog park - breeze edition",
     url: 'https://www.youtube.com/embed/YqfBrC8ZHSo'
   }
 ]
@@ -211,22 +211,22 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
         <div className="home-hero-overlay" />
         <div className="home-hero-content">
           <div className="home-hero-text">
-            <span className="home-hero-eyebrow">your student dashboard</span>
+            <span className="home-hero-eyebrow">today&apos;s study board</span>
             <h1>
-              Build momentum today, <span>{firstName}</span>
+              Welcome back, <span>{firstName}</span>
             </h1>
             <p>
-              Align your focus blocks, track assignments, and celebrate the small wins that
-              stack into big breakthroughs.
+              Keep your plan, progress, and little joys in one calm space so studying stays
+              intentional and not overwhelming.
             </p>
             <div className="home-hero-tags">
               <span className="home-chip">
                 <Sparkles size={16} aria-hidden />
-                Week 7 · Fall Semester
+                Week 7 - Fall semester
               </span>
               <span className="home-chip">
                 <Target size={16} aria-hidden />
-                Deep work goal · 3 hrs
+                Focus sessions - 3 planned
               </span>
             </div>
           </div>
@@ -235,14 +235,14 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
             <div className="home-card home-hero-card">
               <div className="home-card-header">
                 <span className="home-card-title">Current Time</span>
-                <span className="home-card-subtitle">Stay anchored in the present block</span>
+                <span className="home-card-subtitle">Check in before the next study block.</span>
               </div>
               <ClockWidget />
             </div>
             <div className="home-card home-hero-card">
               <div className="home-card-header">
                 <span className="home-card-title">Session Timer</span>
-                <span className="home-card-subtitle">Switch modes as you shift energy</span>
+                <span className="home-card-subtitle">Pair the timer with breaks that feel good.</span>
               </div>
               <TimerWidget />
             </div>
@@ -263,7 +263,7 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
           <section className="home-card">
             <div className="home-section-header">
               <h2>Navigation</h2>
-              <span>Jump straight into a workspace.</span>
+              <span>Move around the workspace with one click.</span>
             </div>
             <div className="home-nav-grid">
               {NAVIGATION_CARDS.map(card => (
@@ -316,8 +316,8 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
 
           <section className="home-card">
             <div className="home-section-header">
-              <h2>Progress Pulse</h2>
-              <span>Track how consistent the week feels.</span>
+              <h2>Progress at a glance</h2>
+              <span>See how your effort is building across time.</span>
             </div>
             <div className="home-progress">
               {PROGRESS_TRACKERS.map(track => (
@@ -337,7 +337,7 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
           <section className="home-card">
             <div className="home-section-header">
               <h2>Focus Areas</h2>
-              <span>Intentional anchors for the day.</span>
+              <span>A few gentle anchors for the day.</span>
             </div>
             <ul className="home-focus-list">
               {FOCUS_AREAS.map(area => (
@@ -352,11 +352,8 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
 
         <div className="home-column home-column-wide">
           <section className="home-card home-quote">
-            <p>
-              “Grant me the serenity to accept the things I cannot change, the courage to change
-              the things I can, and the wisdom to know the difference.”
-            </p>
-            <span>Swap in the affirmation you need most today.</span>
+            <p>&ldquo;Small, kind steps for your future self turn into big wins before you know it.&rdquo;</p>
+            <span>Swap in whatever reminder makes today feel lighter.</span>
           </section>
 
           <section className="home-card home-weather">
@@ -395,7 +392,7 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
           <section className="home-card">
             <div className="home-section-header">
               <h2>Daily Check-in</h2>
-              <span>Prime your mind before you start.</span>
+              <span>Jot a quick note before or after sessions.</span>
             </div>
             <ul className="home-prompts">
               {DAILY_PROMPTS.map(prompt => (
@@ -493,7 +490,7 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
           <section className="home-card home-playlist">
             <div className="home-section-header">
               <h2>Study playlist</h2>
-              <span>Soundtrack the session.</span>
+              <span>Keep the background warm and steady.</span>
             </div>
             <div className="home-playlist-grid">
               {PLAYLISTS.map(item => (
