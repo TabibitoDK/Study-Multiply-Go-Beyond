@@ -43,11 +43,6 @@ export default function Tools({ onLaunchTool }) {
     [t],
   )
 
-  const toolMap = useMemo(
-    () => Object.fromEntries(tools.map(tool => [tool.id, tool])),
-    [tools]
-  )
-
   function handleLaunch(toolId) {
     if (toolId === 'calendar') {
       setActiveTool(null)
@@ -84,7 +79,6 @@ export default function Tools({ onLaunchTool }) {
       <div className="tools-header">
         <div>
           <h1 className="tools-title">{t('tools.title')}</h1>
-          <p className="tools-subtitle">{t('tools.subtitle')}</p>
         </div>
       </div>
 
@@ -104,35 +98,6 @@ export default function Tools({ onLaunchTool }) {
             </button>
           )
         })}
-      </section>
-
-      <section className="tools-workspace">
-        {!activeTool && (
-          <div className="tools-placeholder">
-            <h2>
-              {t('tools.placeholder.pickTitle', {
-                defaultValue: 'Pick a tool to get started'
-              })}
-            </h2>
-            <p>
-              {t('tools.placeholder.pickDescription', {
-                defaultValue: 'Choose a card from the grid above to open its workspace here.'
-              })}
-            </p>
-          </div>
-        )}
-
-        {activeTool && (
-          <div className="tools-placeholder">
-            <h2>{toolMap[activeTool]?.title ?? t('tools.placeholder.title', { defaultValue: 'Tool in development' })}</h2>
-            <p>
-              {toolMap[activeTool]?.description ||
-                t('tools.placeholder.description', {
-                  defaultValue: 'This workspace will unlock soon. Check back after upcoming updates!'
-                })}
-            </p>
-          </div>
-        )}
       </section>
 
       <form className="tools-chat-bar" onSubmit={handleSubmit}>
