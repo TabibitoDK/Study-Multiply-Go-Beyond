@@ -4,8 +4,8 @@ import Navbar from './components/Navbar.jsx'
 import RightPanel from './components/RightPanel.jsx'
 import Profile from './pages/Profile.jsx'
 import SocialPage from './components/social/SocialPage.jsx'
-import CalendarPage from './components/CalendarPage.jsx'
 import Tools from './pages/Tools.jsx'
+import CalendarPage from './components/CalendarPage.jsx'
 import ImmerseMode from './pages/ImmerseMode.jsx'
 import HomeDashboard from './components/HomeDashboard.jsx'
 import { profiles, getProfileById, getProfilesExcept } from './lib/profiles.js'
@@ -65,6 +65,10 @@ export default function App() {
   function handleLaunchTool(toolId) {
     if (toolId === 'immerse') {
       setImmersiveModeOpen(true)
+      return
+    }
+    if (toolId === 'calendar') {
+      setActiveTab('calendar')
       return
     }
     console.info('Launch tool placeholder:', toolId)
@@ -132,8 +136,10 @@ export default function App() {
             onSelectProfile={openProfile}
           />
         )}
-        {activeTab === 'calendar' && <CalendarPage />}
         {activeTab === 'tools' && <Tools onLaunchTool={handleLaunchTool} />}
+        {activeTab === 'calendar' && (
+          <CalendarPage onNavigate={handleChangeTab} />
+        )}
       </main>
 
       {showRightPanel && (

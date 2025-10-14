@@ -26,7 +26,7 @@ const NAVIGATION_CARDS = [
     label: 'Calendar',
     caption: 'Preview exams, labs, and important checkpoints.',
     accent: '#38bdf8',
-    tab: 'calendar'
+    tab: 'tools'
   },
   {
     id: 'community',
