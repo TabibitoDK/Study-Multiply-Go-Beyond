@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { useI18nFormats } from '../lib/i18n-format.js'
 const STORAGE_KEY = 'smgb-calendar-events-v1'
 
@@ -24,6 +24,7 @@ export default function CalendarPage({ onNavigate }) {
   const [selectedDay, setSelectedDay] = useState(null)
   const [draftText, setDraftText] = useState('')
   const [quickText, setQuickText] = useState('')
+  const canNavigateBack = typeof onNavigate === 'function'
 
   const weekdayLabels = useMemo(() => {
     const reference = new Date(Date.UTC(2021, 5, 6))
@@ -197,6 +198,12 @@ export default function CalendarPage({ onNavigate }) {
     setCurrentYear(now.getFullYear())
   }
 
+  function handleBack() {
+    if (typeof onNavigate === 'function') {
+      onNavigate('tools')
+    }
+  }
+
   function keyForDay(day) {
     return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
   }
@@ -303,6 +310,18 @@ export default function CalendarPage({ onNavigate }) {
 
   return (
     <div className="calendar-page">
+      <div className="calendar-breadcrumb">
+        <button
+          type="button"
+          className="calendar-back-btn"
+          onClick={handleBack}
+          disabled={!canNavigateBack}
+        >
+          <ArrowLeft size={18} aria-hidden="true" />
+          <span>{t('calendar.actions.backToTools', { defaultValue: 'Back to tools' })}</span>
+        </button>
+      </div>
+
       <div className="calendar-insights">
         <div className="calendar-insight-card">
           <span>{t('calendar.stats.focusDay', { defaultValue: 'Focused day' })}</span>
@@ -329,15 +348,6 @@ export default function CalendarPage({ onNavigate }) {
       <div className="calendar-body">
         <div className="calendar-surface">
           <div className="calendar-header">
-            <div className="calendar-breadcrumb">
-              <button
-                type="button"
-                className="calendar-back-btn"
-                onClick={() => onNavigate?.('tools')}
-              >
-                {t('calendar.actions.backToTools', { defaultValue: '<- Back to tools' })}
-              </button>
-            </div>
             <div className="calendar-header-main">
               <div className="calendar-nav">
                 <button className="calendar-nav-btn" onClick={handlePrev} aria-label={t('calendar.aria.previous')}>
