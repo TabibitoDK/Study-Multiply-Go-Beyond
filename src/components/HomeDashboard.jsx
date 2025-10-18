@@ -3,14 +3,12 @@ import dayjs from 'dayjs'
 import {
   ChevronLeft,
   ChevronRight,
-  ExternalLink,
   MapPin,
   PlayCircle,
   Sparkles,
   Target
 } from 'lucide-react'
 import ClockWidget from './widgets/ClockWidget.jsx'
-import TimerWidget from './widgets/TimerWidget.jsx'
 import TodoWidget from './widgets/TodoWidget.jsx'
 
 const NAVIGATION_CARDS = [
@@ -37,13 +35,14 @@ const NAVIGATION_CARDS = [
   }
 ]
 
-const QUICK_LINKS = [
-  { id: 'course-1', label: 'Linear Algebra', emoji: '📘' },
-  { id: 'course-2', label: 'Modern Physics', emoji: '🧪' },
-  { id: 'course-3', label: 'Technical Writing', emoji: '📝' },
-  { id: 'course-4', label: 'Electronics Lab', emoji: '🔧' },
-  { id: 'course-5', label: 'Japanese II', emoji: '🌸' }
-]
+const WEATHER_SUMMARY = {
+  location: 'Vancouver',
+  temperature: '7°C',
+  condition: 'Broken Clouds',
+  high: '12°C',
+  low: '6°C',
+  icon: '🌥'
+}
 
 const PROGRESS_TRACKERS = [
   { id: 'day', label: 'Day', value: 58 },
@@ -52,55 +51,34 @@ const PROGRESS_TRACKERS = [
   { id: 'year', label: 'Year', value: 74 }
 ]
 
-const DAILY_PROMPTS = [
-  {
-    id: 'priorities',
-    question: 'What are my top three priorities today?',
-    hint: 'Pick one deep work block, one admin task, and one wellbeing goal.'
-  },
-  {
-    id: 'outcome',
-    question: 'What does a successful day look like?',
-    hint: 'Define the outcome that would make you feel accomplished tonight.'
-  },
-  {
-    id: 'support',
-    question: 'Who or what can support my focus?',
-    hint: 'Prep materials, study groups, playlists, or accountability buddies.'
-  }
-]
-
-const WEEK_ASSIGNMENTS = [
+const DUE_ASSIGNMENTS = [
   {
     id: 'wk-1',
     course: 'Linear Algebra',
     title: 'Problem Set 5',
-    due: 'Wed - Oct 16',
-    status: 'In progress'
+    status: 'In progress',
+    dueDate: '2025-10-16T09:00:00'
   },
   {
     id: 'wk-2',
     course: 'Modern Physics',
     title: 'Lab Report Draft',
-    due: 'Fri - Oct 18',
-    status: 'Needs outline'
-  }
-]
-
-const MONTH_ASSIGNMENTS = [
+    status: 'Needs outline',
+    dueDate: '2025-10-18T17:00:00'
+  },
   {
     id: 'mo-1',
     course: 'Electronics Lab',
     title: 'Circuit Design Demo',
-    due: 'Oct 24',
-    status: 'Prototype ready'
+    status: 'Prototype ready',
+    dueDate: '2025-10-24T12:00:00'
   },
   {
     id: 'mo-2',
     course: 'Japanese II',
     title: 'Oral Presentation',
-    due: 'Oct 28',
-    status: 'Slides in progress'
+    status: 'Slides in progress',
+    dueDate: '2025-10-28T09:00:00'
   }
 ]
 
@@ -201,6 +179,13 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
     const [first] = user.name.split(' ')
     return first ?? user.name
   }, [user])
+  const dueItems = useMemo(
+    () =>
+      [...DUE_ASSIGNMENTS].sort((a, b) =>
+        dayjs(a.dueDate).valueOf() - dayjs(b.dueDate).valueOf()
+      ),
+    []
+  )
 
   return (
     <div className="home-dashboard">
@@ -228,19 +213,20 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
           </div>
 
           <div className="home-hero-widgets">
-            <div className="home-card home-hero-card">
-              <div className="home-card-header">
-                <span className="home-card-title">Current Time</span>
-                <span className="home-card-subtitle">Check in before the next study block.</span>
-              </div>
+            <div className="home-hero-clock">
               <ClockWidget />
+              <span className="home-hero-clock-note">Local time</span>
             </div>
-            <div className="home-card home-hero-card">
-              <div className="home-card-header">
-                <span className="home-card-title">Session Timer</span>
-                <span className="home-card-subtitle">Pair the timer with breaks that feel good.</span>
+            <div className="home-hero-weather">
+              <span className="home-hero-weather-icon" role="img" aria-label="weather">{WEATHER_SUMMARY.icon}</span>
+              <div className="home-hero-weather-main">
+                <span className="home-hero-weather-temp">{WEATHER_SUMMARY.temperature}</span>
+                <span className="home-hero-weather-condition">{WEATHER_SUMMARY.condition}</span>
               </div>
-              <TimerWidget />
+              <div className="home-hero-weather-meta">
+                <span>{WEATHER_SUMMARY.location}</span>
+                <span>High {WEATHER_SUMMARY.high} / Low {WEATHER_SUMMARY.low}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -254,60 +240,6 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
               <span>Keep it light but consistent.</span>
             </div>
             <TodoWidget />
-          </section>
-
-          <section className="home-card">
-            <div className="home-section-header">
-              <h2>Navigation</h2>
-              <span>Move around the workspace with one click.</span>
-            </div>
-            <div className="home-nav-grid">
-              {NAVIGATION_CARDS.map(card => (
-                <button
-                  key={card.id}
-                  type="button"
-                  className="home-nav-card"
-                  style={{ '--nav-accent': card.accent }}
-                  onClick={() => {
-                    if (card.tab) {
-                      onNavigate?.(card.tab)
-                    }
-                  }}
-                >
-                  <strong>{card.label}</strong>
-                  <span>{card.caption}</span>
-                  <span className="home-nav-dot" aria-hidden />
-                </button>
-              ))}
-              <button
-                type="button"
-                className="home-nav-card"
-                style={{ '--nav-accent': '#facc15' }}
-                onClick={() => onOpenProfile?.()}
-              >
-                <strong>Profile Snapshot</strong>
-                <span>Review highlights &amp; activity log.</span>
-                <span className="home-nav-dot" aria-hidden />
-              </button>
-            </div>
-          </section>
-
-          <section className="home-card">
-            <div className="home-section-header">
-              <h2>Quick Links</h2>
-              <span>Open course dashboards in a click.</span>
-            </div>
-            <ul className="home-list">
-              {QUICK_LINKS.map(link => (
-                <li key={link.id}>
-                  <button type="button">
-                    <span className="home-list-icon">{link.emoji}</span>
-                    <span>{link.label}</span>
-                    <ExternalLink size={16} aria-hidden />
-                  </button>
-                </li>
-              ))}
-            </ul>
           </section>
 
           <section className="home-card">
@@ -347,95 +279,53 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
         </div>
 
         <div className="home-column home-column-wide">
+          <section className="home-card">
+            <div className="home-section-header">
+              <h2>Navigation</h2>
+              <span>Move around the workspace with one click.</span>
+            </div>
+            <div className="home-nav-grid">
+              {NAVIGATION_CARDS.map(card => (
+                <button
+                  key={card.id}
+                  type="button"
+                  className="home-nav-card"
+                  style={{ '--nav-accent': card.accent }}
+                  onClick={() => {
+                    if (card.tab) {
+                      onNavigate?.(card.tab)
+                    }
+                  }}
+                >
+                  <strong>{card.label}</strong>
+                  <span>{card.caption}</span>
+                  <span className="home-nav-dot" aria-hidden />
+                </button>
+              ))}
+              <button
+                type="button"
+                className="home-nav-card"
+                style={{ '--nav-accent': '#facc15' }}
+                onClick={() => onOpenProfile?.()}
+              >
+                <strong>Profile Snapshot</strong>
+                <span>Review highlights &amp; activity log.</span>
+                <span className="home-nav-dot" aria-hidden />
+              </button>
+            </div>
+          </section>
+
+          <section className="home-card">
+            <div className="home-section-header">
+              <h2>Monthly Calendar</h2>
+              <span>Plot your focus sprints and rest days.</span>
+            </div>
+            <MiniCalendar />
+          </section>
+
           <section className="home-card home-quote">
             <p>&ldquo;Small, kind steps for your future self turn into big wins before you know it.&rdquo;</p>
             <span>Swap in whatever reminder makes today feel lighter.</span>
-          </section>
-
-          <section className="home-card home-weather">
-            <div className="home-section-header">
-              <div>
-                <h2>Vancouver</h2>
-                <span>Weather snapshot for the week.</span>
-              </div>
-              <div className="home-weather-now">
-                <strong>7°C</strong>
-                <span>Broken Clouds</span>
-              </div>
-            </div>
-            <div className="home-weather-grid">
-              {[
-                { day: 'Mon', high: '10°C', low: '7°C', icon: '🌧' },
-                { day: 'Tue', high: '12°C', low: '5°C', icon: '⛅' },
-                { day: 'Wed', high: '12°C', low: '6°C', icon: '🌦' },
-                { day: 'Thu', high: '12°C', low: '7°C', icon: '🌥' },
-                { day: 'Fri', high: '12°C', low: '7°C', icon: '🌧' },
-                { day: 'Sat', high: '12°C', low: '9°C', icon: '🌦' },
-                { day: 'Sun', high: '10°C', low: '9°C', icon: '🌧' }
-              ].map(item => (
-                <div key={item.day} className="home-weather-cell">
-                  <span className="home-weather-day">{item.day}</span>
-                  <span className="home-weather-icon" role="img" aria-label="weather icon">
-                    {item.icon}
-                  </span>
-                  <span className="home-weather-temp">{item.high}</span>
-                  <span className="home-weather-temp low">{item.low}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="home-card">
-            <div className="home-section-header">
-              <h2>Daily Check-in</h2>
-              <span>Jot a quick note before or after sessions.</span>
-            </div>
-            <ul className="home-prompts">
-              {DAILY_PROMPTS.map(prompt => (
-                <li key={prompt.id}>
-                  <strong>{prompt.question}</strong>
-                  <p>{prompt.hint}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="home-card">
-            <div className="home-section-header">
-              <h2>Due within the week</h2>
-              <span>Keep these moving forward.</span>
-            </div>
-            <div className="home-assignment-list">
-              {WEEK_ASSIGNMENTS.map(item => (
-                <article key={item.id}>
-                  <header>
-                    <span className="home-assignment-course">{item.course}</span>
-                    <span className="home-assignment-date">{item.due}</span>
-                  </header>
-                  <h3>{item.title}</h3>
-                  <p>{item.status}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section className="home-card">
-            <div className="home-section-header">
-              <h2>Due within the next month</h2>
-              <span>Break these into manageable checkpoints.</span>
-            </div>
-            <div className="home-assignment-list">
-              {MONTH_ASSIGNMENTS.map(item => (
-                <article key={item.id}>
-                  <header>
-                    <span className="home-assignment-course">{item.course}</span>
-                    <span className="home-assignment-date">{item.due}</span>
-                  </header>
-                  <h3>{item.title}</h3>
-                  <p>{item.status}</p>
-                </article>
-              ))}
-            </div>
           </section>
         </div>
 
@@ -449,10 +339,26 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
 
           <section className="home-card">
             <div className="home-section-header">
-              <h2>Monthly Calendar</h2>
-              <span>Plot your focus sprints and rest days.</span>
+              <h2>Due soon</h2>
+              <span>Ranked by upcoming deadlines.</span>
             </div>
-            <MiniCalendar />
+            <div className="home-assignment-list">
+              {dueItems.map(item => {
+                const dueDate = dayjs(item.dueDate)
+                return (
+                  <article key={item.id}>
+                    <header>
+                      <span className="home-assignment-course">{item.course}</span>
+                      <span className="home-assignment-date">
+                        {dueDate.format('ddd, MMM D')} at {dueDate.format('h:mm A')}
+                      </span>
+                    </header>
+                    <h3>{item.title}</h3>
+                    <p>{item.status}</p>
+                  </article>
+                )
+              })}
+            </div>
           </section>
 
           <section className="home-card home-profile-card">
@@ -510,3 +416,5 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
     </div>
   )
 }
+
+

@@ -2025,7 +2025,69 @@ body {
   flex: 1 1 360px;
   display: grid;
   gap: clamp(16px, 3vw, 24px);
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  align-items: stretch;
+}
+
+.home-hero-clock,
+.home-hero-weather {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.74);
+  border: none;
+  box-shadow: none;
+  backdrop-filter: blur(12px);
+}
+
+.home-hero-clock {
+  align-items: flex-start;
+}
+
+.home-hero-clock .clock-widget {
+  gap: 8px;
+}
+
+.home-hero-clock-note {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--subtext);
+}
+
+.home-hero-weather {
+  gap: 6px;
+}
+
+.home-hero-weather-icon {
+  font-size: 2rem;
+}
+
+.home-hero-weather-main {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.home-hero-weather-temp {
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.home-hero-weather-condition {
+  font-size: 0.95rem;
+  color: var(--subtext);
+}
+
+.home-hero-weather-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.85rem;
+  color: var(--subtext);
 }
 
 .home-card {
