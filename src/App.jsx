@@ -5,6 +5,7 @@ import Navbar from './components/Navbar.jsx'
 import RightPanel from './components/RightPanel.jsx'
 import Profile from './pages/Profile.jsx'
 import SocialPage from './components/social/SocialPage.jsx'
+import Chat from './pages/Chat.jsx'
 import Tools from './pages/Tools.jsx'
 import CalendarPage from './components/CalendarPage.jsx'
 import ImmerseMode from './pages/ImmerseMode.jsx'
@@ -30,6 +31,12 @@ const derivedFriends = getProfilesExcept(CURRENT_USER_ID).map(profile => {
   }
 })
 
+const groups = [
+  { id: 'g1', name: 'Study Group - Math', memberCount: 5, image: null },
+  { id: 'g2', name: 'Project Team Alpha', memberCount: 8, image: null },
+  { id: 'g3', name: 'Language Exchange', memberCount: 12, image: null },
+]
+
 function ProfileWrapper({ currentUserId, posts, onCreatePost, onSelectProfile }) {
   const { id } = useParams()
   const profileId = id ? Number(id) : currentUserId
@@ -54,11 +61,16 @@ export default function App() {
       author: getProfileById(post.userId),
     }))
   )
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   const currentUser = getProfileById(CURRENT_USER_ID) ?? profiles[0]
   const friends = derivedFriends
-  const showRightPanel = location.pathname.startsWith('/social') || location.pathname.startsWith('/profile')
-  const containerClass = showRightPanel ? 'container has-sidebar' : 'container'
+  const showRightPanel = location.pathname.startsWith('/social') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/chat')
+
+  let containerClass = 'container'
+  if (showRightPanel) {
+    containerClass = sidebarCollapsed ? 'container has-sidebar-collapsed' : 'container has-sidebar'
+  }
 
   function handleNewTask() {
     alert(t('app.newTaskDialog'))
@@ -66,6 +78,10 @@ export default function App() {
 
   function openProfile(profileId) {
     navigate(`/profile/${profileId}`)
+  }
+
+  function openChat(id, type) {
+    navigate(`/chat/${type}/${id}`)
   }
 
   function handleLaunchTool(toolId) {
@@ -161,6 +177,10 @@ export default function App() {
               />
             }
           />
+          <Route
+            path="/chat/:type/:id"
+            element={<Chat currentUserId={CURRENT_USER_ID} friends={friends} groups={groups} />}
+          />
           <Route path="/tools" element={<Tools onLaunchTool={handleLaunchTool} />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/immerse" element={<ImmerseMode onClose={handleCloseImmerse} />} />
@@ -168,7 +188,13 @@ export default function App() {
       </main>
 
       {showRightPanel && (
-        <RightPanel user={currentUser} friends={friends} onSelectUser={openProfile} />
+        <RightPanel
+          friends={friends}
+          groups={groups}
+          onOpenChat={openChat}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={setSidebarCollapsed}
+        />
       )}
     </div>
   )

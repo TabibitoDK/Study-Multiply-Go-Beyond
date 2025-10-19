@@ -6,7 +6,6 @@ import LanguageSwitcher from './LanguageSwitcher.jsx'
 const TABS = [
   { key: 'home', labelKey: 'nav.home', path: '/' },
   { key: 'social', labelKey: 'nav.social', path: '/social' },
-  { key: 'profile', labelKey: 'nav.profile', path: '/profile' },
   { key: 'tools', labelKey: 'nav.tools', path: '/tools' },
 ]
 
