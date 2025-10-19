@@ -51,6 +51,7 @@ body {
 .canvas-wrap {
   padding: 16px;
   overflow: auto;
+  height: 100%;
 }
 
 .panel {
@@ -2626,12 +2627,12 @@ body {
    SIMPLIFIED HOME DASHBOARD
    ======================================================= */
 .home-dashboard-simple {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 32px 24px;
+  margin: 0;
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 20px;
+  height: 100%;
 }
 
 /* Header: Welcome + Clock + Weather */
@@ -2705,11 +2706,12 @@ body {
   color: var(--subtext);
 }
 
-/* Main Grid: 3 Columns */
+/* Main Grid: 3 Columns - Navigation is main focus */
 .home-main-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  grid-template-columns: 280px 1fr 280px;
+  gap: 20px;
+  flex: 1;
 }
 
 .home-section {
@@ -2719,7 +2721,7 @@ body {
   display: flex;
   flex-direction: column;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  min-height: 500px;
+  height: 100%;
 }
 
 .section-header {
@@ -2739,24 +2741,28 @@ body {
   flex: 1;
 }
 
-/* Navigation Shortcuts */
+/* Navigation Shortcuts - Main focus area */
 .nav-shortcuts {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  height: 100%;
+  align-content: start;
 }
 
 .nav-shortcut-btn {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 16px 20px;
+  gap: 12px;
+  padding: 32px 24px;
   background: var(--bg);
   border: 1px solid var(--ring);
-  border-radius: 12px;
+  border-radius: 16px;
   text-align: left;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-height: 160px;
+  justify-content: center;
 }
 
 .nav-shortcut-btn:hover {
@@ -2767,14 +2773,15 @@ body {
 }
 
 .nav-shortcut-btn strong {
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--text);
 }
 
 .nav-shortcut-btn span {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   color: var(--subtext);
+  line-height: 1.5;
 }
 
 /* Goals List */
