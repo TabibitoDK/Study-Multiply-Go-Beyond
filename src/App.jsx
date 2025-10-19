@@ -131,6 +131,7 @@ export default function App() {
             path="/social"
             element={
               <SocialPage
+                currentUser={currentUser}
                 posts={posts}
                 onCreatePost={handleCreatePost}
                 onSelectProfile={openProfile}

@@ -1,0 +1,36 @@
+/* Social Page Layout with Sidebars */
+.social-wrap {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  gap: 2rem;
+  padding: 0 1rem;
+}
+
+.feed {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding-bottom: 120px;
+}
+
+@media (max-width: 1400px) {
+  .social-wrap {
+    grid-template-columns: 280px 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 1200px) {
+  .social-wrap {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .feed {
+    max-width: 700px;
+  }
+}

@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react'
 import PostCard from './PostCard.jsx'
 import PostModal from './PostModal.jsx'
+import ProfileSidebar from './ProfileSidebar.jsx'
+import TrendingSidebar from './TrendingSidebar.jsx'
 import { getPosts } from '../../lib/posts.js'
 import { getProfileById } from '../../lib/profiles.js'
+import './SocialPage.css'
 
-export default function SocialPage({ posts, onCreatePost, onSelectProfile }) {
+export default function SocialPage({ currentUser, posts, onCreatePost, onSelectProfile }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const feed = useMemo(() => {
@@ -24,11 +27,18 @@ export default function SocialPage({ posts, onCreatePost, onSelectProfile }) {
 
   return (
     <div className="social-wrap">
+      <ProfileSidebar
+        user={currentUser}
+        onNavigateToProfile={() => onSelectProfile && onSelectProfile(currentUser?.id)}
+      />
+
       <div className="feed">
         {feed.map(post => (
           <PostCard key={post.id} post={post} onSelectProfile={onSelectProfile} />
         ))}
       </div>
+
+      <TrendingSidebar />
 
       <button
         type="button"
