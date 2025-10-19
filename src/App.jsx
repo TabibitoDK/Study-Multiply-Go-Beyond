@@ -1,4 +1,5 @@
 ﻿import { useState } from 'react'
+import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import Navbar from './components/Navbar.jsx'
 import RightPanel from './components/RightPanel.jsx'
@@ -29,11 +30,24 @@ const derivedFriends = getProfilesExcept(CURRENT_USER_ID).map(profile => {
   }
 })
 
+function ProfileWrapper({ currentUserId, posts, onCreatePost, onSelectProfile }) {
+  const { id } = useParams()
+  const profileId = id ? Number(id) : currentUserId
+  return (
+    <Profile
+      profileId={profileId}
+      currentUserId={currentUserId}
+      posts={posts}
+      onCreatePost={onCreatePost}
+      onSelectProfile={onSelectProfile}
+    />
+  )
+}
+
 export default function App() {
   const { t } = useTranslation()
-  const [activeTab, setActiveTab] = useState('home')
-  const [selectedProfileId, setSelectedProfileId] = useState(CURRENT_USER_ID)
-  const [immersiveModeOpen, setImmersiveModeOpen] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
   const [posts, setPosts] = useState(() =>
     getPosts().map(post => ({
       ...post,
@@ -43,39 +57,31 @@ export default function App() {
 
   const currentUser = getProfileById(CURRENT_USER_ID) ?? profiles[0]
   const friends = derivedFriends
-  const showRightPanel = activeTab === 'social' || activeTab === 'profile'
+  const showRightPanel = location.pathname.startsWith('/social') || location.pathname.startsWith('/profile')
   const containerClass = showRightPanel ? 'container has-sidebar' : 'container'
 
   function handleNewTask() {
     alert(t('app.newTaskDialog'))
   }
 
-  function handleChangeTab(tab) {
-    setActiveTab(tab)
-    if (tab === 'profile') {
-      setSelectedProfileId(CURRENT_USER_ID)
-    }
-  }
-
   function openProfile(profileId) {
-    setSelectedProfileId(profileId)
-    setActiveTab('profile')
+    navigate(`/profile/${profileId}`)
   }
 
   function handleLaunchTool(toolId) {
     if (toolId === 'immerse') {
-      setImmersiveModeOpen(true)
+      navigate('/immerse')
       return
     }
     if (toolId === 'calendar') {
-      setActiveTab('calendar')
+      navigate('/calendar')
       return
     }
     console.info('Launch tool placeholder:', toolId)
   }
 
   function handleCloseImmerse() {
-    setImmersiveModeOpen(false)
+    navigate(-1)
   }
 
   function handleCreatePost(draft) {
@@ -108,45 +114,61 @@ export default function App() {
 
   return (
     <div className={containerClass}>
-      <Navbar activeTab={activeTab} onChangeTab={handleChangeTab} onNewTask={handleNewTask} />
+      <Navbar onNewTask={handleNewTask} />
 
       <main className="canvas-wrap">
-        {activeTab === 'home' && (
-          <HomeDashboard
-            user={currentUser}
-            onNavigate={handleChangeTab}
-            onOpenProfile={() => openProfile(CURRENT_USER_ID)}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <HomeDashboard
+                user={currentUser}
+                onOpenProfile={() => openProfile(CURRENT_USER_ID)}
+              />
+            }
           />
-        )}
-
-        {activeTab === 'social' && (
-          <SocialPage
-            posts={posts}
-            onCreatePost={handleCreatePost}
-            onSelectProfile={openProfile}
+          <Route
+            path="/social"
+            element={
+              <SocialPage
+                posts={posts}
+                onCreatePost={handleCreatePost}
+                onSelectProfile={openProfile}
+              />
+            }
           />
-        )}
-
-        {activeTab === 'profile' && (
-          <Profile
-            profileId={selectedProfileId}
-            currentUserId={CURRENT_USER_ID}
-            posts={posts}
-            onCreatePost={handleCreatePost}
-            onSelectProfile={openProfile}
+          <Route
+            path="/profile"
+            element={
+              <Profile
+                profileId={CURRENT_USER_ID}
+                currentUserId={CURRENT_USER_ID}
+                posts={posts}
+                onCreatePost={handleCreatePost}
+                onSelectProfile={openProfile}
+              />
+            }
           />
-        )}
-        {activeTab === 'tools' && <Tools onLaunchTool={handleLaunchTool} />}
-        {activeTab === 'calendar' && (
-          <CalendarPage onNavigate={handleChangeTab} />
-        )}
+          <Route
+            path="/profile/:id"
+            element={
+              <ProfileWrapper
+                currentUserId={CURRENT_USER_ID}
+                posts={posts}
+                onCreatePost={handleCreatePost}
+                onSelectProfile={openProfile}
+              />
+            }
+          />
+          <Route path="/tools" element={<Tools onLaunchTool={handleLaunchTool} />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/immerse" element={<ImmerseMode onClose={handleCloseImmerse} />} />
+        </Routes>
       </main>
 
       {showRightPanel && (
         <RightPanel user={currentUser} friends={friends} onSelectUser={openProfile} />
       )}
-
-      {immersiveModeOpen && <ImmerseMode onClose={handleCloseImmerse} />}
     </div>
   )
 }

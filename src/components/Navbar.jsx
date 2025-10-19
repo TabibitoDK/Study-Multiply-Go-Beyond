@@ -1,15 +1,16 @@
 import { useMemo } from 'react'
+import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from './LanguageSwitcher.jsx'
 
 const TABS = [
-  { key: 'home', labelKey: 'nav.home' },
-  { key: 'social', labelKey: 'nav.social' },
-  { key: 'profile', labelKey: 'nav.profile' },
-  { key: 'tools', labelKey: 'nav.tools' },
+  { key: 'home', labelKey: 'nav.home', path: '/' },
+  { key: 'social', labelKey: 'nav.social', path: '/social' },
+  { key: 'profile', labelKey: 'nav.profile', path: '/profile' },
+  { key: 'tools', labelKey: 'nav.tools', path: '/tools' },
 ]
 
-export default function Navbar({ activeTab = 'home', onNewTask, onChangeTab }) {
+export default function Navbar({ onNewTask }) {
   const { t } = useTranslation()
 
   const tabItems = useMemo(
@@ -17,6 +18,7 @@ export default function Navbar({ activeTab = 'home', onNewTask, onChangeTab }) {
       TABS.map(tab => ({
         ...tab,
         label: t(tab.labelKey),
+        path: tab.path,
       })),
     [t],
   )
@@ -32,17 +34,15 @@ export default function Navbar({ activeTab = 'home', onNewTask, onChangeTab }) {
 
       <nav className="tabs" role="tablist" aria-label={t('navbar.tabsAria')}>
         {tabItems.map(tab => {
-          const isActive = activeTab === tab.key
-          const className = isActive ? 'tab active' : 'tab'
           return (
-            <button
+            <NavLink
               key={tab.key}
-              className={className}
-              onClick={() => onChangeTab?.(tab.key)}
-              type="button"
+              to={tab.path}
+              className={({ isActive }) => (isActive ? 'tab active' : 'tab')}
+              end={tab.key === 'home'}
             >
               {tab.label}
-            </button>
+            </NavLink>
           )
         })}
       </nav>

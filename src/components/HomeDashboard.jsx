@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import {
   ChevronLeft,
@@ -17,21 +18,21 @@ const NAVIGATION_CARDS = [
     label: 'Study Planner',
     caption: "Curate today's sessions, timers, and breaks.",
     accent: '#f97316',
-    tab: 'tools'
+    path: '/tools'
   },
   {
     id: 'calendar',
     label: 'Calendar',
     caption: 'Preview exams, labs, and important checkpoints.',
     accent: '#38bdf8',
-    tab: 'tools'
+    path: '/calendar'
   },
   {
     id: 'community',
     label: 'Community Feed',
     caption: 'Share wins and see what your friends are up to.',
     accent: '#a855f7',
-    tab: 'social'
+    path: '/social'
   }
 ]
 
@@ -173,7 +174,8 @@ function MiniCalendar() {
   )
 }
 
-export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
+export default function HomeDashboard({ user, onOpenProfile }) {
+  const navigate = useNavigate()
   const firstName = useMemo(() => {
     if (!user?.name) return 'Student'
     const [first] = user.name.split(' ')
@@ -183,235 +185,100 @@ export default function HomeDashboard({ user, onNavigate, onOpenProfile }) {
     () =>
       [...DUE_ASSIGNMENTS].sort((a, b) =>
         dayjs(a.dueDate).valueOf() - dayjs(b.dueDate).valueOf()
-      ),
+      ).slice(0, 3),
     []
   )
 
   return (
-    <div className="home-dashboard">
-      <section className="home-hero">
-        <div className="home-hero-content">
-          <div className="home-hero-text">
-            <span className="home-hero-eyebrow">today&apos;s study board</span>
-            <h1>
-              Welcome back, <span>{firstName}</span>
-            </h1>
-            <p>
-              Keep your plan, progress, and little joys in one calm space so studying stays
-              intentional and not overwhelming.
-            </p>
-            <div className="home-hero-tags">
-              <span className="home-chip">
-                <Sparkles size={16} aria-hidden />
-                Week 7 - Fall semester
-              </span>
-              <span className="home-chip">
-                <Target size={16} aria-hidden />
-                Focus sessions - 3 planned
-              </span>
-            </div>
-          </div>
+    <div className="home-dashboard-simple">
+      {/* Header: Welcome + Clock + Weather */}
+      <header className="home-header">
+        <div className="home-welcome">
+          <h1>Welcome back, <span>{firstName}</span></h1>
+        </div>
 
-          <div className="home-hero-widgets">
-            <div className="home-hero-clock">
-              <ClockWidget />
-              <span className="home-hero-clock-note">Local time</span>
-            </div>
-            <div className="home-hero-weather">
-              <span className="home-hero-weather-icon" role="img" aria-label="weather">{WEATHER_SUMMARY.icon}</span>
-              <div className="home-hero-weather-main">
-                <span className="home-hero-weather-temp">{WEATHER_SUMMARY.temperature}</span>
-                <span className="home-hero-weather-condition">{WEATHER_SUMMARY.condition}</span>
-              </div>
-              <div className="home-hero-weather-meta">
-                <span>{WEATHER_SUMMARY.location}</span>
-                <span>High {WEATHER_SUMMARY.high} / Low {WEATHER_SUMMARY.low}</span>
-              </div>
-            </div>
+        <div className="home-clock-compact">
+          <ClockWidget />
+        </div>
+
+        <div className="home-weather-compact">
+          <span className="weather-icon">{WEATHER_SUMMARY.icon}</span>
+          <div className="weather-info">
+            <span className="weather-temp">{WEATHER_SUMMARY.temperature}</span>
+            <span className="weather-condition">{WEATHER_SUMMARY.condition}</span>
           </div>
         </div>
-      </section>
+      </header>
 
-      <div className="home-grid">
-        <div className="home-column">
-          <section className="home-card">
-            <div className="home-section-header">
-              <h2>Today&apos;s To-dos</h2>
-              <span>Keep it light but consistent.</span>
-            </div>
+      {/* Main Content: 3 Columns */}
+      <div className="home-main-grid">
+        {/* Left Column: Tasks */}
+        <section className="home-section">
+          <div className="section-header">
+            <h2>Tasks</h2>
+          </div>
+          <div className="section-content">
             <TodoWidget />
-          </section>
+          </div>
+        </section>
 
-          <section className="home-card">
-            <div className="home-section-header">
-              <h2>Progress at a glance</h2>
-              <span>See how your effort is building across time.</span>
-            </div>
-            <div className="home-progress">
-              {PROGRESS_TRACKERS.map(track => (
-                <div key={track.id} className="home-progress-row">
-                  <div className="home-progress-label">
-                    <span>{track.label}</span>
-                    <span>{track.value}%</span>
-                  </div>
-                  <div className="home-progress-bar">
-                    <div style={{ width: `${track.value}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="home-card">
-            <div className="home-section-header">
-              <h2>Focus Areas</h2>
-              <span>A few gentle anchors for the day.</span>
-            </div>
-            <ul className="home-focus-list">
-              {FOCUS_AREAS.map(area => (
-                <li key={area.id}>
-                  <strong>{area.title}</strong>
-                  <p>{area.description}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </div>
-
-        <div className="home-column home-column-wide">
-          <section className="home-card">
-            <div className="home-section-header">
-              <h2>Navigation</h2>
-              <span>Move around the workspace with one click.</span>
-            </div>
-            <div className="home-nav-grid">
+        {/* Middle Column: Navigation */}
+        <section className="home-section">
+          <div className="section-header">
+            <h2>Navigation</h2>
+          </div>
+          <div className="section-content">
+            <div className="nav-shortcuts">
               {NAVIGATION_CARDS.map(card => (
                 <button
                   key={card.id}
                   type="button"
-                  className="home-nav-card"
-                  style={{ '--nav-accent': card.accent }}
+                  className="nav-shortcut-btn"
                   onClick={() => {
-                    if (card.tab) {
-                      onNavigate?.(card.tab)
+                    if (card.path) {
+                      navigate(card.path)
                     }
                   }}
                 >
                   <strong>{card.label}</strong>
                   <span>{card.caption}</span>
-                  <span className="home-nav-dot" aria-hidden />
                 </button>
               ))}
               <button
                 type="button"
-                className="home-nav-card"
-                style={{ '--nav-accent': '#facc15' }}
+                className="nav-shortcut-btn"
                 onClick={() => onOpenProfile?.()}
               >
-                <strong>Profile Snapshot</strong>
-                <span>Review highlights &amp; activity log.</span>
-                <span className="home-nav-dot" aria-hidden />
+                <strong>Profile</strong>
+                <span>View your activity</span>
               </button>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section className="home-card">
-            <div className="home-section-header">
-              <h2>Monthly Calendar</h2>
-              <span>Plot your focus sprints and rest days.</span>
-            </div>
-            <MiniCalendar />
-          </section>
-
-          <section className="home-card home-quote">
-            <p>&ldquo;Small, kind steps for your future self turn into big wins before you know it.&rdquo;</p>
-            <span>Swap in whatever reminder makes today feel lighter.</span>
-          </section>
-        </div>
-
-        <div className="home-column">
-          <section className="home-card home-plant-card">
-            <img
-              src="https://64.media.tumblr.com/844419d4b5400fed08246e6fbf0ccb20/tumblr_inline_prlxb8ltqG1v11u1e_540.gif"
-              alt="Pixel art plants"
-            />
-          </section>
-
-          <section className="home-card">
-            <div className="home-section-header">
-              <h2>Due soon</h2>
-              <span>Ranked by upcoming deadlines.</span>
-            </div>
-            <div className="home-assignment-list">
+        {/* Right Column: Goals */}
+        <section className="home-section">
+          <div className="section-header">
+            <h2>Goals</h2>
+          </div>
+          <div className="section-content">
+            <div className="goals-list">
               {dueItems.map(item => {
                 const dueDate = dayjs(item.dueDate)
                 return (
-                  <article key={item.id}>
-                    <header>
-                      <span className="home-assignment-course">{item.course}</span>
-                      <span className="home-assignment-date">
-                        {dueDate.format('ddd, MMM D')} at {dueDate.format('h:mm A')}
-                      </span>
-                    </header>
+                  <div key={item.id} className="goal-item">
+                    <div className="goal-header">
+                      <span className="goal-course">{item.course}</span>
+                      <span className="goal-date">{dueDate.format('MMM D')}</span>
+                    </div>
                     <h3>{item.title}</h3>
                     <p>{item.status}</p>
-                  </article>
+                  </div>
                 )
               })}
             </div>
-          </section>
-
-          <section className="home-card home-profile-card">
-            <div className="home-section-header">
-              <h2>About me</h2>
-              <span>Reconnect with your why.</span>
-            </div>
-            <ul>
-              <li>
-                <span>Name</span>
-                <strong>{user?.name ?? 'Guest Student'}</strong>
-              </li>
-              <li>
-                <span>Username</span>
-                <strong>@{user?.username ?? 'anonymous'}</strong>
-              </li>
-              <li>
-                <span>Location</span>
-                <strong>
-                  <MapPin size={14} aria-hidden />
-                  {user?.location ?? 'Wherever you focus best'}
-                </strong>
-              </li>
-              <li>
-                <span>Degree path</span>
-                <strong>Engineering + Creative Tech Exploration</strong>
-              </li>
-            </ul>
-          </section>
-
-          <section className="home-card home-playlist">
-            <div className="home-section-header">
-              <h2>Study playlist</h2>
-              <span>Keep the background warm and steady.</span>
-            </div>
-            <div className="home-playlist-grid">
-              {PLAYLISTS.map(item => (
-                <div key={item.id} className="home-playlist-item">
-                  <iframe
-                    src={item.url}
-                    title={item.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                  <div className="home-playlist-meta">
-                    <PlayCircle size={18} aria-hidden />
-                    <span>{item.title}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
+          </div>
+        </section>
       </div>
     </div>
   )

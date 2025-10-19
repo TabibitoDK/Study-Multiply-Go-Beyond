@@ -103,8 +103,16 @@ body {
   cursor: pointer;
   font-weight: 500;
   transition: background 0.2s;
+  text-decoration: none;
+  color: var(--text);
 }
-.tab.active { background: var(--muted); font-weight: 700; }
+.tab:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+.tab.active {
+  background: var(--muted);
+  font-weight: 700;
+}
 
 .nav-actions {
   display: flex;
@@ -2611,5 +2619,239 @@ body {
 
   .home-card {
     padding: 18px;
+  }
+}
+
+/* =======================================================
+   SIMPLIFIED HOME DASHBOARD
+   ======================================================= */
+.home-dashboard-simple {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Header: Welcome + Clock + Weather */
+.home-header {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 32px;
+  background: var(--panel);
+  border: 1px solid var(--ring);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.home-welcome h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.home-welcome h1 span {
+  color: var(--accent);
+}
+
+.home-clock-compact .clock-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.home-clock-compact .clock-display {
+  font-size: 1.5rem;
+  font-weight: 700;
+  gap: 4px;
+}
+
+.home-clock-compact .clock-meta {
+  font-size: 0.75rem;
+  gap: 6px;
+}
+
+.home-weather-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--bg);
+  border-radius: 12px;
+}
+
+.home-weather-compact .weather-icon {
+  font-size: 2rem;
+}
+
+.home-weather-compact .weather-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.home-weather-compact .weather-temp {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.home-weather-compact .weather-condition {
+  font-size: 0.8rem;
+  color: var(--subtext);
+}
+
+/* Main Grid: 3 Columns */
+.home-main-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.home-section {
+  background: var(--panel);
+  border: 1px solid var(--ring);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  min-height: 500px;
+}
+
+.section-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--ring);
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.section-content {
+  padding: 24px;
+  flex: 1;
+}
+
+/* Navigation Shortcuts */
+.nav-shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nav-shortcut-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 20px;
+  background: var(--bg);
+  border: 1px solid var(--ring);
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-shortcut-btn:hover {
+  background: var(--panel);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.nav-shortcut-btn strong {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.nav-shortcut-btn span {
+  font-size: 0.85rem;
+  color: var(--subtext);
+}
+
+/* Goals List */
+.goals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.goal-item {
+  padding: 16px;
+  background: var(--bg);
+  border: 1px solid var(--ring);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.goal-course {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.goal-date {
+  color: var(--subtext);
+  font-weight: 600;
+}
+
+.goal-item h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.goal-item p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--subtext);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .home-main-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .home-section {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-header {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .home-clock-compact,
+  .home-weather-compact {
+    justify-self: start;
+  }
+
+  .home-dashboard-simple {
+    padding: 20px 16px;
+    gap: 20px;
   }
 }

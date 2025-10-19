@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { useI18nFormats } from '../lib/i18n-format.js'
 const STORAGE_KEY = 'smgb-calendar-events-v1'
 
-export default function CalendarPage({ onNavigate }) {
+export default function CalendarPage() {
+  const navigate = useNavigate()
   const today = new Date()
   const { t } = useTranslation()
   const { locale, formatDate } = useI18nFormats()
@@ -24,7 +26,6 @@ export default function CalendarPage({ onNavigate }) {
   const [selectedDay, setSelectedDay] = useState(null)
   const [draftText, setDraftText] = useState('')
   const [quickText, setQuickText] = useState('')
-  const canNavigateBack = typeof onNavigate === 'function'
 
   const weekdayLabels = useMemo(() => {
     const reference = new Date(Date.UTC(2021, 5, 6))
@@ -199,9 +200,7 @@ export default function CalendarPage({ onNavigate }) {
   }
 
   function handleBack() {
-    if (typeof onNavigate === 'function') {
-      onNavigate('tools')
-    }
+    navigate('/tools')
   }
 
   function keyForDay(day) {
@@ -315,7 +314,6 @@ export default function CalendarPage({ onNavigate }) {
           type="button"
           className="calendar-back-btn"
           onClick={handleBack}
-          disabled={!canNavigateBack}
         >
           <ArrowLeft size={18} aria-hidden="true" />
           <span>{t('calendar.actions.backToTools', { defaultValue: 'Back to tools' })}</span>
