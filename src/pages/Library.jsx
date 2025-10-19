@@ -11,14 +11,11 @@ import BookCard from '../components/library/BookCard.jsx'
 import BookModal from '../components/library/BookModal.jsx'
 import {
   getAllBooks,
-  deleteBook,
-  getBookById,
   updateBook,
   createBook,
   sortBooks,
   filterBooks,
   getAllTags,
-  searchBooks,
 } from '../lib/books.js'
 
 export default function Library() {
@@ -31,7 +28,6 @@ export default function Library() {
   const [selectedTags, setSelectedTags] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [editingBook, setEditingBook] = useState(null)
-  const [deleteConfirm, setDeleteConfirm] = useState(null)
 
   const allTags = useMemo(() => getAllTags(), [])
 
@@ -65,12 +61,6 @@ export default function Library() {
     setShowModal(true)
   }
 
-  const handleEditBook = (bookId) => {
-    const book = getBookById(bookId)
-    setEditingBook(book)
-    setShowModal(true)
-  }
-
   const handleSaveBook = (formData) => {
     if (editingBook) {
       updateBook(editingBook.id, formData)
@@ -80,12 +70,6 @@ export default function Library() {
     setBooks(getAllBooks())
     setShowModal(false)
     setEditingBook(null)
-  }
-
-  const handleDeleteBook = (bookId) => {
-    deleteBook(bookId)
-    setBooks(getAllBooks())
-    setDeleteConfirm(null)
   }
 
   const handleBookClick = (bookId) => {
@@ -112,8 +96,8 @@ export default function Library() {
     <div className="library-page">
       <header className="library-header">
         <div className="library-header-top">
-          <h1 className="library-title">My Book Shelf</h1>
-          <p className="library-subtitle">ライブラリー</p>
+          <h1 className="library-title">My Library</h1>
+          <p className="library-subtitle">マイ・ライブラリー</p>
         </div>
 
         <div className="library-controls">
@@ -259,37 +243,8 @@ export default function Library() {
               key={book.id}
               book={book}
               onBookClick={handleBookClick}
-              onEdit={handleEditBook}
-              onDelete={(id) => setDeleteConfirm(id)}
             />
           ))}
-        </div>
-      )}
-
-      {deleteConfirm && (
-        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
-          <div className="modal delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">Delete Book?</h2>
-            <p>
-              Are you sure you want to delete this book? This action cannot be undone.
-            </p>
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="btn ghost"
-                onClick={() => setDeleteConfirm(null)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="btn danger"
-                onClick={() => handleDeleteBook(deleteConfirm)}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
