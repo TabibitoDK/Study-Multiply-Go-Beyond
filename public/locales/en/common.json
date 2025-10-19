@@ -9,6 +9,7 @@
   "nav": {
     "home": "Home",
     "social": "Social",
+    "library": "Library",
     "profile": "Profile",
     "calendar": "Calendar",
     "tools": "Tools",
@@ -115,5 +116,77 @@
         "color": "Solid color"
       }
     }
+  },
+  "library": {
+    "title": "My Book Shelf",
+    "subtitle": "ライブラリー",
+    "addBook": "Add Book",
+    "searchPlaceholder": "Search by title, author, or tags...",
+    "sortBy": "Sort by",
+    "sortOptions": {
+      "latest": "Latest Added",
+      "oldest": "Oldest First",
+      "popular": "Most Popular (Rating)"
+    },
+    "status": "Status",
+    "statusOptions": {
+      "all": "All Books",
+      "wantToRead": "Want to Read",
+      "reading": "Currently Reading",
+      "completed": "Completed"
+    },
+    "visibility": "Visibility",
+    "visibilityOptions": {
+      "all": "All Books",
+      "public": "Public",
+      "private": "Private"
+    },
+    "filterByTags": "Filter by tags",
+    "reset": "Reset",
+    "noBooks": "No books found",
+    "noBooksDesc": "Try adjusting your search or filters.",
+    "addFirstBook": "Add Your First Book",
+    "emptyStateDesc": "Start building your library by adding your first book!",
+    "bookCount": "{{count}} book",
+    "bookCountPlural": "{{count}} books",
+    "modal": {
+      "addTitle": "Add New Book",
+      "editTitle": "Edit Book",
+      "cancel": "Cancel",
+      "save": "Add Book",
+      "update": "Save Changes",
+      "title": "Title",
+      "author": "Author",
+      "year": "Year",
+      "pages": "Pages",
+      "coverUrl": "Cover Image URL",
+      "publisher": "Publisher",
+      "description": "Description",
+      "tags": "Tags",
+      "addTags": "Add tags and press Enter",
+      "status": "Status",
+      "rating": "Rating",
+      "language": "Language",
+      "makePrivate": "Make this book private",
+      "required": "required"
+    },
+    "statuses": {
+      "wantToRead": "Want to Read",
+      "reading": "Reading",
+      "completed": "Read"
+    },
+    "details": {
+      "backToLibrary": "Back to Library",
+      "readNow": "Read Now",
+      "borrow": "Borrow",
+      "edit": "Edit Book",
+      "delete": "Delete Book",
+      "description": "Description",
+      "tags": "Tags",
+      "otherBooks": "Other Books by {{author}}"
+    },
+    "deleteConfirm": "Delete Book?",
+    "deleteConfirmMsg": "Are you sure you want to delete this book? This action cannot be undone.",
+    "deleteConfirmBook": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone."
   }
 }

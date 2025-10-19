@@ -9,6 +9,7 @@
   "nav": {
     "home": "ホーム",
     "social": "ソーシャル",
+    "library": "ライブラリー",
     "profile": "プロフィール",
     "calendar": "カレンダー",
     "newTask": "新しいタスク",
@@ -115,5 +116,77 @@
         "color": "Solid color"
       }
     }
+  },
+  "library": {
+    "title": "マイ本棚",
+    "subtitle": "ライブラリー",
+    "addBook": "本を追加",
+    "searchPlaceholder": "タイトル、著者、またはタグで検索...",
+    "sortBy": "ソート",
+    "sortOptions": {
+      "latest": "最近追加した順",
+      "oldest": "古い順",
+      "popular": "人気順（評価）"
+    },
+    "status": "ステータス",
+    "statusOptions": {
+      "all": "全ての本",
+      "wantToRead": "読みたい",
+      "reading": "読んでいる",
+      "completed": "読み終わった"
+    },
+    "visibility": "公開設定",
+    "visibilityOptions": {
+      "all": "全て",
+      "public": "公開",
+      "private": "非公開"
+    },
+    "filterByTags": "タグでフィルター",
+    "reset": "リセット",
+    "noBooks": "本が見つかりません",
+    "noBooksDesc": "検索またはフィルターを調整してください。",
+    "addFirstBook": "最初の本を追加する",
+    "emptyStateDesc": "最初の本を追加してあなたのライブラリーを構築しましょう！",
+    "bookCount": "{{count}} 冊の本",
+    "bookCountPlural": "{{count}} 冊の本",
+    "modal": {
+      "addTitle": "新しい本を追加",
+      "editTitle": "本を編集",
+      "cancel": "キャンセル",
+      "save": "本を追加",
+      "update": "変更を保存",
+      "title": "タイトル",
+      "author": "著者",
+      "year": "年",
+      "pages": "ページ数",
+      "coverUrl": "カバー画像URL",
+      "publisher": "出版社",
+      "description": "説明",
+      "tags": "タグ",
+      "addTags": "タグを追加してEnterを押す",
+      "status": "ステータス",
+      "rating": "評価",
+      "language": "言語",
+      "makePrivate": "この本を非公開にする",
+      "required": "必須"
+    },
+    "statuses": {
+      "wantToRead": "読みたい",
+      "reading": "読んでいる",
+      "completed": "読み終わった"
+    },
+    "details": {
+      "backToLibrary": "ライブラリーに戻る",
+      "readNow": "今すぐ読む",
+      "borrow": "借りる",
+      "edit": "本を編集",
+      "delete": "本を削除",
+      "description": "説明",
+      "tags": "タグ",
+      "otherBooks": "{{author}}の他の本"
+    },
+    "deleteConfirm": "本を削除しますか？",
+    "deleteConfirmMsg": "この本を削除してもよろしいですか？この操作は元に戻せません。",
+    "deleteConfirmBook": "\"{{title}}\"を削除してもよろしいですか？この操作は元に戻せません。"
   }
 }

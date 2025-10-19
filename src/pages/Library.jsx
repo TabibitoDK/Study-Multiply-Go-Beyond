@@ -1,0 +1,309 @@
+import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  Search,
+  Plus,
+  Trash2,
+  Edit2,
+  ChevronDown,
+} from 'lucide-react'
+import BookCard from '../components/library/BookCard.jsx'
+import BookModal from '../components/library/BookModal.jsx'
+import {
+  getAllBooks,
+  deleteBook,
+  getBookById,
+  updateBook,
+  createBook,
+  sortBooks,
+  filterBooks,
+  getAllTags,
+  searchBooks,
+} from '../lib/books.js'
+
+export default function Library() {
+  const navigate = useNavigate()
+  const [books, setBooks] = useState(() => getAllBooks())
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState('latest')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [visibilityFilter, setVisibilityFilter] = useState('all')
+  const [selectedTags, setSelectedTags] = useState([])
+  const [showModal, setShowModal] = useState(false)
+  const [editingBook, setEditingBook] = useState(null)
+  const [deleteConfirm, setDeleteConfirm] = useState(null)
+
+  const allTags = useMemo(() => getAllTags(), [])
+
+  const filteredAndSearchedBooks = useMemo(() => {
+    let result = books
+
+    // Search
+    if (searchQuery) {
+      result = result.filter(book =>
+        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        book.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    }
+
+    // Filter
+    result = filterBooks(result, {
+      status: statusFilter,
+      visibility: visibilityFilter,
+      tags: selectedTags,
+    })
+
+    // Sort
+    result = sortBooks(result, sortBy)
+
+    return result
+  }, [books, searchQuery, sortBy, statusFilter, visibilityFilter, selectedTags])
+
+  const handleAddBook = () => {
+    setEditingBook(null)
+    setShowModal(true)
+  }
+
+  const handleEditBook = (bookId) => {
+    const book = getBookById(bookId)
+    setEditingBook(book)
+    setShowModal(true)
+  }
+
+  const handleSaveBook = (formData) => {
+    if (editingBook) {
+      updateBook(editingBook.id, formData)
+    } else {
+      createBook(formData)
+    }
+    setBooks(getAllBooks())
+    setShowModal(false)
+    setEditingBook(null)
+  }
+
+  const handleDeleteBook = (bookId) => {
+    deleteBook(bookId)
+    setBooks(getAllBooks())
+    setDeleteConfirm(null)
+  }
+
+  const handleBookClick = (bookId) => {
+    navigate(`/library/${bookId}`)
+  }
+
+  const handleTagToggle = (tag) => {
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    )
+  }
+
+  const resetFilters = () => {
+    setSearchQuery('')
+    setSortBy('latest')
+    setStatusFilter('all')
+    setVisibilityFilter('all')
+    setSelectedTags([])
+  }
+
+  const hasActiveFilters = searchQuery || statusFilter !== 'all' || visibilityFilter !== 'all' || selectedTags.length > 0
+
+  return (
+    <div className="library-page">
+      <header className="library-header">
+        <div className="library-header-top">
+          <h1 className="library-title">My Book Shelf</h1>
+          <p className="library-subtitle">ライブラリー</p>
+        </div>
+
+        <div className="library-controls">
+          <div className="search-bar">
+            <Search size={20} className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search by title, author, or tags..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+          </div>
+
+          <button
+            type="button"
+            className="btn library-add-btn"
+            onClick={handleAddBook}
+          >
+            <Plus size={18} />
+            Add Book
+          </button>
+        </div>
+      </header>
+
+      <div className="library-filters">
+        <div className="filter-group">
+          <label htmlFor="sort-select">Sort by:</label>
+          <div className="select-wrapper">
+            <select
+              id="sort-select"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="filter-select"
+            >
+              <option value="latest">Latest Added</option>
+              <option value="oldest">Oldest First</option>
+              <option value="popular">Most Popular (Rating)</option>
+            </select>
+            <ChevronDown size={16} />
+          </div>
+        </div>
+
+        <div className="filter-group">
+          <label htmlFor="status-select">Status:</label>
+          <div className="select-wrapper">
+            <select
+              id="status-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">All Books</option>
+              <option value="want-to-read">Want to Read</option>
+              <option value="reading">Currently Reading</option>
+              <option value="completed">Completed</option>
+            </select>
+            <ChevronDown size={16} />
+          </div>
+        </div>
+
+        <div className="filter-group">
+          <label htmlFor="visibility-select">Visibility:</label>
+          <div className="select-wrapper">
+            <select
+              id="visibility-select"
+              value={visibilityFilter}
+              onChange={(e) => setVisibilityFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">All Books</option>
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+            </select>
+            <ChevronDown size={16} />
+          </div>
+        </div>
+
+        {hasActiveFilters && (
+          <button
+            type="button"
+            className="filter-reset"
+            onClick={resetFilters}
+          >
+            Reset
+          </button>
+        )}
+      </div>
+
+      {allTags.length > 0 && (
+        <div className="library-tags-section">
+          <p className="tags-label">Filter by tags:</p>
+          <div className="tags-container">
+            {allTags.map(tag => (
+              <button
+                key={tag}
+                type="button"
+                className={`tag-filter-btn ${
+                  selectedTags.includes(tag) ? 'active' : ''
+                }`}
+                onClick={() => handleTagToggle(tag)}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="library-stats">
+        <span className="stat">
+          {filteredAndSearchedBooks.length} book{filteredAndSearchedBooks.length !== 1 ? 's' : ''}
+        </span>
+        {statusFilter !== 'all' && (
+          <span className="stat-badge">{statusFilter.replace('-', ' ')}</span>
+        )}
+      </div>
+
+      {filteredAndSearchedBooks.length === 0 ? (
+        <div className="library-empty">
+          <div className="empty-content">
+            <h2>No books found</h2>
+            <p>
+              {hasActiveFilters
+                ? 'Try adjusting your search or filters.'
+                : "Start building your library by adding your first book!"}
+            </p>
+            {!hasActiveFilters && (
+              <button
+                type="button"
+                className="btn"
+                onClick={handleAddBook}
+              >
+                Add Your First Book
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="library-grid">
+          {filteredAndSearchedBooks.map(book => (
+            <BookCard
+              key={book.id}
+              book={book}
+              onBookClick={handleBookClick}
+              onEdit={handleEditBook}
+              onDelete={(id) => setDeleteConfirm(id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {deleteConfirm && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
+          <div className="modal delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <h2 className="modal-title">Delete Book?</h2>
+            <p>
+              Are you sure you want to delete this book? This action cannot be undone.
+            </p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => setDeleteConfirm(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn danger"
+                onClick={() => handleDeleteBook(deleteConfirm)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showModal && (
+        <BookModal
+          book={editingBook}
+          allTags={allTags}
+          onSave={handleSaveBook}
+          onClose={() => {
+            setShowModal(false)
+            setEditingBook(null)
+          }}
+        />
+      )}
+    </div>
+  )
+}

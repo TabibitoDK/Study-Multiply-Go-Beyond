@@ -10,6 +10,8 @@ import Tools from './pages/Tools.jsx'
 import CalendarPage from './components/CalendarPage.jsx'
 import ImmerseMode from './pages/ImmerseMode.jsx'
 import HomeDashboard from './components/HomeDashboard.jsx'
+import Library from './pages/Library.jsx'
+import BookDetails from './pages/BookDetails.jsx'
 import { profiles, getProfileById, getProfilesExcept } from './lib/profiles.js'
 import { getPosts } from './lib/posts.js'
 
@@ -65,7 +67,7 @@ export default function App() {
 
   const currentUser = getProfileById(CURRENT_USER_ID) ?? profiles[0]
   const friends = derivedFriends
-  const showRightPanel = location.pathname.startsWith('/social') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/chat')
+  const showRightPanel = location.pathname.startsWith('/social') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/chat') || location.pathname.startsWith('/library')
 
   let containerClass = 'container'
   if (showRightPanel) {
@@ -181,6 +183,8 @@ export default function App() {
             path="/chat/:type/:id"
             element={<Chat currentUserId={CURRENT_USER_ID} friends={friends} groups={groups} />}
           />
+          <Route path="/library" element={<Library />} />
+          <Route path="/library/:id" element={<BookDetails />} />
           <Route path="/tools" element={<Tools onLaunchTool={handleLaunchTool} />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/immerse" element={<ImmerseMode onClose={handleCloseImmerse} />} />
