@@ -14,43 +14,39 @@ export default function RightPanel({ friends = [], groups = [], onOpenChat, isCo
 
   if (isCollapsed) {
     return (
-      <>
-        <div className="panel panel-collapsed">
-          <button
-            type="button"
-            className="panel-toggle-btn"
-            onClick={() => onToggleCollapse(false)}
-            title="Show sidebar"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-        </div>
-      </>
+      <aside className="panel panel-collapsed-view" style={{ height: '100%', padding: '16px 6px', justifyContent: 'flex-start' }}>
+        <button
+          type="button"
+          className="panel-toggle-btn"
+          onClick={() => onToggleCollapse(false)}
+          title="Show sidebar"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+      </aside>
     )
   }
 
   return (
-    <>
-      <div className="panel panel-collapsed">
+    <aside className="panel" style={{ height: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexShrink: 0 }}>
+        <div className="section-title" style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>
+          {t('rightPanel.friends')}
+        </div>
         <button
           type="button"
           className="panel-toggle-btn"
           onClick={() => onToggleCollapse(true)}
           title="Hide sidebar"
+          style={{ width: 32, height: 32 }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M9 18l6-6-6-6" />
           </svg>
         </button>
       </div>
-      <aside className="panel" style={{ height: '100%' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexShrink: 0 }}>
-          <div className="section-title" style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>
-            {t('rightPanel.friends')}
-          </div>
-        </div>
 
       <div className="hr" style={{ flexShrink: 0 }} />
 
@@ -129,7 +125,6 @@ export default function RightPanel({ friends = [], groups = [], onOpenChat, isCo
           </button>
         ))}
       </div>
-      </aside>
-    </>
+    </aside>
   )
 }

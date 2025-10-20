@@ -35,6 +35,30 @@ body {
 }
 
 /* =======================================================
+   SCROLLBAR STYLING
+   ======================================================= */
+.panel::-webkit-scrollbar,
+.panel-collapsed-view::-webkit-scrollbar {
+  width: 8px;
+}
+
+.panel::-webkit-scrollbar-track,
+.panel-collapsed-view::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel::-webkit-scrollbar-thumb,
+.panel-collapsed-view::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+.panel::-webkit-scrollbar-thumb:hover,
+.panel-collapsed-view::-webkit-scrollbar-thumb:hover {
+  background: var(--ring);
+}
+
+/* =======================================================
    LAYOUT
    ======================================================= */
 .container {
@@ -45,7 +69,7 @@ body {
 }
 
 .container.has-sidebar {
-  grid-template-columns: 1fr var(--sidebar-w) 52px;
+  grid-template-columns: 1fr var(--sidebar-w);
 }
 
 .container.has-sidebar-collapsed {
@@ -64,6 +88,7 @@ body {
   background: var(--panel);
   border-left: 1px solid var(--ring);
   padding: 16px;
+  padding-right: 8px;
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -71,24 +96,18 @@ body {
   grid-row: 2;
 }
 
-.panel-collapsed {
+.panel-collapsed-view {
   background: var(--bg);
-  width: 52px;
-  padding: 16px 6px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding-top: 20px;
-  grid-row: 2;
   border-left: 1px solid var(--ring);
-}
-
-.container.has-sidebar .panel-collapsed {
-  grid-column: 3;
-}
-
-.container.has-sidebar-collapsed .panel-collapsed {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 16px 6px;
+  padding-top: 20px;
   grid-column: 2;
+  grid-row: 2;
+  overflow: auto;
 }
 
 .panel-toggle-btn {

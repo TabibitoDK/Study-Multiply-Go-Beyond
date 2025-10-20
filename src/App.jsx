@@ -69,7 +69,7 @@ export default function App() {
 
   const currentUser = getProfileById(CURRENT_USER_ID) ?? profiles[0]
   const friends = derivedFriends
-  const showRightPanel = location.pathname.startsWith('/social') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/chat') || location.pathname.startsWith('/library')
+  const showRightPanel = location.pathname === '/' || location.pathname.startsWith('/tools') || location.pathname.startsWith('/social') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/chat') || location.pathname.startsWith('/library')
   const isCalendarApp = location.pathname.startsWith('/calendar')
 
   let containerClass = 'container'
