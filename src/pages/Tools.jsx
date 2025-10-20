@@ -1,67 +1,36 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
+import { TOOL_IDS, getToolCopy } from '../lib/tools.js'
 
-const TOOL_IDS = ['calendar', 'immerse', 'flashcards', 'summary', 'pomodoro']
-
-const TOOL_DEFAULTS = {
-  calendar: {
-    title: 'Calendar Planner',
-    description: 'Plan study sessions, deadlines, and key reminders in one place.'
-  },
-  immerse: {
-    title: 'Immerse Mode',
-    description: 'Switch to a distraction-free layout for deep focus.'
-  },
-  flashcards: {
-    title: 'Flashcards',
-    description: 'Quickly drill important terms and definitions.'
-  },
-  summary: {
-    title: 'Summary AI',
-    description: 'Generate concise study notes from your materials.'
-  },
-  pomodoro: {
-    title: 'Pomodoro Coach',
-    description: 'Structure sessions with focus and break timers.'
-  }
+const TOOL_ROUTES = {
+  calendar: '/calendar',
+  immerse: '/immerse',
+  flashcards: '/tools/flashcards',
+  summary: '/tools/summary',
+  pomodoro: '/tools/pomodoro',
 }
 
-export default function Tools({ onLaunchTool }) {
+const SAME_TAB_TOOLS = new Set(['calendar', 'immerse'])
+
+export default function Tools() {
   const { t } = useTranslation()
   const [draft, setDraft] = useState('')
-  const [activeTool, setActiveTool] = useState(null)
 
   const tools = useMemo(
     () =>
-      TOOL_IDS.map(id => ({
-        id,
-        title: t(`tools.apps.${id}.title`, { defaultValue: TOOL_DEFAULTS[id]?.title ?? id }),
-        description: t(`tools.apps.${id}.description`, {
-          defaultValue: TOOL_DEFAULTS[id]?.description ?? ''
-        })
-      })),
+      TOOL_IDS.map(id => {
+        const copy = getToolCopy(t, id)
+        return {
+          id,
+          title: copy.title,
+          description: copy.description,
+          href: TOOL_ROUTES[id] ?? `/tools/${id}`,
+          sameTab: SAME_TAB_TOOLS.has(id),
+        }
+      }),
     [t],
   )
-
-  function handleLaunch(toolId) {
-    if (toolId === 'calendar') {
-      setActiveTool(null)
-      if (typeof onLaunchTool === 'function') {
-        onLaunchTool(toolId)
-        return
-      }
-      console.info('Tool launch placeholder', toolId)
-      return
-    }
-
-    setActiveTool(toolId)
-
-    if (typeof onLaunchTool === 'function') {
-      onLaunchTool(toolId)
-      return
-    }
-    console.info('Tool launch placeholder', toolId)
-  }
 
   function handleSubmit(event) {
     event.preventDefault()
@@ -84,18 +53,29 @@ export default function Tools({ onLaunchTool }) {
 
       <section className="tools-grid">
         {tools.map(tool => {
-          const isActive = activeTool === tool.id
-          const cardClass = isActive ? 'tool-card is-active' : 'tool-card'
+          if (tool.sameTab) {
+            return (
+              <Link
+                key={tool.id}
+                className="tool-card"
+                to={tool.href}
+              >
+                <h2 className="tool-card-title">{tool.title}</h2>
+                <p className="tool-card-description">{tool.description}</p>
+              </Link>
+            )
+          }
           return (
-            <button
+            <a
               key={tool.id}
-              type="button"
-              className={cardClass}
-              onClick={() => handleLaunch(tool.id)}
+              className="tool-card"
+              href={tool.href}
+              target="_blank"
+              rel="noopener noreferrer"
             >
               <h2 className="tool-card-title">{tool.title}</h2>
               <p className="tool-card-description">{tool.description}</p>
-            </button>
+            </a>
           )
         })}
       </section>

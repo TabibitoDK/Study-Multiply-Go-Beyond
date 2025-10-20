@@ -1,11 +1,9 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Search,
   Plus,
   Trash2,
   Edit2,
-  ChevronDown,
 } from 'lucide-react'
 import BookCard from '../components/library/BookCard.jsx'
 import BookModal from '../components/library/BookModal.jsx'
@@ -14,7 +12,6 @@ import {
   updateBook,
   createBook,
   sortBooks,
-  filterBooks,
   getAllTags,
 } from '../lib/books.js'
 
@@ -22,9 +19,7 @@ export default function Library() {
   const navigate = useNavigate()
   const [books, setBooks] = useState(() => getAllBooks())
   const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState('latest')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [visibilityFilter, setVisibilityFilter] = useState('all')
+  const sortBy = 'latest'
   const [selectedTags, setSelectedTags] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [editingBook, setEditingBook] = useState(null)
@@ -43,18 +38,18 @@ export default function Library() {
       )
     }
 
-    // Filter
-    result = filterBooks(result, {
-      status: statusFilter,
-      visibility: visibilityFilter,
-      tags: selectedTags,
-    })
+    // Tag filter
+    if (selectedTags.length > 0) {
+      result = result.filter(book =>
+        selectedTags.some(tag => book.tags.includes(tag))
+      )
+    }
 
     // Sort
     result = sortBooks(result, sortBy)
 
     return result
-  }, [books, searchQuery, sortBy, statusFilter, visibilityFilter, selectedTags])
+  }, [books, searchQuery, sortBy, selectedTags])
 
   const handleAddBook = () => {
     setEditingBook(null)
@@ -84,25 +79,21 @@ export default function Library() {
 
   const resetFilters = () => {
     setSearchQuery('')
-    setSortBy('latest')
-    setStatusFilter('all')
-    setVisibilityFilter('all')
     setSelectedTags([])
   }
 
-  const hasActiveFilters = searchQuery || statusFilter !== 'all' || visibilityFilter !== 'all' || selectedTags.length > 0
+  const hasActiveFilters = searchQuery || selectedTags.length > 0
 
   return (
     <div className="library-page">
       <header className="library-header">
         <div className="library-header-top">
-          <h1 className="library-title">My Library</h1>
+          <h1 className="library-title">Library</h1>
           <p className="library-subtitle">マイ・ライブラリー</p>
         </div>
 
         <div className="library-controls">
           <div className="search-bar">
-            <Search size={20} className="search-icon" />
             <input
               type="text"
               placeholder="Search by title, author, or tags..."
@@ -123,60 +114,8 @@ export default function Library() {
         </div>
       </header>
 
-      <div className="library-filters">
-        <div className="filter-group">
-          <label htmlFor="sort-select">Sort by:</label>
-          <div className="select-wrapper">
-            <select
-              id="sort-select"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="filter-select"
-            >
-              <option value="latest">Latest Added</option>
-              <option value="oldest">Oldest First</option>
-              <option value="popular">Most Popular (Rating)</option>
-            </select>
-            <ChevronDown size={16} />
-          </div>
-        </div>
-
-        <div className="filter-group">
-          <label htmlFor="status-select">Status:</label>
-          <div className="select-wrapper">
-            <select
-              id="status-select"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Books</option>
-              <option value="want-to-read">Want to Read</option>
-              <option value="reading">Currently Reading</option>
-              <option value="completed">Completed</option>
-            </select>
-            <ChevronDown size={16} />
-          </div>
-        </div>
-
-        <div className="filter-group">
-          <label htmlFor="visibility-select">Visibility:</label>
-          <div className="select-wrapper">
-            <select
-              id="visibility-select"
-              value={visibilityFilter}
-              onChange={(e) => setVisibilityFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Books</option>
-              <option value="public">Public</option>
-              <option value="private">Private</option>
-            </select>
-            <ChevronDown size={16} />
-          </div>
-        </div>
-
-        {hasActiveFilters && (
+      {hasActiveFilters && (
+        <div className="library-filters">
           <button
             type="button"
             className="filter-reset"
@@ -184,8 +123,8 @@ export default function Library() {
           >
             Reset
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {allTags.length > 0 && (
         <div className="library-tags-section">
@@ -211,9 +150,6 @@ export default function Library() {
         <span className="stat">
           {filteredAndSearchedBooks.length} book{filteredAndSearchedBooks.length !== 1 ? 's' : ''}
         </span>
-        {statusFilter !== 'all' && (
-          <span className="stat-badge">{statusFilter.replace('-', ' ')}</span>
-        )}
       </div>
 
       {filteredAndSearchedBooks.length === 0 ? (

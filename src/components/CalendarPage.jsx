@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { useI18nFormats } from '../lib/i18n-format.js'
 const STORAGE_KEY = 'smgb-calendar-events-v1'
 
 export default function CalendarPage() {
-  const navigate = useNavigate()
   const today = new Date()
   const { t } = useTranslation()
   const { locale, formatDate } = useI18nFormats()
@@ -199,10 +197,6 @@ export default function CalendarPage() {
     setCurrentYear(now.getFullYear())
   }
 
-  function handleBack() {
-    navigate('/tools')
-  }
-
   function keyForDay(day) {
     return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
   }
@@ -309,17 +303,6 @@ export default function CalendarPage() {
 
   return (
     <div className="calendar-page">
-      <div className="calendar-breadcrumb">
-        <button
-          type="button"
-          className="calendar-back-btn"
-          onClick={handleBack}
-        >
-          <ArrowLeft size={18} aria-hidden="true" />
-          <span>{t('calendar.actions.backToTools', { defaultValue: 'Back to tools' })}</span>
-        </button>
-      </div>
-
       <div className="calendar-insights">
         <div className="calendar-insight-card">
           <span>{t('calendar.stats.focusDay', { defaultValue: 'Focused day' })}</span>

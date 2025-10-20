@@ -2,6 +2,7 @@
 import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import Navbar from './components/Navbar.jsx'
+import CalendarTopbar from './components/CalendarTopbar.jsx'
 import RightPanel from './components/RightPanel.jsx'
 import Profile from './pages/Profile.jsx'
 import SocialPage from './components/social/SocialPage.jsx'
@@ -12,6 +13,7 @@ import ImmerseMode from './pages/ImmerseMode.jsx'
 import HomeDashboard from './components/HomeDashboard.jsx'
 import Library from './pages/Library.jsx'
 import BookDetails from './pages/BookDetails.jsx'
+import ToolPlaceholder from './pages/ToolPlaceholder.jsx'
 import { profiles, getProfileById, getProfilesExcept } from './lib/profiles.js'
 import { getPosts } from './lib/posts.js'
 
@@ -68,6 +70,7 @@ export default function App() {
   const currentUser = getProfileById(CURRENT_USER_ID) ?? profiles[0]
   const friends = derivedFriends
   const showRightPanel = location.pathname.startsWith('/social') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/chat') || location.pathname.startsWith('/library')
+  const isCalendarApp = location.pathname.startsWith('/calendar')
 
   let containerClass = 'container'
   if (showRightPanel) {
@@ -84,18 +87,6 @@ export default function App() {
 
   function openChat(id, type) {
     navigate(`/chat/${type}/${id}`)
-  }
-
-  function handleLaunchTool(toolId) {
-    if (toolId === 'immerse') {
-      navigate('/immerse')
-      return
-    }
-    if (toolId === 'calendar') {
-      navigate('/calendar')
-      return
-    }
-    console.info('Launch tool placeholder:', toolId)
   }
 
   function handleCloseImmerse() {
@@ -132,7 +123,7 @@ export default function App() {
 
   return (
     <div className={containerClass}>
-      <Navbar onNewTask={handleNewTask} />
+      {isCalendarApp ? <CalendarTopbar /> : <Navbar onNewTask={handleNewTask} />}
 
       <main className="canvas-wrap">
         <Routes>
@@ -185,7 +176,10 @@ export default function App() {
           />
           <Route path="/library" element={<Library />} />
           <Route path="/library/:id" element={<BookDetails />} />
-          <Route path="/tools" element={<Tools onLaunchTool={handleLaunchTool} />} />
+          <Route path="/tools" element={<Tools />} />
+          <Route path="/tools/flashcards" element={<ToolPlaceholder toolId="flashcards" />} />
+          <Route path="/tools/summary" element={<ToolPlaceholder toolId="summary" />} />
+          <Route path="/tools/pomodoro" element={<ToolPlaceholder toolId="pomodoro" />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/immerse" element={<ImmerseMode onClose={handleCloseImmerse} />} />
         </Routes>

@@ -45,7 +45,7 @@ body {
 }
 
 .container.has-sidebar {
-  grid-template-columns: 1fr 52px var(--sidebar-w);
+  grid-template-columns: 1fr var(--sidebar-w) 52px;
 }
 
 .container.has-sidebar-collapsed {
@@ -67,7 +67,7 @@ body {
   overflow: auto;
   display: flex;
   flex-direction: column;
-  grid-column: 3;
+  grid-column: 2;
   grid-row: 2;
 }
 
@@ -79,9 +79,16 @@ body {
   justify-content: center;
   align-items: flex-start;
   padding-top: 20px;
-  grid-column: 2;
   grid-row: 2;
-  border-right: 1px solid var(--ring);
+  border-left: 1px solid var(--ring);
+}
+
+.container.has-sidebar .panel-collapsed {
+  grid-column: 3;
+}
+
+.container.has-sidebar-collapsed .panel-collapsed {
+  grid-column: 2;
 }
 
 .panel-toggle-btn {
@@ -163,6 +170,71 @@ body {
   justify-content: flex-end;
   gap: 12px;
   align-items: center;
+}
+
+.calendar-navbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--ring);
+  background: var(--panel);
+}
+
+.calendar-navbar-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.calendar-navbar-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  object-fit: contain;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
+}
+
+.calendar-navbar-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.calendar-navbar-text h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
+.calendar-navbar-text p {
+  margin: 4px 0 0;
+  color: var(--subtext);
+  font-size: 0.95rem;
+}
+
+.calendar-navbar-back {
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+  border: 1px solid var(--ring);
+  border-radius: 999px;
+  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.calendar-navbar-back:hover,
+.calendar-navbar-back:focus-visible {
+  background: var(--muted);
+  border-color: rgba(17, 17, 17, 0.2);
+  transform: translateY(-1px);
+  outline: none;
 }
 
 .btn {
@@ -1590,6 +1662,7 @@ body {
   padding: 20px;
   cursor: pointer;
   text-align: left;
+  text-decoration: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   font: inherit;
   color: inherit;
@@ -1676,6 +1749,86 @@ body {
   transform: translateY(-1px);
 }
 
+.tool-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 100%;
+  padding-bottom: 32px;
+}
+
+.tool-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tool-detail-title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.tool-detail-subtitle {
+  margin: 8px 0 0;
+  color: var(--subtext);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.tool-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--text);
+  border: 1px solid var(--ring);
+  border-radius: 999px;
+  padding: 10px 16px;
+  transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.tool-detail-back:hover,
+.tool-detail-back:focus-visible {
+  background: var(--muted);
+  border-color: rgba(17, 17, 17, 0.2);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.tool-detail-card {
+  background: var(--panel);
+  border: 1px solid var(--ring);
+  border-radius: var(--radius);
+  padding: 32px;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 720px;
+}
+
+.tool-detail-body {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.tool-detail-list {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--subtext);
+  line-height: 1.6;
+}
+
+.tool-detail-list li + li {
+  margin-top: 8px;
+}
+
 @media (max-width: 720px) {
   .tools-grid {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -1694,6 +1847,14 @@ body {
 
   .tools-chat-send {
     align-self: flex-end;
+  }
+
+  .tool-detail-card {
+    padding: 24px;
+  }
+
+  .tool-detail-title {
+    font-size: 1.6rem;
   }
 }
 
