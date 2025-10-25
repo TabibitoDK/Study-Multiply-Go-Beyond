@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "name": "田中 愛子",
+    "username": "aiko_hennyu",
+    "bio": "明石高専3年。大阪大学工学部への編入を目指して勉強中。数学と物理が好き。",
+    "profileImage": "https://randomuser.me/api/portraits/women/44.jpg",
+    "backgroundImage": "https://images.unsplash.com/photo-1503264116251-35a269479413",
+    "location": "兵庫県明石市",
+    "joined": "2024-04-10",
+    "followers": 187,
+    "following": 142,
+    "posts": 15,
+    "tags": [
+      "#編入試験",
+      "#数学",
+      "#高専生"
+    ]
+  },
+  {
+    "id": 2,
+    "name": "坂本 陽斗",
+    "username": "haruto_study",
+    "bio": "東京高専から東工大への編入を目指す。線形代数が苦手だけど頑張ってる。",
+    "profileImage": "https://randomuser.me/api/portraits/men/32.jpg",
+    "backgroundImage": "https://images.unsplash.com/photo-1526378722484-cc5c5101e8f1",
+    "location": "東京都八王子市",
+    "joined": "2024-05-15",
+    "followers": 203,
+    "following": 189,
+    "posts": 22,
+    "tags": [
+      "#編入対策",
+      "#理系数学",
+      "#東工大"
+    ]
+  },
+  {
+    "id": 3,
+    "name": "西村 美優",
+    "username": "miyu_gakushu",
+    "bio": "神戸高専4年。筑波大学情報学群志望。小論文の練習中です。",
+    "profileImage": "https://randomuser.me/api/portraits/women/28.jpg",
+    "backgroundImage": "https://images.unsplash.com/photo-1486308510493-aa64833634ef",
+    "location": "兵庫県神戸市",
+    "joined": "2024-03-20",
+    "followers": 156,
+    "following": 134,
+    "posts": 18,
+    "tags": [
+      "#小論文",
+      "#編入準備",
+      "#筑波大"
+    ]
+  },
+  {
+    "id": 4,
+    "name": "小林 蓮",
+    "username": "ren_math",
+    "bio": "豊田高専の電気電子専攻。名古屋大学工学部電気電子情報工学科を目指してます。",
+    "profileImage": "https://randomuser.me/api/portraits/men/21.jpg",
+    "backgroundImage": "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+    "location": "愛知県豊田市",
+    "joined": "2024-06-05",
+    "followers": 172,
+    "following": 158,
+    "posts": 12,
+    "tags": [
+      "#編入勉強",
+      "#電気電子",
+      "#名大"
+    ]
+  },
+  {
+    "id": 5,
+    "name": "藤本 空",
+    "username": "sora_english",
+    "bio": "鈴鹿高専から三重大学編入予定。英語が得意、数学は勉強中。",
+    "profileImage": "https://randomuser.me/api/portraits/women/56.jpg",
+    "backgroundImage": "https://images.unsplash.com/photo-1519999482648-25049ddd37b1",
+    "location": "三重県鈴鹿市",
+    "joined": "2024-07-12",
+    "followers": 143,
+    "following": 127,
+    "posts": 10,
+    "tags": [
+      "#英語",
+      "#編入英語",
+      "#三重大"
+    ]
+  }
+]

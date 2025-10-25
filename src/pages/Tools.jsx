@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { TOOL_IDS, getToolCopy } from '../lib/tools.js'
@@ -9,13 +9,13 @@ const TOOL_ROUTES = {
   flashcards: '/tools/flashcards',
   summary: '/tools/summary',
   pomodoro: '/tools/pomodoro',
+  aichat: '/tools/aichat',
 }
 
-const SAME_TAB_TOOLS = new Set(['calendar', 'immerse'])
+const SAME_TAB_TOOLS = new Set(['calendar', 'immerse', 'flashcards', 'summary', 'pomodoro', 'aichat'])
 
 export default function Tools() {
   const { t } = useTranslation()
-  const [draft, setDraft] = useState('')
 
   const tools = useMemo(
     () =>
@@ -32,17 +32,6 @@ export default function Tools() {
     [t],
   )
 
-  function handleSubmit(event) {
-    event.preventDefault()
-    const trimmed = draft.trim()
-    if (!trimmed) return
-
-    // Placeholder for future LLM integration.
-    console.info('Tools chat submission pending LLM integration', trimmed)
-
-    setDraft('')
-  }
-
   return (
     <div className="tools-page">
       <div className="tools-header">
@@ -52,51 +41,17 @@ export default function Tools() {
       </div>
 
       <section className="tools-grid">
-        {tools.map(tool => {
-          if (tool.sameTab) {
-            return (
-              <Link
-                key={tool.id}
-                className="tool-card"
-                to={tool.href}
-              >
-                <h2 className="tool-card-title">{tool.title}</h2>
-                <p className="tool-card-description">{tool.description}</p>
-              </Link>
-            )
-          }
-          return (
-            <a
-              key={tool.id}
-              className="tool-card"
-              href={tool.href}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <h2 className="tool-card-title">{tool.title}</h2>
-              <p className="tool-card-description">{tool.description}</p>
-            </a>
-          )
-        })}
+        {tools.map(tool => (
+          <Link
+            key={tool.id}
+            className="tool-card"
+            to={tool.href}
+          >
+            <h2 className="tool-card-title">{tool.title}</h2>
+            <p className="tool-card-description">{tool.description}</p>
+          </Link>
+        ))}
       </section>
-
-      <form className="tools-chat-bar" onSubmit={handleSubmit}>
-        <textarea
-          className="tools-chat-input"
-          placeholder={t('tools.chat.placeholder')}
-          value={draft}
-          onChange={event => setDraft(event.target.value)}
-          rows={2}
-          aria-label={t('tools.chat.placeholder')}
-        />
-        <button
-          type="submit"
-          className="tools-chat-send"
-          disabled={!draft.trim()}
-        >
-          {t('tools.chat.send')}
-        </button>
-      </form>
     </div>
   )
 }

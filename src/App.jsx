@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router
 import { useTranslation } from 'react-i18next'
 import Navbar from './components/Navbar.jsx'
 import CalendarTopbar from './components/CalendarTopbar.jsx'
+import ToolTopbar from './components/ToolTopbar.jsx'
 import RightPanel from './components/RightPanel.jsx'
 import Profile from './pages/Profile.jsx'
 import SocialPage from './components/social/SocialPage.jsx'
@@ -72,6 +73,11 @@ export default function App() {
   const showRightPanel = location.pathname === '/' || location.pathname.startsWith('/tools') || location.pathname.startsWith('/social') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/chat') || location.pathname.startsWith('/library')
   const isCalendarApp = location.pathname.startsWith('/calendar')
 
+  // Check if it's a tool page (but not immerse)
+  const toolMatch = location.pathname.match(/^\/tools\/(flashcards|summary|pomodoro|aichat)$/)
+  const isToolPage = toolMatch !== null
+  const toolId = toolMatch ? toolMatch[1] : null
+
   let containerClass = 'container'
   if (showRightPanel) {
     containerClass = sidebarCollapsed ? 'container has-sidebar-collapsed' : 'container has-sidebar'
@@ -123,7 +129,13 @@ export default function App() {
 
   return (
     <div className={containerClass}>
-      {isCalendarApp ? <CalendarTopbar /> : <Navbar onNewTask={handleNewTask} />}
+      {isCalendarApp ? (
+        <CalendarTopbar />
+      ) : isToolPage ? (
+        <ToolTopbar toolId={toolId} />
+      ) : (
+        <Navbar onNewTask={handleNewTask} />
+      )}
 
       <main className="canvas-wrap">
         <Routes>
@@ -180,6 +192,7 @@ export default function App() {
           <Route path="/tools/flashcards" element={<ToolPlaceholder toolId="flashcards" />} />
           <Route path="/tools/summary" element={<ToolPlaceholder toolId="summary" />} />
           <Route path="/tools/pomodoro" element={<ToolPlaceholder toolId="pomodoro" />} />
+          <Route path="/tools/aichat" element={<ToolPlaceholder toolId="aichat" />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/immerse" element={<ImmerseMode onClose={handleCloseImmerse} />} />
         </Routes>

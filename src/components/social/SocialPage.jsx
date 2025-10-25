@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { BookOpen } from 'lucide-react'
 import PostCard from './PostCard.jsx'
 import PostModal from './PostModal.jsx'
 import ProfileSidebar from './ProfileSidebar.jsx'
@@ -8,6 +10,7 @@ import { getProfileById } from '../../lib/profiles.js'
 import './SocialPage.css'
 
 export default function SocialPage({ currentUser, posts, onCreatePost, onSelectProfile }) {
+  const navigate = useNavigate()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const feed = useMemo(() => {
@@ -33,6 +36,16 @@ export default function SocialPage({ currentUser, posts, onCreatePost, onSelectP
       />
 
       <div className="feed">
+        <div className="feed-header">
+          <button
+            type="button"
+            className="btn library-access-btn"
+            onClick={() => navigate('/library')}
+          >
+            <BookOpen size={18} />
+            参考書
+          </button>
+        </div>
         {feed.map(post => (
           <PostCard key={post.id} post={post} onSelectProfile={onSelectProfile} />
         ))}

@@ -1,10 +1,13 @@
 ﻿import dayjs from 'dayjs'
+import { useNavigate } from 'react-router-dom'
+import { getBookById } from '../../lib/books.js'
 
 function isFunction(value) {
   return typeof value === 'function'
 }
 
 export default function PostCard({ post, onSelectProfile }) {
+  const navigate = useNavigate()
   if (!post) {
     return null
   }
@@ -12,7 +15,7 @@ export default function PostCard({ post, onSelectProfile }) {
   const {
     author,
     content,
-    image,
+    books,
     likes,
     comments,
     timestamp,
@@ -76,13 +79,33 @@ export default function PostCard({ post, onSelectProfile }) {
           </div>
         )}
 
-        {typeof image === 'string' && image.trim() !== '' && (
-          <img
-            className="post-image"
-            src={image}
-            alt={`Post from ${authorName}`}
-            loading="lazy"
-          />
+        {Array.isArray(books) && books.length > 0 && (
+          <div className="post-book-references">
+            {books.map(bookId => {
+              const book = getBookById(bookId)
+              if (!book) return null
+
+              return (
+                <button
+                  key={bookId}
+                  type="button"
+                  className="book-reference-box"
+                  onClick={() => navigate(`/library/${bookId}`, { state: { from: 'social' } })}
+                  aria-label={`View ${book.title}`}
+                >
+                  <img
+                    src={book.cover}
+                    alt={book.title}
+                    className="book-reference-cover"
+                  />
+                  <div className="book-reference-info">
+                    <h4 className="book-reference-title">{book.title}</h4>
+                    <p className="book-reference-author">{book.author}</p>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         )}
       </div>
 

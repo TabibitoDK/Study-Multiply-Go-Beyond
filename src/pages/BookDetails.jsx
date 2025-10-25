@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import {
   ArrowLeft,
   Star,
@@ -35,16 +35,22 @@ const statusColors = {
 export default function BookDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [book, setBook] = useState(() => getBookById(id))
   const [showModal, setShowModal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
 
+  // Determine back navigation based on where user came from
+  const fromSocial = location.state?.from === 'social'
+  const backPath = fromSocial ? '/social' : '/library'
+  const backText = fromSocial ? 'Back to Social' : 'Back to Library'
+
   useEffect(() => {
     if (!book) {
-      navigate('/library')
+      navigate(backPath)
     }
-  }, [book, navigate])
+  }, [book, navigate, backPath])
 
   if (!book) {
     return null
@@ -58,7 +64,7 @@ export default function BookDetails() {
 
   const handleDeleteBook = () => {
     deleteBook(book.id)
-    navigate('/library')
+    navigate(backPath)
   }
 
   const handleToggleVisibility = () => {
@@ -88,11 +94,11 @@ export default function BookDetails() {
         <button
           type="button"
           className="back-btn"
-          onClick={() => navigate('/library')}
-          aria-label="Go back to library"
+          onClick={() => navigate(backPath)}
+          aria-label={`Go back to ${fromSocial ? 'social' : 'library'}`}
         >
           <ArrowLeft size={20} />
-          Back to Library
+          {backText}
         </button>
 
         <div className="book-details-actions">
