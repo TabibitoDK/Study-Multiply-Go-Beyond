@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(if not exist \"d:\\React Projects\\Study-Multiply-Go-Beyond\\src\\data\" mkdir \"d:\\React Projects\\Study-Multiply-Go-Beyond\\src\\data\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
