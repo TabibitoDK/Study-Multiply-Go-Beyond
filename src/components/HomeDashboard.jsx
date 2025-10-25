@@ -1,16 +1,26 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
+import { useI18nFormats } from '../lib/i18n-format.js'
+import { useTranslation } from 'react-i18next'
 import {
   ChevronLeft,
   ChevronRight,
   MapPin,
   PlayCircle,
   Sparkles,
-  Target
+  Target,
+  Edit3,
+  Globe,
+  Lock,
+  Plus
 } from 'lucide-react'
 import ClockWidget from './widgets/ClockWidget.jsx'
 import TodoWidget from './widgets/TodoWidget.jsx'
+import ProfileEditModal from './ProfileEditModal.jsx'
+
+const CALENDAR_STORAGE_KEY = 'smgb-calendar-events-v1'
+const GOALS_STORAGE_KEY = 'smgb-user-goals-v1'
 
 const NAVIGATION_CARDS = [
   {
@@ -176,6 +186,63 @@ function MiniCalendar() {
 
 export default function HomeDashboard({ user, onOpenProfile }) {
   const navigate = useNavigate()
+  const today = new Date()
+  const { t } = useTranslation()
+  const { formatDate } = useI18nFormats()
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editModalType, setEditModalType] = useState(null)
+  const [editModalValue, setEditModalValue] = useState(null)
+  const [taskModalOpen, setTaskModalOpen] = useState(false)
+  const [modalDate, setModalDate] = useState(null)
+  const [draftText, setDraftText] = useState('')
+  const [goals, setGoals] = useState(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      const raw = window.localStorage.getItem(GOALS_STORAGE_KEY)
+      const parsed = raw ? JSON.parse(raw) : null
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed
+      }
+      // Return default goals if none exist
+      return [
+        { text: 'Graduate with honors', isPublic: true },
+        { text: 'Master React', isPublic: true },
+        { text: 'Build 5 projects', isPublic: true }
+      ]
+    } catch {
+      return [
+        { text: 'Graduate with honors', isPublic: true },
+        { text: 'Master React', isPublic: true },
+        { text: 'Build 5 projects', isPublic: true }
+      ]
+    }
+  })
+  const [events, setEvents] = useState(() => {
+    if (typeof window === 'undefined') return {}
+    try {
+      const raw = window.localStorage.getItem(CALENDAR_STORAGE_KEY)
+      const parsed = raw ? JSON.parse(raw) : null
+      return parsed && typeof parsed === 'object' ? parsed : {}
+    } catch {
+      return {}
+    }
+  })
+  const [newTaskText, setNewTaskText] = useState('')
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      window.localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(events))
+    } catch {}
+  }, [events])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      window.localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(goals))
+    } catch {}
+  }, [goals])
+
   const firstName = useMemo(() => {
     if (!user?.name) return 'Student'
     const [first] = user.name.split(' ')
@@ -188,6 +255,147 @@ export default function HomeDashboard({ user, onOpenProfile }) {
       ).slice(0, 3),
     []
   )
+
+  const getTodayKey = () => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  }
+
+  const todayKey = getTodayKey()
+
+  const todaysTasks = useMemo(() => {
+    return Array.isArray(events[todayKey]) ? events[todayKey] : []
+  }, [events, todayKey])
+
+  const modalDateKey = useMemo(() => {
+    if (!modalDate) return null
+    return `${modalDate.getFullYear()}-${String(modalDate.getMonth() + 1).padStart(2, '0')}-${String(modalDate.getDate()).padStart(2, '0')}`
+  }, [modalDate])
+
+  const modalDateLabel = useMemo(() => {
+    if (!modalDate) return ''
+    return formatDate(modalDate, { dateStyle: 'long' })
+  }, [modalDate, formatDate])
+
+  const upcomingEvents = useMemo(() => {
+    const start = new Date()
+    start.setHours(0, 0, 0, 0)
+    start.setDate(start.getDate() + 1) // Start from tomorrow
+
+    const items = []
+    Object.entries(events).forEach(([key, list]) => {
+      if (!Array.isArray(list) || list.length === 0) return
+      const [year, month, day] = key.split('-').map(Number)
+      const date = new Date(year, month - 1, day)
+      list.forEach((text, index) => {
+        items.push({
+          id: `${key}-${index}`,
+          date,
+          text,
+          day,
+          monthIndex: month - 1,
+          year,
+          dayKey: key,
+          eventIndex: index
+        })
+      })
+    })
+
+    items.sort((a, b) => a.date - b.date)
+
+    return items
+      .filter(item => item.date >= start)
+      .slice(0, 20)
+      .map(item => ({
+        ...item,
+        label: formatDate(item.date, { weekday: 'short', month: 'short', day: 'numeric' })
+      }))
+  }, [events, formatDate])
+
+  function addTask() {
+    const text = newTaskText.trim()
+    if (!text) return
+    const key = getTodayKey()
+    setEvents(prev => {
+      const next = { ...prev }
+      const existing = Array.isArray(next[key]) ? next[key] : []
+      next[key] = [...existing, text]
+      return next
+    })
+    setNewTaskText('')
+  }
+
+  function removeTask(index) {
+    const key = getTodayKey()
+    setEvents(prev => {
+      const existing = Array.isArray(prev[key]) ? [...prev[key]] : []
+      if (index < 0 || index >= existing.length) return prev
+      existing.splice(index, 1)
+      const next = { ...prev }
+      if (existing.length === 0) {
+        delete next[key]
+      } else {
+        next[key] = existing
+      }
+      return next
+    })
+  }
+
+  function openTaskModal() {
+    const modalDateObj = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0)
+    setModalDate(modalDateObj)
+    setDraftText('')
+    setTaskModalOpen(true)
+  }
+
+  function closeTaskModal() {
+    setTaskModalOpen(false)
+    setDraftText('')
+    setModalDate(null)
+  }
+
+  function handleSaveTask(e) {
+    e.preventDefault()
+    if (!modalDateKey) return
+    const text = draftText.trim()
+    if (!text) return
+    setEvents(prev => {
+      const next = { ...prev }
+      const existing = Array.isArray(next[modalDateKey]) ? next[modalDateKey] : []
+      next[modalDateKey] = [...existing, text]
+      return next
+    })
+    setDraftText('')
+    setTaskModalOpen(false)
+    setModalDate(null)
+  }
+
+  function handleRemoveTask(eventIndex, dayKey) {
+    setEvents(prev => {
+      const existing = Array.isArray(prev[dayKey]) ? [...prev[dayKey]] : []
+      if (eventIndex < 0 || eventIndex >= existing.length) return prev
+      existing.splice(eventIndex, 1)
+      const next = { ...prev }
+      if (existing.length === 0) {
+        delete next[dayKey]
+      } else {
+        next[dayKey] = existing
+      }
+      return next
+    })
+  }
+
+  function openEditModal(type, value) {
+    setEditModalType(type)
+    setEditModalValue(value)
+    setEditModalOpen(true)
+  }
+
+  function handleEditSave(data) {
+    if (editModalType === 'goals') {
+      setGoals(data)
+    }
+  }
 
   return (
     <div className="home-dashboard-simple">
@@ -216,9 +424,66 @@ export default function HomeDashboard({ user, onOpenProfile }) {
         <section className="home-section">
           <div className="section-header">
             <h2>Tasks</h2>
+            <button
+              type="button"
+              className="btn"
+              onClick={openTaskModal}
+              style={{ padding: '8px 12px', fontSize: '0.9rem' }}
+            >
+              <Plus size={16} style={{ marginRight: '4px' }} />
+              Add task
+            </button>
           </div>
           <div className="section-content">
-            <TodoWidget />
+            <div className="home-tasks-container">
+              {/* Today's Tasks */}
+              <div className="home-tasks-section">
+                <h3 className="home-tasks-section-title">Today</h3>
+                <ul className="home-tasks-list">
+                  {todaysTasks.map((task, index) => (
+                    <li key={`${todayKey}-${index}`} className="home-task-item">
+                      <span className="home-task-text">{task}</span>
+                      <button
+                        type="button"
+                        className="home-task-remove"
+                        onClick={() => removeTask(index)}
+                        aria-label="Remove task"
+                      >
+                        &times;
+                      </button>
+                    </li>
+                  ))}
+                  {todaysTasks.length === 0 && (
+                    <li className="home-task-empty">No tasks for today</li>
+                  )}
+                </ul>
+              </div>
+
+              {/* Upcoming Tasks */}
+              {upcomingEvents.length > 0 && (
+                <div className="home-tasks-section">
+                  <h3 className="home-tasks-section-title">Upcoming</h3>
+                  <ul className="home-tasks-list">
+                    {upcomingEvents.map(item => (
+                      <li key={item.id} className="home-task-item home-upcoming-item">
+                        <div className="home-upcoming-content">
+                          <span className="home-upcoming-date">{item.label}</span>
+                          <span className="home-task-text">{item.text}</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="home-task-remove"
+                          onClick={() => handleRemoveTask(item.eventIndex, item.dayKey)}
+                          aria-label="Remove task"
+                        >
+                          &times;
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
         </section>
 
@@ -260,26 +525,83 @@ export default function HomeDashboard({ user, onOpenProfile }) {
         <section className="home-section">
           <div className="section-header">
             <h2>Goals</h2>
+            <button
+              type="button"
+              className="edit-icon-btn"
+              title="Edit Goals"
+              onClick={() => openEditModal('goals', goals)}
+            >
+              <Edit3 size={16} />
+            </button>
           </div>
           <div className="section-content">
-            <div className="goals-list">
-              {dueItems.map(item => {
-                const dueDate = dayjs(item.dueDate)
-                return (
-                  <div key={item.id} className="goal-item">
-                    <div className="goal-header">
-                      <span className="goal-course">{item.course}</span>
-                      <span className="goal-date">{dueDate.format('MMM D')}</span>
-                    </div>
-                    <h3>{item.title}</h3>
-                    <p>{item.status}</p>
-                  </div>
-                )
-              })}
+            <div className="profile-tags">
+              {goals.map((goal, index) => (
+                <span key={index} className="profile-tag">
+                  {goal.text}
+                  <span className={`privacy-icon ${goal.isPublic ? 'public' : 'private'}`}>
+                    {goal.isPublic ? <Globe size={12} /> : <Lock size={12} />}
+                  </span>
+                </span>
+              ))}
+              {goals.length === 0 && (
+                <span className="profile-tag">No goals yet</span>
+              )}
             </div>
           </div>
         </section>
       </div>
+
+      {taskModalOpen && (
+        <div className="modal-overlay" onClick={closeTaskModal}>
+          <div className="modal calendar-modal" onClick={event => event.stopPropagation()}>
+            <h2 className="modal-title">Add task</h2>
+
+            <div className="calendar-modal-date-picker">
+              <label htmlFor="modal-date">Date</label>
+              <input
+                id="modal-date"
+                type="date"
+                value={modalDate ? `${modalDate.getFullYear()}-${String(modalDate.getMonth() + 1).padStart(2, '0')}-${String(modalDate.getDate()).padStart(2, '0')}` : ''}
+                onChange={(e) => {
+                  const [year, month, day] = e.target.value.split('-').map(Number)
+                  const newDate = new Date(year, month - 1, day, 0, 0, 0, 0)
+                  setModalDate(newDate)
+                }}
+                className="calendar-modal-date-input"
+              />
+            </div>
+
+            <p className="calendar-modal-subtitle">{modalDateLabel}</p>
+
+            <form className="calendar-modal-form" onSubmit={handleSaveTask}>
+              <textarea
+                className="input calendar-modal-textarea"
+                rows={4}
+                placeholder="Add your task here..."
+                value={draftText}
+                onChange={event => setDraftText(event.target.value)}
+              />
+              <div className="modal-actions">
+                <button type="button" className="btn ghost" onClick={closeTaskModal}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn">
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <ProfileEditModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        onSave={handleEditSave}
+        type={editModalType}
+        initialValue={editModalValue}
+      />
     </div>
   )
 }

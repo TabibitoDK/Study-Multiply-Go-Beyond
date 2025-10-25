@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Plus, Trash2, Globe, Lock, Save } from 'lucide-react'
 import './ProfileEditModal.css'
 
@@ -11,10 +11,28 @@ export default function ProfileEditModal({
 }) {
   const [value, setValue] = useState(initialValue || '')
   const [items, setItems] = useState(
-    type === 'bio' ? [] : (Array.isArray(initialValue) ? initialValue.map(item => ({ text: item, isPublic: true })) : [])
+    type === 'bio' ? [] : (Array.isArray(initialValue) ? initialValue.map(item =>
+      typeof item === 'string' ? { text: item, isPublic: true } : item
+    ) : [])
   )
   const [bioPrivacy, setBioPrivacy] = useState(true)
   const [newItemText, setNewItemText] = useState('')
+
+  // Update modal data when open or initialValue changes
+  useEffect(() => {
+    if (open) {
+      if (type === 'bio') {
+        setValue(initialValue || '')
+      } else if (Array.isArray(initialValue)) {
+        setItems(initialValue.map(item =>
+          typeof item === 'string' ? { text: item, isPublic: true } : item
+        ))
+      } else {
+        setItems([])
+      }
+      setNewItemText('')
+    }
+  }, [open, initialValue, type])
 
   if (!open) return null
 

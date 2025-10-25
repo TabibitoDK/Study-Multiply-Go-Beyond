@@ -24,6 +24,13 @@ export default function CalendarPage() {
   const [selectedDay, setSelectedDay] = useState(null)
   const [draftText, setDraftText] = useState('')
   const [quickText, setQuickText] = useState('')
+  const [viewingDate, setViewingDate] = useState(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  })
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
+  const [modalDate, setModalDate] = useState(null)
 
   const weekdayLabels = useMemo(() => {
     const reference = new Date(Date.UTC(2021, 5, 6))
@@ -92,9 +99,32 @@ export default function CalendarPage() {
     [selectedDay, currentMonth, currentYear]
   )
 
+  const modalDateKey = useMemo(() => {
+    if (!modalDate) return null
+    return `${modalDate.getFullYear()}-${String(modalDate.getMonth() + 1).padStart(2, '0')}-${String(modalDate.getDate()).padStart(2, '0')}`
+  }, [modalDate])
+
+  const modalDateLabel = useMemo(() => {
+    if (!modalDate) return ''
+    return formatDate(modalDate, { dateStyle: 'long' })
+  }, [modalDate, formatDate])
+
+  const modalEvents = useMemo(() => {
+    if (!modalDateKey) return []
+    return Array.isArray(events[modalDateKey]) ? events[modalDateKey] : []
+  }, [modalDateKey, events])
+
   useEffect(() => {
     setQuickText('')
   }, [selectedDayKey])
+
+  useEffect(() => {
+    // Update viewing date when selected day changes
+    if (selectedDay) {
+      const newViewingDate = new Date(currentYear, currentMonth, selectedDay, 0, 0, 0, 0)
+      setViewingDate(newViewingDate)
+    }
+  }, [selectedDay, currentMonth, currentYear])
 
   const selectedDateLabel = useMemo(() => {
     if (!selectedDay) return ''
@@ -135,9 +165,29 @@ export default function CalendarPage() {
     }, 0)
   }, [events])
 
+  const todaysDate = useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  }, [])
+
+  const todayKey = useMemo(() => {
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  }, [])
+
+  const selectedDayTasks = useMemo(() => {
+    if (!selectedDayKey) return []
+    return Array.isArray(events[selectedDayKey]) ? events[selectedDayKey] : []
+  }, [events, selectedDayKey])
+
+  const todaysTasks = useMemo(() => {
+    return Array.isArray(events[todayKey]) ? events[todayKey] : []
+  }, [events, todayKey])
+
   const upcomingEvents = useMemo(() => {
     const start = new Date()
     start.setHours(0, 0, 0, 0)
+    start.setDate(start.getDate() + 1) // Start from tomorrow
 
     const items = []
     Object.entries(events).forEach(([key, list]) => {
@@ -162,7 +212,7 @@ export default function CalendarPage() {
 
     return items
       .filter(item => item.date >= start)
-      .slice(0, 8)
+      .slice(0, 20)
       .map(item => ({
         ...item,
         label: formatDate(item.date, { weekday: 'short', month: 'short', day: 'numeric' })
@@ -195,6 +245,7 @@ export default function CalendarPage() {
     const now = new Date()
     setCurrentMonth(now.getMonth())
     setCurrentYear(now.getFullYear())
+    setSelectedDay(now.getDate())
   }
 
   function keyForDay(day) {
@@ -208,6 +259,8 @@ export default function CalendarPage() {
 
   function openModalForDay(day) {
     selectDay(day)
+    const modalDateObj = new Date(currentYear, currentMonth, day, 0, 0, 0, 0)
+    setModalDate(modalDateObj)
     setDraftText('')
     setModalOpen(true)
   }
@@ -215,21 +268,23 @@ export default function CalendarPage() {
   function closeModal() {
     setModalOpen(false)
     setDraftText('')
+    setModalDate(null)
   }
 
   function handleSaveEvent(event) {
     event.preventDefault()
-    if (!selectedDayKey) return
+    if (!modalDateKey) return
     const text = draftText.trim()
     if (!text) return
     setEvents(prev => {
       const next = { ...prev }
-      const existing = Array.isArray(next[selectedDayKey]) ? next[selectedDayKey] : []
-      next[selectedDayKey] = [...existing, text]
+      const existing = Array.isArray(next[modalDateKey]) ? next[modalDateKey] : []
+      next[modalDateKey] = [...existing, text]
       return next
     })
     setDraftText('')
     setModalOpen(false)
+    setModalDate(null)
   }
 
   function handleQuickAdd(event) {
@@ -264,12 +319,22 @@ export default function CalendarPage() {
   }
 
   function handleAddEventClick() {
+    let targetDay = selectedDay
+    let targetMonth = currentMonth
+    let targetYear = currentYear
+
     if (!selectedDay) {
       const now = new Date()
-      setCurrentMonth(now.getMonth())
-      setCurrentYear(now.getFullYear())
-      setSelectedDay(now.getDate())
+      targetMonth = now.getMonth()
+      targetYear = now.getFullYear()
+      targetDay = now.getDate()
+      setCurrentMonth(targetMonth)
+      setCurrentYear(targetYear)
+      setSelectedDay(targetDay)
     }
+
+    const modalDateObj = new Date(targetYear, targetMonth, targetDay, 0, 0, 0, 0)
+    setModalDate(modalDateObj)
     setDraftText('')
     setModalOpen(true)
   }
@@ -308,8 +373,8 @@ export default function CalendarPage() {
           <span>{t('calendar.stats.focusDay', { defaultValue: 'Focused day' })}</span>
           <strong>{selectedDateLabel || t('calendar.stats.pickDay', { defaultValue: 'Select a day' })}</strong>
           <p>
-            {t('calendar.stats.eventsPlanned', {
-              defaultValue: '{{count}} events planned',
+            {t('calendar.stats.tasksPlanned', {
+              defaultValue: '{{count}} tasks planned',
               count: selectedEvents.length
             })}
           </p>
@@ -317,12 +382,12 @@ export default function CalendarPage() {
         <div className="calendar-insight-card">
           <span>{t('calendar.stats.month', { defaultValue: 'This month' })}</span>
           <strong>{totalEventsThisMonth}</strong>
-          <p>{t('calendar.stats.monthHint', { defaultValue: 'Scheduled items across this month' })}</p>
+          <p>{t('calendar.stats.monthHint', { defaultValue: 'Scheduled tasks across this month' })}</p>
         </div>
         <div className="calendar-insight-card">
           <span>{t('calendar.stats.nextSeven', { defaultValue: 'Next 7 days' })}</span>
           <strong>{eventsNextSevenDays}</strong>
-          <p>{t('calendar.stats.nextSevenHint', { defaultValue: 'Upcoming reminders this week' })}</p>
+          <p>{t('calendar.stats.nextSevenHint', { defaultValue: 'Upcoming tasks this week' })}</p>
         </div>
       </div>
 
@@ -349,7 +414,7 @@ export default function CalendarPage() {
               </button>
               <button className="btn calendar-add-btn" type="button" onClick={handleAddEventClick}>
                 <Plus size={16} />
-                {t('calendar.actions.addEvent', { defaultValue: 'Add event' })}
+                {t('calendar.actions.addTask', { defaultValue: 'Add task' })}
               </button>
             </div>
           </div>
@@ -415,67 +480,81 @@ export default function CalendarPage() {
         </div>
 
         <aside className="calendar-sidebar">
+          {/* Selected Day Section */}
           <div className="calendar-sidebar-section">
             <div className="calendar-sidebar-header">
               <div>
-                <h3>{selectedDateLabel || t('calendar.sidebar.noSelection', { defaultValue: 'Pick a day' })}</h3>
+                <h3>{selectedDateLabel}</h3>
                 <p>
-                  {selectedEvents.length > 0
-                    ? t('calendar.sidebar.eventsCount', {
-                        defaultValue: '{{count}} notes scheduled',
-                        count: selectedEvents.length
+                  {selectedDayTasks.length > 0
+                    ? t('calendar.sidebar.tasksCount', {
+                        defaultValue: '{{count}} tasks',
+                        count: selectedDayTasks.length
                       })
-                    : t('calendar.sidebar.empty', { defaultValue: 'No notes yet – add something meaningful.' })}
+                    : t('calendar.sidebar.noTasks', { defaultValue: 'No tasks' })}
                 </p>
               </div>
-              <button type="button" className="btn ghost calendar-add-btn small" onClick={handleAddEventClick}>
-                <Plus size={16} />
-                {t('calendar.actions.add', { defaultValue: 'New' })}
-              </button>
             </div>
 
-            <form className="calendar-quick-form" onSubmit={handleQuickAdd}>
-              <input
-                className="calendar-quick-input"
-                placeholder={
-                  selectedDayKey
-                    ? t('calendar.sidebar.quickPlaceholder', { defaultValue: 'Add a quick reminder…' })
-                    : t('calendar.sidebar.quickPlaceholderDisabled', { defaultValue: 'Select a day to add a reminder' })
-                }
-                value={quickText}
-                onChange={event => setQuickText(event.target.value)}
-                disabled={!selectedDayKey}
-              />
-              <button
-                type="submit"
-                className="calendar-quick-submit"
-                disabled={!selectedDayKey || !quickText.trim()}
-              >
-                {t('calendar.sidebar.quickAdd', { defaultValue: 'Add' })}
-              </button>
-            </form>
-
             <ul className="calendar-selected-events">
-              {selectedEvents.map((text, index) => (
+              {selectedDayTasks.map((text, index) => (
                 <li key={`${selectedDayKey}-${index}`}>
                   <span>{text}</span>
                   <button
                     type="button"
-                    onClick={() => handleRemoveEvent(index)}
-                    aria-label={t('calendar.sidebar.removeEvent', { defaultValue: 'Remove event' })}
+                    onClick={() => handleRemoveEvent(index, selectedDayKey)}
+                    aria-label={t('calendar.sidebar.removeTask', { defaultValue: 'Remove task' })}
                   >
                     &times;
                   </button>
                 </li>
               ))}
-              {selectedEvents.length === 0 && (
+              {selectedDayTasks.length === 0 && (
                 <li className="calendar-selected-empty">
-                  {t('calendar.sidebar.noEvents', { defaultValue: 'Nothing scheduled for this day yet.' })}
+                  {t('calendar.sidebar.noTasksYet', { defaultValue: 'No tasks scheduled.' })}
                 </li>
               )}
             </ul>
           </div>
 
+          {/* Today Section */}
+          <div className="calendar-sidebar-section">
+            <div className="calendar-sidebar-header">
+              <div>
+                <h3>{t('calendar.today', { defaultValue: 'Today' })}</h3>
+                <p>
+                  {todaysTasks.length > 0
+                    ? t('calendar.sidebar.tasksCount', {
+                        defaultValue: '{{count}} tasks',
+                        count: todaysTasks.length
+                      })
+                    : t('calendar.sidebar.noTasks', { defaultValue: 'No tasks' })}
+                </p>
+              </div>
+            </div>
+
+            <ul className="calendar-selected-events">
+              {todaysTasks.map((text, index) => (
+                <li key={`${todayKey}-${index}`}>
+                  <span>{text}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveEvent(index, todayKey)}
+                    aria-label={t('calendar.sidebar.removeTask', { defaultValue: 'Remove task' })}
+                  >
+                    &times;
+                  </button>
+                </li>
+              ))}
+              {todaysTasks.length === 0 && (
+                <li className="calendar-selected-empty">
+                  {t('calendar.sidebar.noTasksYet', { defaultValue: 'No tasks for today.' })}
+                </li>
+              )}
+            </ul>
+          </div>
+
+          {/* Upcoming Section */}
           <div className="calendar-sidebar-section">
             <div className="calendar-sidebar-header">
               <h3>{t('calendar.sidebar.upcomingTitle', { defaultValue: 'Upcoming' })}</h3>
@@ -483,7 +562,7 @@ export default function CalendarPage() {
             <ul className="calendar-upcoming-list">
               {upcomingEvents.length === 0 && (
                 <li className="calendar-upcoming-empty">
-                  {t('calendar.sidebar.upcomingEmpty', { defaultValue: 'No upcoming items yet. Add one above!' })}
+                  {t('calendar.sidebar.upcomingEmpty', { defaultValue: 'No upcoming tasks.' })}
                 </li>
               )}
               {upcomingEvents.map(item => (
@@ -500,7 +579,7 @@ export default function CalendarPage() {
                     type="button"
                     className="calendar-upcoming-remove"
                     onClick={() => handleRemoveEvent(item.eventIndex, item.dayKey)}
-                    aria-label={t('calendar.sidebar.removeEvent', { defaultValue: 'Remove event' })}
+                    aria-label={t('calendar.sidebar.removeTask', { defaultValue: 'Remove task' })}
                   >
                     &times;
                   </button>
@@ -514,14 +593,30 @@ export default function CalendarPage() {
       {modalOpen && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal calendar-modal" onClick={event => event.stopPropagation()}>
-            <h2 className="modal-title">{t('calendar.modal.title')}</h2>
-            <p className="calendar-modal-subtitle">{selectedDateLabel}</p>
+            <h2 className="modal-title">{t('calendar.modal.title', { defaultValue: 'Add task to this day' })}</h2>
 
-            {selectedEvents.length > 0 && (
+            <div className="calendar-modal-date-picker">
+              <label htmlFor="modal-date">{t('calendar.modal.selectDate', { defaultValue: 'Date' })}</label>
+              <input
+                id="modal-date"
+                type="date"
+                value={modalDate ? `${modalDate.getFullYear()}-${String(modalDate.getMonth() + 1).padStart(2, '0')}-${String(modalDate.getDate()).padStart(2, '0')}` : ''}
+                onChange={(e) => {
+                  const [year, month, day] = e.target.value.split('-').map(Number)
+                  const newDate = new Date(year, month - 1, day, 0, 0, 0, 0)
+                  setModalDate(newDate)
+                }}
+                className="calendar-modal-date-input"
+              />
+            </div>
+
+            <p className="calendar-modal-subtitle">{modalDateLabel}</p>
+
+            {modalEvents.length > 0 && (
               <div className="calendar-modal-existing">
-                <span className="calendar-modal-section">{t('calendar.modal.existing')}</span>
+                <span className="calendar-modal-section">{t('calendar.modal.existing', { defaultValue: 'Tasks already scheduled' })}</span>
                 <ul>
-                  {selectedEvents.map((text, index) => (
+                  {modalEvents.map((text, index) => (
                     <li key={index}>{text}</li>
                   ))}
                 </ul>
@@ -532,7 +627,7 @@ export default function CalendarPage() {
               <textarea
                 className="input calendar-modal-textarea"
                 rows={4}
-                placeholder={t('calendar.modal.placeholder')}
+                placeholder={t('calendar.modal.placeholder', { defaultValue: 'Add your task here...' })}
                 value={draftText}
                 onChange={event => setDraftText(event.target.value)}
               />
@@ -541,7 +636,7 @@ export default function CalendarPage() {
                   {t('buttons.cancel')}
                 </button>
                 <button type="submit" className="btn">
-                  {t('calendar.modal.save')}
+                  {t('calendar.modal.save', { defaultValue: 'Save' })}
                 </button>
               </div>
             </form>

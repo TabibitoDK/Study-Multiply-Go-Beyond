@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import dayjs from "dayjs"
 import { Edit3, Globe, Lock } from "lucide-react"
 import "./Profile.css"
@@ -7,6 +7,8 @@ import PostModal from "../components/social/PostModal.jsx"
 import ProfileEditModal from "../components/ProfileEditModal.jsx"
 import { profiles, getProfileById } from "../lib/profiles.js"
 import { getPostsByUser } from "../lib/posts.js"
+
+const GOALS_STORAGE_KEY = 'smgb-user-goals-v1'
 
 export default function Profile({
   profileId = 1,
@@ -31,11 +33,28 @@ export default function Profile({
   const [interests, setInterests] = useState(
     tags.map(tag => ({ text: tag, isPublic: true }))
   )
-  const [goals, setGoals] = useState([
-    { text: 'Graduate with honors', isPublic: true },
-    { text: 'Master React', isPublic: true },
-    { text: 'Build 5 projects', isPublic: true }
-  ])
+  const [goals, setGoals] = useState(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      const raw = window.localStorage.getItem(GOALS_STORAGE_KEY)
+      const parsed = raw ? JSON.parse(raw) : null
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed
+      }
+      // Return default goals if none exist
+      return [
+        { text: 'Graduate with honors', isPublic: true },
+        { text: 'Master React', isPublic: true },
+        { text: 'Build 5 projects', isPublic: true }
+      ]
+    } catch {
+      return [
+        { text: 'Graduate with honors', isPublic: true },
+        { text: 'Master React', isPublic: true },
+        { text: 'Build 5 projects', isPublic: true }
+      ]
+    }
+  })
 
   const posts = useMemo(() => {
     const base = Array.isArray(postsProp)
@@ -48,6 +67,13 @@ export default function Profile({
         author: post.author ?? resolvedProfile,
       }))
   }, [postsProp, resolvedProfile])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      window.localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(goals))
+    } catch {}
+  }, [goals])
 
   function handleSubmit(draft) {
     if (typeof onCreatePost === "function") {
