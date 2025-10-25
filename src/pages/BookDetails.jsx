@@ -9,7 +9,6 @@ import {
   Trash2,
   BookOpen,
   Calendar,
-  BookMarked,
   User,
   MoreVertical,
 } from 'lucide-react'
@@ -156,17 +155,6 @@ export default function BookDetails() {
             <div className="book-cover-container">
               <img src={book.cover} alt={book.title} className="book-cover-img" />
             </div>
-
-            <div className="book-quick-actions">
-              <button type="button" className="btn">
-                <BookOpen size={18} />
-                Read Now
-              </button>
-              <button type="button" className="btn ghost">
-                <BookMarked size={18} />
-                Borrow
-              </button>
-            </div>
           </div>
 
           <div className="book-info-section">
@@ -185,9 +173,9 @@ export default function BookDetails() {
             </div>
 
             <div className="book-status-section">
-              <div className="status-badge" style={{ backgroundColor: statusColors[book.status] }}>
-                {statusLabels[book.status]}
-              </div>
+              <button type="button" className="btn post-related-btn">
+                Post Related
+              </button>
               <div className="visibility-badge">
                 {book.visibility === 'private' ? (
                   <>

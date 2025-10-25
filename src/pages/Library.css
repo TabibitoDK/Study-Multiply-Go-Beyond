@@ -654,9 +654,11 @@
   display: flex;
   flex-direction: column;
   gap: 48px;
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
   padding-bottom: 60px;
+  padding-left: 5%;
+  padding-right: 5%;
   width: 100%;
 }
 
@@ -762,15 +764,18 @@
 /* Book Details Content */
 .book-details-content {
   display: grid;
-  grid-template-columns: 340px 1fr;
-  gap: 60px;
+  grid-template-columns: minmax(400px, 1fr) minmax(500px, 2fr);
+  gap: 100px;
   align-items: start;
+  max-width: 1800px;
+  margin: 0 auto;
 }
 
 .book-details-main {
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
+  display: grid;
+  grid-template-columns: minmax(400px, 1fr) minmax(500px, 2fr);
+  gap: 100px;
+  align-items: start;
 }
 
 .book-cover-section {
@@ -793,45 +798,30 @@
   object-fit: cover;
 }
 
-.book-quick-actions {
-  display: flex;
-  gap: 12px;
-  flex-direction: column;
-}
-
-.book-quick-actions .btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  padding: 14px 20px;
-  font-weight: 700;
-}
-
 .book-info-section {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 36px;
 }
 
 .book-header-info {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .book-details-title {
   margin: 0;
-  font-size: 2.2rem;
+  font-size: 2.8rem;
   font-weight: 900;
   color: var(--text);
   line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .book-details-author {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--subtext);
   font-weight: 600;
 }
@@ -839,90 +829,104 @@
 .book-rating-section {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
 }
 
 .book-stars {
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 
 .book-stars svg {
   color: #fbbf24;
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
 }
 
 .book-rating-text {
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: var(--subtext);
   font-weight: 600;
 }
 
 .book-status-section {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.post-related-btn {
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.post-related-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .status-badge {
-  padding: 8px 18px;
+  padding: 10px 22px;
   border-radius: 999px;
   color: white;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .visibility-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
+  gap: 10px;
+  padding: 10px 22px;
   border-radius: 999px;
   background: var(--muted);
   color: var(--text);
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .book-metadata {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .metadata-item {
   display: flex;
   align-items: center;
-  gap: 14px;
-  font-size: 1rem;
+  gap: 16px;
+  font-size: 1.1rem;
   color: var(--text);
 }
 
 .metadata-item svg {
   color: var(--subtext);
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 
 .book-publisher {
-  padding: 16px 20px;
+  padding: 20px 24px;
   background: var(--bg);
   border: 1px solid var(--ring);
   border-radius: 12px;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
 }
 
 .book-description {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .book-description h3 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--text);
 }
@@ -930,37 +934,37 @@
 .book-description p {
   margin: 0;
   color: var(--subtext);
-  line-height: 1.8;
-  font-size: 0.95rem;
+  line-height: 1.9;
+  font-size: 1.05rem;
 }
 
 .book-tags-section {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 .book-tags-section h3 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--text);
 }
 
 .book-tags {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .book-tag {
   display: inline-block;
-  padding: 8px 16px;
+  padding: 10px 20px;
   background: var(--muted);
   border: 1px solid var(--ring);
   border-radius: 999px;
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -1030,13 +1034,42 @@
    RESPONSIVE DESIGN
    ======================================================= */
 
-@media (max-width: 1200px) {
+@media (max-width: 1600px) {
   .library-grid {
     grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
     gap: 22px;
   }
 
   .book-details-content {
+    grid-template-columns: minmax(380px, 1fr) minmax(450px, 2fr);
+    gap: 80px;
+  }
+
+  .book-details-main {
+    grid-template-columns: minmax(380px, 1fr) minmax(450px, 2fr);
+    gap: 80px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .book-details-content {
+    grid-template-columns: 350px 1fr;
+    gap: 60px;
+  }
+
+  .book-details-main {
+    grid-template-columns: 350px 1fr;
+    gap: 60px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .book-details-content {
+    grid-template-columns: 300px 1fr;
+    gap: 48px;
+  }
+
+  .book-details-main {
     grid-template-columns: 300px 1fr;
     gap: 48px;
   }
@@ -1067,25 +1100,6 @@
   .library-grid {
     grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
     gap: 18px;
-  }
-
-  .book-details-content {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-
-  .book-details-main {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 32px;
-  }
-
-  .book-cover-section {
-    grid-column: 1;
-  }
-
-  .book-info-section {
-    grid-column: 2;
   }
 }
 
@@ -1160,6 +1174,11 @@
     gap: 32px;
   }
 
+  .book-details-content {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
   .book-details-main {
     grid-template-columns: 1fr;
     gap: 24px;
@@ -1215,14 +1234,5 @@
 
   .modal-title {
     font-size: 1.3rem;
-  }
-
-  .book-quick-actions {
-    gap: 10px;
-  }
-
-  .book-quick-actions .btn {
-    font-size: 0.9rem;
-    padding: 12px 16px;
   }
 }
