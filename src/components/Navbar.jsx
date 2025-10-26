@@ -9,7 +9,7 @@ const TABS = [
   { key: 'tools', labelKey: 'nav.tools', path: '/tools' },
 ]
 
-export default function Navbar({ onNewTask }) {
+export default function Navbar() {
   const { t } = useTranslation()
 
   const tabItems = useMemo(
@@ -48,9 +48,6 @@ export default function Navbar({ onNewTask }) {
 
       <div className="nav-actions">
         <LanguageSwitcher />
-        <button className="btn" onClick={onNewTask} type="button">
-          {t('nav.newTask')}
-        </button>
       </div>
     </header>
   )

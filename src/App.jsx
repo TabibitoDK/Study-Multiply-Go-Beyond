@@ -1,6 +1,5 @@
 ﻿import { useState } from 'react'
 import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import Navbar from './components/Navbar.jsx'
 import CalendarTopbar from './components/CalendarTopbar.jsx'
 import ToolTopbar from './components/ToolTopbar.jsx'
@@ -61,7 +60,6 @@ function ProfileWrapper({ currentUserId, posts, onCreatePost, onSelectProfile })
 }
 
 export default function App() {
-  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const [posts, setPosts] = useState(() =>
@@ -78,17 +76,13 @@ export default function App() {
   const isCalendarApp = location.pathname.startsWith('/calendar')
 
   // Check if it's a tool page (but not immerse)
-  const toolMatch = location.pathname.match(/^\/tools\/(flashcards|chat|stream|summary|pomodoro|aichat)/)
+  const toolMatch = location.pathname.match(/^\/tools\/(flashcards|chat|stream|summary|pomodoro)/)
   const isToolPage = toolMatch !== null
   const toolId = toolMatch ? toolMatch[1] : null
 
   let containerClass = 'container'
   if (showRightPanel) {
     containerClass = sidebarCollapsed ? 'container has-sidebar-collapsed' : 'container has-sidebar'
-  }
-
-  function handleNewTask() {
-    alert(t('app.newTaskDialog'))
   }
 
   function openProfile(profileId) {
@@ -138,7 +132,7 @@ export default function App() {
       ) : isToolPage ? (
         <ToolTopbar toolId={toolId} />
       ) : (
-        <Navbar onNewTask={handleNewTask} />
+        <Navbar />
       )}
 
       <main className="canvas-wrap">
@@ -198,7 +192,6 @@ export default function App() {
           <Route path="/tools/stream/*" element={<StudyStreamRoutes />} />
           <Route path="/tools/summary" element={<ToolPlaceholder toolId="summary" />} />
           <Route path="/tools/pomodoro" element={<ToolPlaceholder toolId="pomodoro" />} />
-          <Route path="/tools/aichat" element={<ToolPlaceholder toolId="aichat" />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/immerse" element={<ImmerseMode onClose={handleCloseImmerse} />} />
         </Routes>

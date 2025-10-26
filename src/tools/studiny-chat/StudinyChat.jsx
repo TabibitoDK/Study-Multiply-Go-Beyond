@@ -357,21 +357,6 @@ export default function StudinyChat({
 
   return (
     <div className={containerClassName}>
-      <header className="studiny-chat__header">
-        <div className="studiny-chat__header-content">
-          <button
-            type="button"
-            className="studiny-chat__back-button"
-            onClick={onBackClick}
-          >
-            Back to Tools
-          </button>
-          <div className="studiny-chat__brand">
-            <AppLogo className="studiny-chat__logo" />
-            <h1 className="studiny-chat__title">{title}</h1>
-          </div>
-        </div>
-      </header>
 
       <main className="studiny-chat__main">
         <div className="studiny-chat__container">
@@ -380,7 +365,6 @@ export default function StudinyChat({
               <div className="studiny-chat__empty-avatar">
                 <AppLogo className="studiny-chat__logo" />
               </div>
-              <h2 className="studiny-chat__empty-title">{title}</h2>
               <p className="studiny-chat__empty-description">
                 Generate a document by typing a topic below.
               </p>

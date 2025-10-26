@@ -1,4 +1,4 @@
-export const TOOL_IDS = ['calendar', 'immerse', 'flashcards', 'chat', 'stream', 'summary', 'pomodoro', 'aichat']
+export const TOOL_IDS = ['calendar', 'immerse', 'flashcards', 'chat', 'stream', 'summary', 'pomodoro']
 
 export const TOOL_DEFAULTS = {
   calendar: {
@@ -28,10 +28,6 @@ export const TOOL_DEFAULTS = {
   pomodoro: {
     title: 'Pomodoro Coach',
     description: 'Structure sessions with focus and break timers.'
-  },
-  aichat: {
-    title: 'AI Chat',
-    description: 'Chat with AI to get help with your studies.'
   }
 }
 
@@ -60,11 +56,6 @@ export const TOOL_FEATURES = {
     'Customize focus and break lengths to match your rhythm.',
     'Log completed cycles to visualize productivity trends.',
     'Queue quick notes between sessions so you never lose ideas.'
-  ],
-  aichat: [
-    'Ask questions about your study materials and get instant answers.',
-    'Get explanations for complex topics in simple terms.',
-    'Practice problem-solving with step-by-step guidance.'
   ]
 }
 

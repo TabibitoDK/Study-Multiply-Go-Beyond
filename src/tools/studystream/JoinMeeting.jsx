@@ -60,26 +60,6 @@ const JoinMeeting = () => {
 
   return (
     <div className="join-layout">
-      <header className="meeting-topbar join-topbar">
-        <div className="meeting-topbar-left">
-          <div className="meeting-heading">
-            <h1 className="meeting-title">Meeting Room</h1>
-            <p className="meeting-tagline">Study Multiply · Go Beyond</p>
-          </div>
-        </div>
-        <div className="meeting-meta" role="list">
-          <span className="meeting-meta-pill" role="listitem">
-            Room {previewRoomCode}
-          </span>
-          <span className="meeting-meta-pill" role="listitem">
-            Invite classmates
-          </span>
-          <span className="meeting-meta-pill" role="listitem">
-            Plan ahead
-          </span>
-        </div>
-      </header>
-
       <main className="join-page">
         <section className="join-card">
           <header className="join-card-header">
