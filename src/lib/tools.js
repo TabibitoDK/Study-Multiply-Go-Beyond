@@ -1,4 +1,4 @@
-export const TOOL_IDS = ['calendar', 'immerse', 'flashcards', 'summary', 'pomodoro', 'aichat']
+export const TOOL_IDS = ['calendar', 'immerse', 'flashcards', 'chat', 'stream', 'summary', 'pomodoro', 'aichat']
 
 export const TOOL_DEFAULTS = {
   calendar: {
@@ -12,6 +12,14 @@ export const TOOL_DEFAULTS = {
   flashcards: {
     title: 'Flashcards',
     description: 'Quickly drill important terms and definitions.'
+  },
+  chat: {
+    title: 'Studiny Chat',
+    description: 'AI-powered study assistant for homework help and learning.'
+  },
+  stream: {
+    title: 'Study Stream',
+    description: 'Virtual study rooms with video chat and collaborative whiteboard.'
   },
   summary: {
     title: 'Summary AI',
@@ -32,6 +40,16 @@ export const TOOL_FEATURES = {
     'Create decks for each subject and chapter.',
     'Review cards with spaced repetition-inspired sessions.',
     'Track streaks and confidence to spot weak spots quickly.'
+  ],
+  chat: [
+    'Get instant answers to your study questions.',
+    'Export conversation as PDF for offline review.',
+    'Powered by Google Gemini AI for accurate responses.'
+  ],
+  stream: [
+    'Join virtual study rooms with peers.',
+    'Collaborate on shared whiteboard in real-time.',
+    'Video chat while studying together.'
   ],
   summary: [
     'Paste notes or upload text to generate concise takeaways.',

@@ -15,7 +15,10 @@ import HomeDashboard from './components/HomeDashboard.jsx'
 import Library from './pages/Library.jsx'
 import BookDetails from './pages/BookDetails.jsx'
 import ToolPlaceholder from './pages/ToolPlaceholder.jsx'
-import Flashcard from './tools/flashcard/flashcard.jsx'
+import FlashcardsPage from './tools/flashcard/FlashcardsPage.jsx'
+import { StudinyChat } from './tools/studiny-chat/index.js'
+import { StudyStreamRoutes } from './tools/studystream/index.js'
+import './tools/studiny-chat/StudinyChat.css'
 import { profiles, getProfileById, getProfilesExcept } from './lib/profiles.js'
 import { getPosts } from './lib/posts.js'
 
@@ -75,7 +78,7 @@ export default function App() {
   const isCalendarApp = location.pathname.startsWith('/calendar')
 
   // Check if it's a tool page (but not immerse)
-  const toolMatch = location.pathname.match(/^\/tools\/(flashcards|summary|pomodoro|aichat)$/)
+  const toolMatch = location.pathname.match(/^\/tools\/(flashcards|chat|stream|summary|pomodoro|aichat)/)
   const isToolPage = toolMatch !== null
   const toolId = toolMatch ? toolMatch[1] : null
 
@@ -190,7 +193,9 @@ export default function App() {
           <Route path="/library" element={<Library />} />
           <Route path="/library/:id" element={<BookDetails />} />
           <Route path="/tools" element={<Tools />} />
-          <Route path="/tools/flashcards" element={<Flashcard />} />
+          <Route path="/tools/flashcards" element={<FlashcardsPage />} />
+          <Route path="/tools/chat" element={<StudinyChat title="Studiny Chat" />} />
+          <Route path="/tools/stream/*" element={<StudyStreamRoutes />} />
           <Route path="/tools/summary" element={<ToolPlaceholder toolId="summary" />} />
           <Route path="/tools/pomodoro" element={<ToolPlaceholder toolId="pomodoro" />} />
           <Route path="/tools/aichat" element={<ToolPlaceholder toolId="aichat" />} />

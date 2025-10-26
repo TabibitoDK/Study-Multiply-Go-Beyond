@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(if not exist \"d:\\React Projects\\Study-Multiply-Go-Beyond\\src\\data\" mkdir \"d:\\React Projects\\Study-Multiply-Go-Beyond\\src\\data\")"
+      "Bash(if not exist \"d:\\React Projects\\Study-Multiply-Go-Beyond\\src\\data\" mkdir \"d:\\React Projects\\Study-Multiply-Go-Beyond\\src\\data\")",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
