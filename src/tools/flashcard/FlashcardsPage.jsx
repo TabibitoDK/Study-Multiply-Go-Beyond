@@ -682,10 +682,17 @@ function HomeScreen({
   return (
     <div className="screen">
       <header className="home-header">
-        <h1 className="screen-title">フラッシュカード</h1>
-        <p className="home-subtitle">
-          グループを選んで学習するか、AIにカード生成を任せてください。
-        </p>
+        <div className="home-hero">
+          <h1 className="screen-title">フラッシュカード</h1>
+          <p className="home-subtitle">
+            グループを選んで学習するか、AIにカード生成を任せてください。
+          </p>
+          <div className="home-summary">
+            <span>グループ: {groupList.length}</span>
+            <span>カード: {totalCards}</span>
+            <span>カテゴリー: {totalCategories}</span>
+          </div>
+        </div>
         <div className="home-actions">
           <button
             className="button button--primary"
@@ -715,11 +722,6 @@ function HomeScreen({
           >
             最近のグループ
           </button>
-        </div>
-        <div className="home-summary">
-          <span>グループ: {groupList.length}</span>
-          <span>カード: {totalCards}</span>
-          <span>カテゴリー: {totalCategories}</span>
         </div>
       </header>
 
