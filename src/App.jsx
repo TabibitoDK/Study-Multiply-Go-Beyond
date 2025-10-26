@@ -15,6 +15,7 @@ import HomeDashboard from './components/HomeDashboard.jsx'
 import Library from './pages/Library.jsx'
 import BookDetails from './pages/BookDetails.jsx'
 import ToolPlaceholder from './pages/ToolPlaceholder.jsx'
+import Flashcard from './tools/flashcard/flashcard.jsx'
 import { profiles, getProfileById, getProfilesExcept } from './lib/profiles.js'
 import { getPosts } from './lib/posts.js'
 
@@ -189,7 +190,7 @@ export default function App() {
           <Route path="/library" element={<Library />} />
           <Route path="/library/:id" element={<BookDetails />} />
           <Route path="/tools" element={<Tools />} />
-          <Route path="/tools/flashcards" element={<ToolPlaceholder toolId="flashcards" />} />
+          <Route path="/tools/flashcards" element={<Flashcard />} />
           <Route path="/tools/summary" element={<ToolPlaceholder toolId="summary" />} />
           <Route path="/tools/pomodoro" element={<ToolPlaceholder toolId="pomodoro" />} />
           <Route path="/tools/aichat" element={<ToolPlaceholder toolId="aichat" />} />

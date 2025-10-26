@@ -1,0 +1,26 @@
+{
+  "friends": [
+    { "name": "Nia Rivers", "detail": "Usually free after 6 PM" },
+    { "name": "Eli Thompkins", "detail": "Math review partner" },
+    { "name": "Priya Das", "detail": "Hosts Tuesday study jams" },
+    { "name": "Gabriel Mendez", "detail": "Prefer late-night sessions" },
+    { "name": "Lena Sato", "detail": "Catches up on weekends" },
+    { "name": "Marcus Lee", "detail": "Available before 9 AM" },
+    { "name": "Amira Khalid", "detail": "On break this week" }
+  ],
+  "groups": [
+    { "name": "Linear Legends", "detail": "5 members · Thursday review" },
+    { "name": "Chem Lab Squad", "detail": "4 members · Upload notes nightly" },
+    { "name": "History Roundtable", "detail": "6 members · Sunday summaries" },
+    { "name": "Capstone Crew", "detail": "3 members · Check-ins every other day" },
+    { "name": "Design Sprint Circle", "detail": "5 members · Prototype critiques" }
+  ],
+  "meeting": {
+    "participants": [
+      { "id": "self", "name": "You", "isSharingScreen": false, "micMuted": true, "cameraOn": false },
+      { "id": "maya", "name": "Maya Singh", "isSharingScreen": false, "micMuted": false, "cameraOn": true },
+      { "id": "liam", "name": "Liam Chen", "isSharingScreen": false, "micMuted": true, "cameraOn": false },
+      { "id": "nora", "name": "Nora Wells", "isSharingScreen": false, "micMuted": true, "cameraOn": false }
+    ]
+  }
+}
