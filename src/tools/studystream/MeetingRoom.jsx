@@ -371,7 +371,7 @@ const MeetingRoom = () => {
     (toolId) => {
       if (toolId === 'whiteboard') {
         if (typeof window !== 'undefined') {
-          const whiteboardUrl = new URL('/whiteboard', window.location.origin);
+          const whiteboardUrl = new URL('/tools/stream/whiteboard', window.location.origin);
           if (meetingId) {
             whiteboardUrl.searchParams.set('meetingId', meetingId);
           }

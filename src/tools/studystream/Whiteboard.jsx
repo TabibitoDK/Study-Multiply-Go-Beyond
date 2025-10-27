@@ -16,7 +16,7 @@ const Whiteboard = () => {
         </div>
         {meetingId ? (
           <Link
-            to={`/meeting/${meetingId}`}
+            to={`/tools/stream/meeting/${meetingId}`}
             className="whiteboard-page__return"
             aria-label="Return to meeting"
           >

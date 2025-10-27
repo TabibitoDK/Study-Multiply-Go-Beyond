@@ -30,8 +30,10 @@ const JoinMeeting = () => {
   );
   const navigate = useNavigate();
 
+  const meetingPath = (id) => `/tools/stream/meeting/${id}`;
+
   const startNewMeeting = () => {
-    navigate(`/meeting/${generateMeetingId()}`);
+    navigate(meetingPath(generateMeetingId()));
   };
 
   const joinMeeting = (event) => {
@@ -39,7 +41,7 @@ const JoinMeeting = () => {
     const sanitizedId = meetingId.trim();
 
     if (sanitizedId) {
-      navigate(`/meeting/${sanitizedId}`);
+      navigate(meetingPath(sanitizedId));
     }
   };
 
@@ -55,7 +57,7 @@ const JoinMeeting = () => {
     : GROUP_SUGGESTIONS;
 
   const handleStartWith = (label) => {
-    navigate(`/meeting/${generateMeetingId(label)}`);
+    navigate(meetingPath(generateMeetingId(label)));
   };
 
   return (

@@ -17,6 +17,12 @@ function migrateStorage() {
 // Run migration on module load
 migrateStorage()
 
+function notifyBooksUpdated() {
+  if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+    window.dispatchEvent(new Event('smgb:books-updated'))
+  }
+}
+
 function getBooks() {
   try {
     const stored = localStorage.getItem(BOOKS_KEY)
@@ -34,6 +40,7 @@ function getBooks() {
 function saveBooks(books) {
   try {
     localStorage.setItem(BOOKS_KEY, JSON.stringify(books))
+    notifyBooksUpdated()
   } catch {}
 }
 
