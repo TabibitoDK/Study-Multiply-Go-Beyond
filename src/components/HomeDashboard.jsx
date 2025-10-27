@@ -206,7 +206,7 @@ function toRgba(hex, alpha) {
 }
 
 const WEATHER_SUMMARY = {
-  location: 'Vancouver',
+  location: '東京',
   temperature: '7°C',
   condition: 'Broken Clouds',
   high: '12°C',
@@ -215,39 +215,39 @@ const WEATHER_SUMMARY = {
 }
 
 const PROGRESS_TRACKERS = [
-  { id: 'day', label: 'Day', value: 58 },
-  { id: 'week', label: 'Week', value: 12 },
-  { id: 'month', label: 'Month', value: 42 },
-  { id: 'year', label: 'Year', value: 74 }
+  { id: 'day', label: '今日', value: 58 },
+  { id: 'week', label: '今週', value: 12 },
+  { id: 'month', label: '今月', value: 42 },
+  { id: 'year', label: '今年', value: 74 }
 ]
 
 const DUE_ASSIGNMENTS = [
   {
     id: 'wk-1',
-    course: 'Linear Algebra',
-    title: 'Problem Set 5',
-    status: 'In progress',
+    course: '線形代数',
+    title: '課題セット5',
+    status: '進行中',
     dueDate: '2025-10-16T09:00:00'
   },
   {
     id: 'wk-2',
-    course: 'Modern Physics',
-    title: 'Lab Report Draft',
-    status: 'Needs outline',
+    course: '現代物理学',
+    title: '実験レポート草案',
+    status: 'アウトライン作成が必要',
     dueDate: '2025-10-18T17:00:00'
   },
   {
     id: 'mo-1',
-    course: 'Electronics Lab',
-    title: 'Circuit Design Demo',
-    status: 'Prototype ready',
+    course: '電子工学実験',
+    title: '回路設計デモ',
+    status: '試作品準備完了',
     dueDate: '2025-10-24T12:00:00'
   },
   {
     id: 'mo-2',
-    course: 'Japanese II',
-    title: 'Oral Presentation',
-    status: 'Slides in progress',
+    course: '日本語II',
+    title: '口頭発表',
+    status: 'スライド作成中',
     dueDate: '2025-10-28T09:00:00'
   }
 ]
@@ -255,30 +255,30 @@ const DUE_ASSIGNMENTS = [
 const FOCUS_AREAS = [
   {
     id: 'deep-work',
-    title: 'Deep Work',
-    description: '90 minutes on Linear Algebra proofs before lunch.'
+    title: '集中ブロック',
+    description: '昼食前に線形代数の証明に90分取り組む。'
   },
   {
     id: 'review',
-    title: 'Review Loop',
-    description: '15 minute spaced repetition session with Anki after dinner.'
+    title: '復習ループ',
+    description: '夕食後に15分のAnki復習セッション。'
   },
   {
     id: 'wellbeing',
-    title: 'Recharge',
-    description: 'Stretch + fresh air break between focus blocks.'
+    title: 'リフレッシュ',
+    description: '集中ブロックの合間にストレッチと深呼吸。'
   }
 ]
 
 const PLAYLISTS = [
   {
     id: 'lofi-bakery',
-    title: 'korean bakery feels [chill lofi]',
+    title: '韓国カフェ風ローファイ',
     url: 'https://www.youtube.com/embed/7NOSDKb0HlU'
   },
   {
     id: 'dog-park',
-    title: "vibin' at the dog park - breeze edition",
+    title: 'ドッグパークのそよ風ローファイ',
     url: 'https://www.youtube.com/embed/YqfBrC8ZHSo'
   }
 ]
@@ -291,23 +291,31 @@ function getTrendDirection(value) {
 }
 
 function formatHours(value) {
-  if (!Number.isFinite(value)) return '0 h'
+  if (!Number.isFinite(value)) return '0 時間'
   const rounded = Number.isInteger(value) ? value.toString() : value.toFixed(1)
-  return `${rounded} h`
+  return `${rounded} 時間`
 }
 
 function StudyStatusPanel({ stats, onOpenProfile }) {
+  const { t } = useTranslation()
+
   if (!stats || stats.length === 0) {
     return (
       <div className="study-status-panel empty">
-        <p className="study-status-empty-title">Add books to your library to unlock insights.</p>
+        <p className="study-status-empty-title">
+          {t('home.studyStatus.emptyTitle', {
+            defaultValue: 'Add books to your library to unlock insights.',
+          })}
+        </p>
         <p className="study-status-empty-copy">
-          We will surface weekly and monthly study trends for every subject you are reading.
+          {t('home.studyStatus.emptyCopy', {
+            defaultValue: 'We will surface weekly and monthly study trends for every subject you are reading.',
+          })}
         </p>
         <div className="study-status-empty-actions">
           {typeof onOpenProfile === 'function' && (
             <button type="button" className="btn ghost" onClick={onOpenProfile}>
-              View profile
+              {t('home.studyStatus.viewProfile', { defaultValue: 'View profile' })}
             </button>
           )}
         </div>
@@ -325,15 +333,20 @@ function StudyStatusPanel({ stats, onOpenProfile }) {
 
   const summaryChangeLabel =
     Math.abs(weeklyDelta) < 0.1
-      ? 'On par with last week'
-      : `${formatPercent(weeklyDelta)} vs last week`
+      ? t('home.studyStatus.onPar', { defaultValue: 'On par with last week' })
+      : t('home.studyStatus.changeCompared', {
+          defaultValue: `${formatPercent(weeklyDelta)} vs last week`,
+          value: formatPercent(weeklyDelta),
+        })
   const summaryChangeClass = getTrendDirection(weeklyDelta)
 
   return (
     <div className="study-status-panel simple">
       <div className="status-summary">
         <div className="status-summary-main">
-          <span className="status-summary-label">This week</span>
+          <span className="status-summary-label">
+            {t('home.studyStatus.summary.thisWeek', { defaultValue: 'This week' })}
+          </span>
           <strong className="status-summary-value">{formatHours(totalCurrentWeek)}</strong>
           <span className={`status-summary-change ${summaryChangeClass}`}>
             {summaryChangeLabel}
@@ -341,15 +354,25 @@ function StudyStatusPanel({ stats, onOpenProfile }) {
         </div>
         <div className="status-summary-side">
           <div className="summary-side-item">
-            <span className="summary-side-label">Last week</span>
+            <span className="summary-side-label">
+              {t('home.studyStatus.summary.lastWeek', { defaultValue: 'Last week' })}
+            </span>
             <span className="summary-side-value">{formatHours(totalLastWeek)}</span>
           </div>
           <div className="summary-side-item">
-            <span className="summary-side-label">Top focus</span>
-            <span className="summary-side-value">{topSubject.subject}</span>
+            <span className="summary-side-label">
+              {t('home.studyStatus.summary.topFocus', { defaultValue: 'Top focus' })}
+            </span>
+            <span className="summary-side-value">
+              {topSubject.subject === 'General'
+                ? t('home.studyStatus.generalSubject', { defaultValue: 'General' })
+                : topSubject.subject}
+            </span>
           </div>
           <div className="summary-side-item">
-            <span className="summary-side-label">This month</span>
+            <span className="summary-side-label">
+              {t('home.studyStatus.summary.thisMonth', { defaultValue: 'This month' })}
+            </span>
             <span className="summary-side-value">{formatHours(totalThisMonth)}</span>
           </div>
         </div>
@@ -368,21 +391,30 @@ function StudyStatusPanel({ stats, onOpenProfile }) {
           const changeClass = getTrendDirection(subject.weeklyChange)
           const changeLabel =
             Math.abs(subject.weeklyChange) < 0.1
-              ? 'No change'
-              : `${formatPercent(subject.weeklyChange)} vs last week`
+              ? t('home.studyStatus.summary.noChange', { defaultValue: 'No change' })
+              : t('home.studyStatus.changeCompared', {
+                  defaultValue: `${formatPercent(subject.weeklyChange)} vs last week`,
+                  value: formatPercent(subject.weeklyChange),
+                })
 
           return (
             <li key={subject.subject} className="subject-progress-item">
               <div className="subject-progress-header">
                 <span className="subject-pill small" style={pillStyle}>
-                  {subject.subject}
+                  {subject.subject === 'General'
+                    ? t('home.studyStatus.generalSubject', { defaultValue: 'General' })
+                    : subject.subject}
                 </span>
                 <span className="subject-progress-hours">{formatHours(subject.currentWeek)}</span>
               </div>
               <div
                 className="subject-graph"
                 role="img"
-                aria-label={`This week ${formatHours(subject.currentWeek)}, last week ${formatHours(subject.lastWeek)}`}
+                aria-label={t('home.studyStatus.aria.weekComparison', {
+                  defaultValue: `This week ${formatHours(subject.currentWeek)}, last week ${formatHours(subject.lastWeek)}`,
+                  current: formatHours(subject.currentWeek),
+                  previous: formatHours(subject.lastWeek),
+                })}
               >
                 <div className="subject-graph-bars">
                   <span
@@ -397,8 +429,12 @@ function StudyStatusPanel({ stats, onOpenProfile }) {
                   />
                 </div>
                 <div className="subject-graph-legend" aria-hidden="true">
-                  <span>This week</span>
-                  <span>Last week</span>
+                  <span>
+                    {t('home.studyStatus.summary.thisWeek', { defaultValue: 'This week' })}
+                  </span>
+                  <span>
+                    {t('home.studyStatus.summary.lastWeek', { defaultValue: 'Last week' })}
+                  </span>
                 </div>
               </div>
               <div className={`subject-progress-change ${changeClass}`}>{changeLabel}</div>
@@ -410,7 +446,7 @@ function StudyStatusPanel({ stats, onOpenProfile }) {
       {typeof onOpenProfile === 'function' && (
         <div className="study-status-footer">
           <button type="button" className="btn ghost" onClick={onOpenProfile}>
-            Open study log
+            {t('home.studyStatus.openLog', { defaultValue: 'Open study log' })}
           </button>
         </div>
       )}
@@ -421,12 +457,24 @@ function StudyStatusPanel({ stats, onOpenProfile }) {
 function MiniCalendar() {
   const [reference, setReference] = useState(dayjs().startOf('month'))
   const today = dayjs()
+  const { t } = useTranslation()
+  const { formatDate } = useI18nFormats()
   const start = useMemo(() => reference.startOf('week'), [reference])
   const days = useMemo(
     () => Array.from({ length: 42 }, (_, index) => start.add(index, 'day')),
-    [start]
+    [start],
   )
-  const monthLabel = useMemo(() => reference.format('MMMM YYYY'), [reference])
+  const monthLabel = useMemo(
+    () => formatDate(reference.toDate(), { year: 'numeric', month: 'long' }),
+    [reference, formatDate],
+  )
+  const weekdayLabels = useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, index) =>
+        formatDate(start.add(index, 'day').toDate(), { weekday: 'short' }),
+      ),
+    [start, formatDate],
+  )
 
   function go(offset) {
     setReference(prev => prev.add(offset, 'month'))
@@ -435,21 +483,27 @@ function MiniCalendar() {
   return (
     <div className="home-calendar">
       <div className="home-calendar-header">
-        <button type="button" onClick={() => go(-1)} aria-label="Previous month">
+        <button
+          type="button"
+          onClick={() => go(-1)}
+          aria-label={t('home.calendar.previous', { defaultValue: 'Previous month' })}
+        >
           <ChevronLeft size={18} />
         </button>
         <div>
           <span className="home-calendar-title">{monthLabel}</span>
         </div>
-        <button type="button" onClick={() => go(1)} aria-label="Next month">
+        <button
+          type="button"
+          onClick={() => go(1)}
+          aria-label={t('home.calendar.next', { defaultValue: 'Next month' })}
+        >
           <ChevronRight size={18} />
         </button>
       </div>
 
       <div className="home-calendar-weekdays">
-        {Array.from({ length: 7 }, (_, index) =>
-          start.add(index, 'day').format('dd')
-        ).map(label => (
+        {weekdayLabels.map(label => (
           <span key={label}>{label}</span>
         ))}
       </div>
@@ -489,6 +543,23 @@ export default function HomeDashboard({ user, onOpenProfile }) {
   const today = new Date()
   const { t } = useTranslation()
   const { formatDate } = useI18nFormats()
+  const defaultGoals = useMemo(
+    () => [
+      {
+        text: t('home.goals.defaults.honors', { defaultValue: 'Graduate with honors' }),
+        isPublic: true,
+      },
+      {
+        text: t('home.goals.defaults.react', { defaultValue: 'Master React' }),
+        isPublic: true,
+      },
+      {
+        text: t('home.goals.defaults.projects', { defaultValue: 'Build 5 projects' }),
+        isPublic: true,
+      },
+    ],
+    [t],
+  )
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editModalType, setEditModalType] = useState(null)
   const [editModalValue, setEditModalValue] = useState(null)
@@ -496,7 +567,7 @@ export default function HomeDashboard({ user, onOpenProfile }) {
   const [modalDate, setModalDate] = useState(null)
   const [draftText, setDraftText] = useState('')
   const [goals, setGoals] = useState(() => {
-    if (typeof window === 'undefined') return []
+    if (typeof window === 'undefined') return defaultGoals
     try {
       const raw = window.localStorage.getItem(GOALS_STORAGE_KEY)
       const parsed = raw ? JSON.parse(raw) : null
@@ -504,17 +575,9 @@ export default function HomeDashboard({ user, onOpenProfile }) {
         return parsed
       }
       // Return default goals if none exist
-      return [
-        { text: 'Graduate with honors', isPublic: true },
-        { text: 'Master React', isPublic: true },
-        { text: 'Build 5 projects', isPublic: true }
-      ]
+      return defaultGoals
     } catch {
-      return [
-        { text: 'Graduate with honors', isPublic: true },
-        { text: 'Master React', isPublic: true },
-        { text: 'Build 5 projects', isPublic: true }
-      ]
+      return defaultGoals
     }
   })
   const [events, setEvents] = useState(() => {
@@ -570,10 +633,11 @@ export default function HomeDashboard({ user, onOpenProfile }) {
   }, [goals])
 
   const firstName = useMemo(() => {
-    if (!user?.name) return 'Student'
+    const fallback = t('home.header.fallbackName', { defaultValue: 'Student' })
+    if (!user?.name) return fallback
     const [first] = user.name.split(' ')
-    return first ?? user.name
-  }, [user])
+    return (first ?? user.name) || fallback
+  }, [user, t])
   const dueItems = useMemo(
     () =>
       [...DUE_ASSIGNMENTS].sort((a, b) =>
@@ -637,6 +701,30 @@ export default function HomeDashboard({ user, onOpenProfile }) {
         label: formatDate(item.date, { weekday: 'short', month: 'short', day: 'numeric' })
       }))
   }, [events, formatDate])
+
+  const welcomePrefix = t('home.header.welcomePrefix', { defaultValue: 'Welcome back, ' })
+  const welcomeSuffix = t('home.header.welcomeSuffix', { defaultValue: '' })
+  const weatherCondition = t('home.weather.condition', { defaultValue: WEATHER_SUMMARY.condition })
+  const tasksTitle = t('home.tasks.title', { defaultValue: 'Tasks' })
+  const addTaskLabel = t('home.tasks.add', { defaultValue: 'Add task' })
+  const todayLabel = t('home.tasks.today', { defaultValue: 'Today' })
+  const noTasksTodayLabel = t('home.tasks.noneToday', { defaultValue: 'No tasks for today' })
+  const upcomingLabel = t('home.tasks.upcoming', { defaultValue: 'Upcoming' })
+  const removeTaskAria = t('home.tasks.removeAria', { defaultValue: 'Remove task' })
+  const studyStatusTitle = t('home.studyStatus.title', { defaultValue: 'Study Status' })
+  const studyStatusSubtitle = t('home.studyStatus.subtitle', {
+    defaultValue: 'Weekly and monthly focus across every subject you are reading',
+  })
+  const goalsTitle = t('home.goals.title', { defaultValue: 'Goals' })
+  const goalsEditLabel = t('home.goals.edit', { defaultValue: 'Edit Goals' })
+  const goalsEmptyLabel = t('home.goals.empty', { defaultValue: 'No goals yet' })
+  const modalTitle = t('home.tasks.modal.title', { defaultValue: 'Add task' })
+  const modalDateLabelText = t('home.tasks.modal.dateLabel', { defaultValue: 'Date' })
+  const modalPlaceholder = t('home.tasks.modal.placeholder', {
+    defaultValue: 'Add your task here...',
+  })
+  const cancelLabel = t('buttons.cancel', { defaultValue: 'Cancel' })
+  const saveLabel = t('buttons.save', { defaultValue: 'Save' })
 
   function addTask() {
     const text = newTaskText.trim()
@@ -728,7 +816,11 @@ export default function HomeDashboard({ user, onOpenProfile }) {
       {/* Header: Welcome + Clock + Weather */}
       <header className="home-header">
         <div className="home-welcome">
-          <h1>Welcome back, <span>{firstName}</span></h1>
+          <h1>
+            {welcomePrefix}
+            <span>{firstName}</span>
+            {welcomeSuffix}
+          </h1>
         </div>
 
         <div className="home-clock-compact">
@@ -739,7 +831,7 @@ export default function HomeDashboard({ user, onOpenProfile }) {
           <span className="weather-icon">{WEATHER_SUMMARY.icon}</span>
           <div className="weather-info">
             <span className="weather-temp">{WEATHER_SUMMARY.temperature}</span>
-            <span className="weather-condition">{WEATHER_SUMMARY.condition}</span>
+            <span className="weather-condition">{weatherCondition}</span>
           </div>
         </div>
       </header>
@@ -749,7 +841,7 @@ export default function HomeDashboard({ user, onOpenProfile }) {
         {/* Left Column: Tasks */}
         <section className="home-section">
           <div className="section-header">
-            <h2>Tasks</h2>
+            <h2>{tasksTitle}</h2>
             <button
               type="button"
               className="btn"
@@ -757,14 +849,14 @@ export default function HomeDashboard({ user, onOpenProfile }) {
               style={{ padding: '8px 12px', fontSize: '0.9rem' }}
             >
               <Plus size={16} style={{ marginRight: '4px' }} />
-              Add task
+              {addTaskLabel}
             </button>
           </div>
           <div className="section-content">
             <div className="home-tasks-container">
               {/* Today's Tasks */}
               <div className="home-tasks-section">
-                <h3 className="home-tasks-section-title">Today</h3>
+                <h3 className="home-tasks-section-title">{todayLabel}</h3>
                 <ul className="home-tasks-list">
                   {todaysTasks.map((task, index) => (
                     <li key={`${todayKey}-${index}`} className="home-task-item">
@@ -773,14 +865,14 @@ export default function HomeDashboard({ user, onOpenProfile }) {
                         type="button"
                         className="home-task-remove"
                         onClick={() => removeTask(index)}
-                        aria-label="Remove task"
+                        aria-label={removeTaskAria}
                       >
                         &times;
                       </button>
                     </li>
                   ))}
                   {todaysTasks.length === 0 && (
-                    <li className="home-task-empty">No tasks for today</li>
+                    <li className="home-task-empty">{noTasksTodayLabel}</li>
                   )}
                 </ul>
               </div>
@@ -788,7 +880,7 @@ export default function HomeDashboard({ user, onOpenProfile }) {
               {/* Upcoming Tasks */}
               {upcomingEvents.length > 0 && (
                 <div className="home-tasks-section">
-                  <h3 className="home-tasks-section-title">Upcoming</h3>
+                  <h3 className="home-tasks-section-title">{upcomingLabel}</h3>
                   <ul className="home-tasks-list">
                     {upcomingEvents.map(item => (
                       <li key={item.id} className="home-task-item home-upcoming-item">
@@ -800,7 +892,7 @@ export default function HomeDashboard({ user, onOpenProfile }) {
                           type="button"
                           className="home-task-remove"
                           onClick={() => handleRemoveTask(item.eventIndex, item.dayKey)}
-                          aria-label="Remove task"
+                          aria-label={removeTaskAria}
                         >
                           &times;
                         </button>
@@ -816,11 +908,9 @@ export default function HomeDashboard({ user, onOpenProfile }) {
         {/* Middle Column: Study Status */}
         <section className="home-section">
           <div className="section-header">
-            <h2>Study Status</h2>
+            <h2>{studyStatusTitle}</h2>
             {subjectStats.length > 0 && (
-              <p className="section-subtitle">
-                Weekly and monthly focus across every subject you are reading
-              </p>
+              <p className="section-subtitle">{studyStatusSubtitle}</p>
             )}
           </div>
           <div className="section-content">
@@ -831,11 +921,11 @@ export default function HomeDashboard({ user, onOpenProfile }) {
         {/* Right Column: Goals */}
         <section className="home-section">
           <div className="section-header">
-            <h2>Goals</h2>
+            <h2>{goalsTitle}</h2>
             <button
               type="button"
               className="edit-icon-btn"
-              title="Edit Goals"
+              title={goalsEditLabel}
               onClick={() => openEditModal('goals', goals)}
             >
               <Edit3 size={16} />
@@ -852,7 +942,7 @@ export default function HomeDashboard({ user, onOpenProfile }) {
                 </span>
               ))}
               {goals.length === 0 && (
-                <span className="profile-tag">No goals yet</span>
+                <span className="profile-tag">{goalsEmptyLabel}</span>
               )}
             </div>
           </div>
@@ -862,10 +952,10 @@ export default function HomeDashboard({ user, onOpenProfile }) {
       {taskModalOpen && (
         <div className="modal-overlay" onClick={closeTaskModal}>
           <div className="modal calendar-modal" onClick={event => event.stopPropagation()}>
-            <h2 className="modal-title">Add task</h2>
+            <h2 className="modal-title">{modalTitle}</h2>
 
             <div className="calendar-modal-date-picker">
-              <label htmlFor="modal-date">Date</label>
+              <label htmlFor="modal-date">{modalDateLabelText}</label>
               <input
                 id="modal-date"
                 type="date"
@@ -885,16 +975,16 @@ export default function HomeDashboard({ user, onOpenProfile }) {
               <textarea
                 className="input calendar-modal-textarea"
                 rows={4}
-                placeholder="Add your task here..."
+                placeholder={modalPlaceholder}
                 value={draftText}
                 onChange={event => setDraftText(event.target.value)}
               />
               <div className="modal-actions">
                 <button type="button" className="btn ghost" onClick={closeTaskModal}>
-                  Cancel
+                  {cancelLabel}
                 </button>
                 <button type="submit" className="btn">
-                  Save
+                  {saveLabel}
                 </button>
               </div>
             </form>

@@ -22,7 +22,8 @@
     "edit": "Edit layout",
     "exitEdit": "Done editing",
     "today": "Today",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "save": "Save"
   },
   "rightPanel": {
     "guest": "Guest",
@@ -71,6 +72,64 @@
       "existing": "Existing events",
       "placeholder": "Add study plans or reminders...",
       "save": "Save event"
+    }
+  },
+  "home": {
+    "header": {
+      "welcomePrefix": "Welcome back, ",
+      "welcomeSuffix": "",
+      "fallbackName": "Student"
+    },
+    "weather": {
+      "condition": "Broken Clouds"
+    },
+    "calendar": {
+      "previous": "Previous month",
+      "next": "Next month"
+    },
+    "tasks": {
+      "title": "Tasks",
+      "add": "Add task",
+      "today": "Today",
+      "noneToday": "No tasks for today",
+      "upcoming": "Upcoming",
+      "removeAria": "Remove task",
+      "modal": {
+        "title": "Add task",
+        "dateLabel": "Date",
+        "placeholder": "Add your task here..."
+      }
+    },
+    "studyStatus": {
+      "title": "Study Status",
+      "subtitle": "Weekly and monthly focus across every subject you are reading",
+      "emptyTitle": "Add books to your library to unlock insights.",
+      "emptyCopy": "We will surface weekly and monthly study trends for every subject you are reading.",
+      "viewProfile": "View profile",
+      "onPar": "On par with last week",
+      "changeCompared": "{{value}} vs last week",
+      "generalSubject": "General",
+      "summary": {
+        "thisWeek": "This week",
+        "lastWeek": "Last week",
+        "topFocus": "Top focus",
+        "thisMonth": "This month",
+        "noChange": "No change"
+      },
+      "aria": {
+        "weekComparison": "This week {{current}}, last week {{previous}}"
+      },
+      "openLog": "Open study log"
+    },
+    "goals": {
+      "title": "Goals",
+      "edit": "Edit Goals",
+      "empty": "No goals yet",
+      "defaults": {
+        "honors": "Graduate with honors",
+        "react": "Master React",
+        "projects": "Build 5 projects"
+      }
     }
   },
   "tools": {

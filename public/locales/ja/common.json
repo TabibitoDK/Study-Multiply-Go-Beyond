@@ -22,7 +22,8 @@
     "edit": "レイアウトを編集",
     "exitEdit": "編集を終了",
     "today": "今日",
-    "cancel": "キャンセル"
+    "cancel": "キャンセル",
+    "save": "保存"
   },
   "rightPanel": {
     "guest": "ゲスト",
@@ -71,6 +72,64 @@
       "existing": "登録済みの予定",
       "placeholder": "予定やメモを入力してください...",
       "save": "保存する"
+    }
+  },
+  "home": {
+    "header": {
+      "welcomePrefix": "おかえりなさい、",
+      "welcomeSuffix": "さん",
+      "fallbackName": "学生"
+    },
+    "weather": {
+      "condition": "雲が多い天気"
+    },
+    "calendar": {
+      "previous": "前の月",
+      "next": "次の月"
+    },
+    "tasks": {
+      "title": "タスク",
+      "add": "タスクを追加",
+      "today": "今日",
+      "noneToday": "今日のタスクはありません",
+      "upcoming": "今後の予定",
+      "removeAria": "タスクを削除",
+      "modal": {
+        "title": "タスクを追加",
+        "dateLabel": "日付",
+        "placeholder": "ここにタスクを入力してください..."
+      }
+    },
+    "studyStatus": {
+      "title": "学習状況",
+      "subtitle": "読書中の各科目の週次・月次の集中度を把握しましょう",
+      "emptyTitle": "ライブラリーに本を追加して分析を確認しましょう。",
+      "emptyCopy": "各科目の学習時間を週間・月間で可視化します。",
+      "viewProfile": "プロフィールを見る",
+      "onPar": "先週と同じペースです",
+      "changeCompared": "先週比{{value}}",
+      "generalSubject": "その他",
+      "summary": {
+        "thisWeek": "今週",
+        "lastWeek": "先週",
+        "topFocus": "集中科目",
+        "thisMonth": "今月",
+        "noChange": "変化なし"
+      },
+      "aria": {
+        "weekComparison": "今週は{{current}}、先週は{{previous}}"
+      },
+      "openLog": "学習ログを開く"
+    },
+    "goals": {
+      "title": "目標",
+      "edit": "目標を編集",
+      "empty": "まだ目標がありません",
+      "defaults": {
+        "honors": "卒業時に表彰を受ける",
+        "react": "Reactを使いこなす",
+        "projects": "プロジェクトを5つ完成させる"
+      }
     }
   },
   "tools": {
