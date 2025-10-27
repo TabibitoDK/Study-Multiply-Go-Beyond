@@ -13,7 +13,10 @@
     "profile": "Profile",
     "calendar": "Calendar",
     "tools": "Tools",
-    "newTask": "New Task"
+    "newTask": "New Task",
+    "currentTaskLabel": "Current task:",
+    "currentTaskNone": "None",
+    "lastTaskSummary": "Last: {{time}}"
   },
   "app": {
     "newTaskDialog": "Task creation will be available soon!"
@@ -95,6 +98,18 @@
       "noneToday": "No tasks for today",
       "upcoming": "Upcoming",
       "removeAria": "Remove task",
+      "currentBadge": "Current",
+      "actions": {
+        "title": "Task actions",
+        "scheduledFor": "Scheduled for {{date}}",
+        "setCurrent": "Set as current task",
+        "end": "End task",
+        "confirm": "Save session",
+        "timePrompt": "Time spent",
+        "timePlaceholder": "e.g., 45 minutes",
+        "timeError": "Please enter the time you spent.",
+        "alreadyCurrent": "This is already your current task."
+      },
       "modal": {
         "title": "Add task",
         "dateLabel": "Date",

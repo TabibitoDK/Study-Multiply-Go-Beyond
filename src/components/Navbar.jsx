@@ -9,7 +9,7 @@ const TABS = [
   { key: 'tools', labelKey: 'nav.tools', path: '/tools' },
 ]
 
-export default function Navbar() {
+export default function Navbar({ currentTask, lastCompletedTask }) {
   const { t } = useTranslation()
 
   const tabItems = useMemo(
@@ -47,6 +47,22 @@ export default function Navbar() {
       </nav>
 
       <div className="nav-actions">
+        <div className="current-task-display" aria-live="polite">
+          <span className="current-task-label">
+            {t('nav.currentTaskLabel', { defaultValue: 'Current task:' })}
+          </span>
+          <span className={currentTask?.title ? 'current-task-value' : 'current-task-value is-empty'}>
+            {currentTask?.title ?? t('nav.currentTaskNone', { defaultValue: 'None' })}
+          </span>
+          {lastCompletedTask?.timeSpent && (
+            <span className="current-task-last">
+              {t('nav.lastTaskSummary', {
+                defaultValue: 'Last: {{time}}',
+                time: lastCompletedTask.timeSpent,
+              })}
+            </span>
+          )}
+        </div>
         <LanguageSwitcher />
       </div>
     </header>

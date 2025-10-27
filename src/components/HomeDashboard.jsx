@@ -12,7 +12,7 @@ import {
   Edit3,
   Globe,
   Lock,
-  Plus
+  PawPrint
 } from 'lucide-react'
 import ClockWidget from './widgets/ClockWidget.jsx'
 import TodoWidget from './widgets/TodoWidget.jsx'
@@ -532,7 +532,13 @@ function MiniCalendar() {
   )
 }
 
-export default function HomeDashboard({ user, onOpenProfile }) {
+export default function HomeDashboard({
+  user,
+  onOpenProfile,
+  currentTask = null,
+  onSetCurrentTask,
+  onCompleteTask,
+}) {
   const [subjectStats, setSubjectStats] = useState(() => {
     try {
       return buildSubjectStats(getAllBooks())
@@ -566,6 +572,10 @@ export default function HomeDashboard({ user, onOpenProfile }) {
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [modalDate, setModalDate] = useState(null)
   const [draftText, setDraftText] = useState('')
+  const [selectedTask, setSelectedTask] = useState(null)
+  const [showTimeInput, setShowTimeInput] = useState(false)
+  const [timeSpentInput, setTimeSpentInput] = useState('')
+  const [timeSpentError, setTimeSpentError] = useState('')
   const [goals, setGoals] = useState(() => {
     if (typeof window === 'undefined') return defaultGoals
     try {
@@ -711,6 +721,28 @@ export default function HomeDashboard({ user, onOpenProfile }) {
   const noTasksTodayLabel = t('home.tasks.noneToday', { defaultValue: 'No tasks for today' })
   const upcomingLabel = t('home.tasks.upcoming', { defaultValue: 'Upcoming' })
   const removeTaskAria = t('home.tasks.removeAria', { defaultValue: 'Remove task' })
+  const currentTaskBadgeLabel = t('home.tasks.currentBadge', { defaultValue: 'Current' })
+  const taskActionsTitle = t('home.tasks.actions.title', { defaultValue: 'Task actions' })
+  const taskScheduledLabel = date =>
+    t('home.tasks.actions.scheduledFor', {
+      defaultValue: 'Scheduled for {{date}}',
+      date,
+    })
+  const setCurrentTaskLabel = t('home.tasks.actions.setCurrent', {
+    defaultValue: 'Set as current task',
+  })
+  const endTaskLabel = t('home.tasks.actions.end', { defaultValue: 'End task' })
+  const confirmEndLabel = t('home.tasks.actions.confirm', { defaultValue: 'Save session' })
+  const timePromptLabel = t('home.tasks.actions.timePrompt', { defaultValue: 'Time spent' })
+  const timePlaceholderLabel = t('home.tasks.actions.timePlaceholder', {
+    defaultValue: 'e.g., 45 minutes',
+  })
+  const alreadyCurrentLabel = t('home.tasks.actions.alreadyCurrent', {
+    defaultValue: 'This is already your current task.',
+  })
+  const taskTimeFieldId = selectedTask
+    ? `task-time-${selectedTask.dayKey}-${selectedTask.eventIndex}`
+    : 'task-time-input'
   const studyStatusTitle = t('home.studyStatus.title', { defaultValue: 'Study Status' })
   const studyStatusSubtitle = t('home.studyStatus.subtitle', {
     defaultValue: 'Weekly and monthly focus across every subject you are reading',
@@ -740,19 +772,7 @@ export default function HomeDashboard({ user, onOpenProfile }) {
   }
 
   function removeTask(index) {
-    const key = getTodayKey()
-    setEvents(prev => {
-      const existing = Array.isArray(prev[key]) ? [...prev[key]] : []
-      if (index < 0 || index >= existing.length) return prev
-      existing.splice(index, 1)
-      const next = { ...prev }
-      if (existing.length === 0) {
-        delete next[key]
-      } else {
-        next[key] = existing
-      }
-      return next
-    })
+    handleRemoveTask(index, todayKey)
   }
 
   function openTaskModal() {
@@ -797,6 +817,70 @@ export default function HomeDashboard({ user, onOpenProfile }) {
       }
       return next
     })
+  }
+
+  function openTaskActions(taskText, dayKey, eventIndex) {
+    if (!taskText || !dayKey) return
+    const [year, month, day] = dayKey.split('-').map(Number)
+    const scheduledDate = new Date(year || today.getFullYear(), (month || 1) - 1, day || 1)
+    const isValidDate = Number.isNaN(scheduledDate.getTime()) ? null : scheduledDate
+    const label = isValidDate
+      ? formatDate(isValidDate, { dateStyle: 'long', weekday: 'short' })
+      : dayKey
+
+    setSelectedTask({
+      text: taskText,
+      dayKey,
+      eventIndex,
+      date: isValidDate,
+      label,
+    })
+    setShowTimeInput(false)
+    setTimeSpentInput('')
+    setTimeSpentError('')
+  }
+
+  function closeTaskActions() {
+    setSelectedTask(null)
+    setShowTimeInput(false)
+    setTimeSpentInput('')
+    setTimeSpentError('')
+  }
+
+  function handleSetCurrentTask() {
+    if (!selectedTask) return
+    if (typeof onSetCurrentTask === 'function') {
+      onSetCurrentTask(selectedTask.text)
+    }
+    closeTaskActions()
+  }
+
+  function beginEndTaskFlow() {
+    setShowTimeInput(true)
+    setTimeSpentError('')
+  }
+
+  function cancelEndTaskFlow() {
+    setShowTimeInput(false)
+    setTimeSpentInput('')
+    setTimeSpentError('')
+  }
+
+  function handleConfirmEndTask(event) {
+    event.preventDefault()
+    if (!selectedTask) return
+    const timeValue = timeSpentInput.trim()
+    if (!timeValue) {
+      setTimeSpentError(
+        t('home.tasks.actions.timeError', { defaultValue: 'Please enter the time you spent.' })
+      )
+      return
+    }
+    if (typeof onCompleteTask === 'function') {
+      onCompleteTask(selectedTask.text, timeValue)
+    }
+    handleRemoveTask(selectedTask.eventIndex, selectedTask.dayKey)
+    closeTaskActions()
   }
 
   function openEditModal(type, value) {
@@ -844,11 +928,10 @@ export default function HomeDashboard({ user, onOpenProfile }) {
             <h2>{tasksTitle}</h2>
             <button
               type="button"
-              className="btn"
+              className="btn cat-primary add-task-btn"
               onClick={openTaskModal}
-              style={{ padding: '8px 12px', fontSize: '0.9rem' }}
             >
-              <Plus size={16} style={{ marginRight: '4px' }} />
+              <PawPrint size={18} />
               {addTaskLabel}
             </button>
           </div>
@@ -858,19 +941,37 @@ export default function HomeDashboard({ user, onOpenProfile }) {
               <div className="home-tasks-section">
                 <h3 className="home-tasks-section-title">{todayLabel}</h3>
                 <ul className="home-tasks-list">
-                  {todaysTasks.map((task, index) => (
-                    <li key={`${todayKey}-${index}`} className="home-task-item">
-                      <span className="home-task-text">{task}</span>
-                      <button
-                        type="button"
-                        className="home-task-remove"
-                        onClick={() => removeTask(index)}
-                        aria-label={removeTaskAria}
+                  {todaysTasks.map((task, index) => {
+                    const isCurrent = currentTask?.title === task
+                    return (
+                      <li
+                        key={`${todayKey}-${index}`}
+                        className={`home-task-item${isCurrent ? ' is-current' : ''}`}
                       >
-                        &times;
-                      </button>
-                    </li>
-                  ))}
+                        <button
+                          type="button"
+                          className="home-task-trigger"
+                          onClick={() => openTaskActions(task, todayKey, index)}
+                        >
+                          <span className="home-task-text">{task}</span>
+                          {isCurrent && (
+                            <span className="home-task-badge">{currentTaskBadgeLabel}</span>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          className="home-task-remove"
+                          onClick={event => {
+                            event.stopPropagation()
+                            removeTask(index)
+                          }}
+                          aria-label={removeTaskAria}
+                        >
+                          &times;
+                        </button>
+                      </li>
+                    )
+                  })}
                   {todaysTasks.length === 0 && (
                     <li className="home-task-empty">{noTasksTodayLabel}</li>
                   )}
@@ -882,22 +983,38 @@ export default function HomeDashboard({ user, onOpenProfile }) {
                 <div className="home-tasks-section">
                   <h3 className="home-tasks-section-title">{upcomingLabel}</h3>
                   <ul className="home-tasks-list">
-                    {upcomingEvents.map(item => (
-                      <li key={item.id} className="home-task-item home-upcoming-item">
-                        <div className="home-upcoming-content">
-                          <span className="home-upcoming-date">{item.label}</span>
-                          <span className="home-task-text">{item.text}</span>
-                        </div>
-                        <button
-                          type="button"
-                          className="home-task-remove"
-                          onClick={() => handleRemoveTask(item.eventIndex, item.dayKey)}
-                          aria-label={removeTaskAria}
+                    {upcomingEvents.map(item => {
+                      const isCurrent = currentTask?.title === item.text
+                      return (
+                        <li
+                          key={item.id}
+                          className={`home-task-item home-upcoming-item${isCurrent ? ' is-current' : ''}`}
                         >
-                          &times;
-                        </button>
-                      </li>
-                    ))}
+                          <button
+                            type="button"
+                            className="home-task-trigger"
+                            onClick={() => openTaskActions(item.text, item.dayKey, item.eventIndex)}
+                          >
+                            <span className="home-upcoming-date">{item.label}</span>
+                            <span className="home-task-text">{item.text}</span>
+                            {isCurrent && (
+                              <span className="home-task-badge">{currentTaskBadgeLabel}</span>
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            className="home-task-remove"
+                            onClick={event => {
+                              event.stopPropagation()
+                              handleRemoveTask(item.eventIndex, item.dayKey)
+                            }}
+                            aria-label={removeTaskAria}
+                          >
+                            &times;
+                          </button>
+                        </li>
+                      )
+                    })}
                   </ul>
                 </div>
               )}
@@ -988,6 +1105,70 @@ export default function HomeDashboard({ user, onOpenProfile }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {selectedTask && (
+        <div className="modal-overlay" onClick={closeTaskActions}>
+          <div
+            className="modal calendar-modal task-action-modal"
+            onClick={event => event.stopPropagation()}
+          >
+            <h2 className="modal-title">{taskActionsTitle}</h2>
+            <p className="task-action-date">{taskScheduledLabel(selectedTask.label)}</p>
+            <p className="task-action-text">{selectedTask.text}</p>
+            {currentTask?.title === selectedTask.text && (
+              <p className="task-action-hint">{alreadyCurrentLabel}</p>
+            )}
+            <div className="task-action-buttons">
+              <button
+                type="button"
+                className="btn cat-primary"
+                onClick={handleSetCurrentTask}
+                disabled={currentTask?.title === selectedTask.text}
+              >
+                {setCurrentTaskLabel}
+              </button>
+              <button
+                type="button"
+                className="btn cat-secondary"
+                onClick={beginEndTaskFlow}
+                disabled={showTimeInput}
+              >
+                {endTaskLabel}
+              </button>
+            </div>
+            {showTimeInput && (
+              <form className="task-action-form" onSubmit={handleConfirmEndTask}>
+                <label className="task-action-label" htmlFor={taskTimeFieldId}>
+                  {timePromptLabel}
+                </label>
+                <input
+                  id={taskTimeFieldId}
+                  type="text"
+                  className="input"
+                  value={timeSpentInput}
+                  onChange={event => {
+                    setTimeSpentInput(event.target.value)
+                    if (timeSpentError) {
+                      setTimeSpentError('')
+                    }
+                  }}
+                  placeholder={timePlaceholderLabel}
+                  autoFocus
+                />
+                {timeSpentError && <p className="task-action-error">{timeSpentError}</p>}
+                <div className="modal-actions">
+                  <button type="button" className="btn ghost" onClick={cancelEndTaskFlow}>
+                    {cancelLabel}
+                  </button>
+                  <button type="submit" className="btn">
+                    {confirmEndLabel}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

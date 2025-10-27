@@ -69,6 +69,8 @@ export default function App() {
     }))
   )
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
+  const [currentTask, setCurrentTask] = useState(null)
+  const [lastCompletedTask, setLastCompletedTask] = useState(null)
 
   const currentUser = getProfileById(CURRENT_USER_ID) ?? profiles[0]
   const friends = derivedFriends
@@ -125,6 +127,27 @@ export default function App() {
     ])
   }
 
+  function handleSetCurrentTask(taskTitle) {
+    if (!taskTitle) return
+    setCurrentTask({
+      title: taskTitle,
+      startedAt: new Date().toISOString(),
+    })
+  }
+
+  function handleCompleteTask(taskTitle, timeSpent) {
+    if (!taskTitle) return
+    setLastCompletedTask({
+      title: taskTitle,
+      timeSpent: timeSpent ?? null,
+      completedAt: new Date().toISOString(),
+    })
+    setCurrentTask(prev => {
+      if (!prev) return null
+      return prev.title === taskTitle ? null : prev
+    })
+  }
+
   return (
     <div className={containerClass}>
       {isCalendarApp ? (
@@ -132,7 +155,7 @@ export default function App() {
       ) : isToolPage ? (
         <ToolTopbar toolId={toolId} />
       ) : (
-        <Navbar />
+        <Navbar currentTask={currentTask} lastCompletedTask={lastCompletedTask} />
       )}
 
       <main className="canvas-wrap">
@@ -143,6 +166,9 @@ export default function App() {
               <HomeDashboard
                 user={currentUser}
                 onOpenProfile={() => openProfile(CURRENT_USER_ID)}
+                currentTask={currentTask}
+                onSetCurrentTask={handleSetCurrentTask}
+                onCompleteTask={handleCompleteTask}
               />
             }
           />

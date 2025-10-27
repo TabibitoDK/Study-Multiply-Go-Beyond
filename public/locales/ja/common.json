@@ -13,7 +13,10 @@
     "profile": "プロフィール",
     "calendar": "カレンダー",
     "newTask": "新しいタスク",
-    "tools": "ツール"
+    "tools": "ツール",
+    "currentTaskLabel": "現在のタスク：",
+    "currentTaskNone": "なし",
+    "lastTaskSummary": "前回：{{time}}"
   },
   "app": {
     "newTaskDialog": "この機能は近日公開予定です。"
@@ -95,6 +98,18 @@
       "noneToday": "今日のタスクはありません",
       "upcoming": "今後の予定",
       "removeAria": "タスクを削除",
+      "currentBadge": "進行中",
+      "actions": {
+        "title": "タスクの操作",
+        "scheduledFor": "{{date}}に予定",
+        "setCurrent": "現在のタスクに設定",
+        "end": "タスクを完了",
+        "confirm": "記録する",
+        "timePrompt": "費やした時間",
+        "timePlaceholder": "例：45分",
+        "timeError": "学習時間を入力してください。",
+        "alreadyCurrent": "このタスクは現在取り組んでいます。"
+      },
       "modal": {
         "title": "タスクを追加",
         "dateLabel": "日付",
