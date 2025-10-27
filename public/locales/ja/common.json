@@ -74,29 +74,41 @@
     }
   },
   "tools": {
-    "title": "Tools hub",
-    "subtitle": "Launch study helpers quickly and keep everything in one place.",
+    "title": "学習ツールハブ",
+    "subtitle": "学習を支えるツールをすぐに起動し、必要な機能を1か所にまとめましょう。",
     "apps": {
+      "calendar": {
+        "title": "Calendar Planner",
+        "description": "学習予定や締め切りを一括管理し、スケジュールを可視化します。"
+      },
       "immerse": {
         "title": "Immerse Mode",
-        "description": "Silence distractions and shift into a full-screen focus layout."
+        "description": "雑念を遮り、全画面の集中レイアウトに切り替えます。"
       },
       "flashcards": {
         "title": "Flashcards",
-        "description": "Drill key concepts with spaced repetition decks."
+        "description": "重要な概念を間隔反復で繰り返し復習し、記憶を定着させます。"
+      },
+      "chat": {
+        "title": "Studiny Chat",
+        "description": "課題の疑問をAIアシスタントに相談し、学習のサポートを受けましょう。"
+      },
+      "stream": {
+        "title": "Study Stream",
+        "description": "仲間とバーチャル学習ルームに参加し、ホワイトボードで協働できます。"
       },
       "summary": {
         "title": "Summary",
-        "description": "Upload readings and receive fast, high-level summaries."
+        "description": "資料をアップロードすると、要点を素早くまとめたサマリーを生成します。"
       },
       "pomodoro": {
         "title": "Pomodoro",
-        "description": "Break study blocks into focused bursts with smart breaks."
+        "description": "集中と休憩をメリハリ良く切り替え、学習リズムを整えます。"
       }
     },
     "chat": {
-      "placeholder": "Ask the workspace assistant...",
-      "send": "Send"
+      "placeholder": "ワークスペースアシスタントに質問する...",
+      "send": "送信"
     }
   },
   "immerse": {
