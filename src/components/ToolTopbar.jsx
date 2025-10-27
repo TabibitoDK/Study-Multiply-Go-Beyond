@@ -19,7 +19,7 @@ export default function ToolTopbar({ toolId }) {
         />
         <div className="calendar-navbar-text">
           <h1>{title}</h1>
-          <p>{t('calendar.appSubtitle', { defaultValue: 'Study Multiply Go Beyond' })}</p>
+          <p>{t('calendar.appSubtitle', { defaultValue: 'Nyacademy' })}</p>
         </div>
       </div>
     </header>

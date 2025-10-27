@@ -1,9 +1,9 @@
 ﻿{
   "brand": {
-    "title": "Study Multiply Go Beyond"
+    "title": "Nyacademy"
   },
   "navbar": {
-    "logoAlt": "Study Multiply Go Beyond logo",
+    "logoAlt": "Nyacademy logo",
     "tabsAria": "Main navigation"
   },
   "nav": {
@@ -66,6 +66,7 @@
     },
     "title": "{{month}} {{year}}",
     "subtitle": "Plan study sessions and deadlines at a glance.",
+    "appSubtitle": "Nyacademy",
     "moreEvents": "+{{count}} more",
     "modal": {
       "title": "Add calendar entry",

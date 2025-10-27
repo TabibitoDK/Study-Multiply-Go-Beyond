@@ -1,16 +1,16 @@
-# Study Multiply - Go Beyond
+# Nyacademy
 
 [![React][React.js]][React-url] [![JavaScript][JavaScript]][JavaScript-url] [![Vite][Vite.js]][Vite-url]
 
 このプロジェクトは、仲間と繋がりながら学習記録を共有し、モチベーションを高め合うためのソーシャル学習アプリです。
 
-![学習の様子](https://via.placeholder.com/800x400/646cff/ffffff?text=Study+Multiply+-+Go+Beyond)
+![学習の様子](https://via.placeholder.com/800x400/646cff/ffffff?text=Nyacademy)
 
 > 仮想空間で他の人と一緒に勉強することで、モチベーションを向上させることができます。
 
 ---
 
-# Study Multiply – Go Beyond
+# Nyacademy
 
 ## 📚 概要 (Overview)
 

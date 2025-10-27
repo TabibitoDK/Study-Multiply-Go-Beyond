@@ -1,9 +1,9 @@
 ﻿{
   "brand": {
-    "title": "Study Multiply Go Beyond"
+    "title": "Nyacademy"
   },
   "navbar": {
-    "logoAlt": "Study Multiply Go Beyondのロゴ",
+    "logoAlt": "Nyacademyのロゴ",
     "tabsAria": "メインナビゲーション"
   },
   "nav": {
@@ -66,6 +66,7 @@
     },
     "title": "{{year}}年{{month}}",
     "subtitle": "学習の予定や目標を確認しましょう。",
+    "appSubtitle": "Nyacademy",
     "moreEvents": "ほか{{count}}件",
     "modal": {
       "title": "予定を追加",

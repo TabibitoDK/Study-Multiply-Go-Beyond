@@ -17,7 +17,7 @@ export default function CalendarTopbar() {
         />
         <div className="calendar-navbar-text">
           <h1>{t('calendar.appTitle', { defaultValue: 'Calendar' })}</h1>
-          <p>{t('calendar.appSubtitle', { defaultValue: 'Study Multiply Go Beyond' })}</p>
+          <p>{t('calendar.appSubtitle', { defaultValue: 'Nyacademy' })}</p>
         </div>
       </div>
     </header>
