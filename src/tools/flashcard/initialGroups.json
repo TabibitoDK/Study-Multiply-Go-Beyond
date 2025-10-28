@@ -53,8 +53,49 @@
           "easyCount": 0
         }
       ]
+    },
+    {
+      "id": 3,
+      "name": "Better Presentations",
+      "cards": [
+        {
+          "id": 204,
+          "category": "Audience Insight",
+          "question": "What should you learn about your audience before crafting a presentation?",
+          "answer": "Identify their goals, background knowledge, and pain points so you can tailor examples, pacing, and takeaways that truly resonate.",
+          "easyCount": 0
+        },
+        {
+          "id": 205,
+          "category": "Story Structure",
+          "question": "How can you structure a presentation so it keeps attention?",
+          "answer": "Open with a hook, present a clear problem, walk through key points that solve it, and close with a memorable call to action or summary.",
+          "easyCount": 0
+        },
+        {
+          "id": 206,
+          "category": "Visual Design",
+          "question": "What slide design principles make information easier to absorb?",
+          "answer": "Use one idea per slide, keep text concise, rely on high-contrast visuals, and align elements with consistent spacing for readability.",
+          "easyCount": 0
+        },
+        {
+          "id": 207,
+          "category": "Delivery Practice",
+          "question": "Which practice habits build confidence before presenting?",
+          "answer": "Rehearse aloud with a timer, record yourself to spot pacing issues, and simulate Q&A so you are ready for audience follow-ups.",
+          "easyCount": 0
+        },
+        {
+          "id": 208,
+          "category": "Audience Engagement",
+          "question": "How can you keep an audience engaged during longer talks?",
+          "answer": "Break up segments with questions, quick polls, or stories, and use deliberate pauses to let key ideas sink in.",
+          "easyCount": 0
+        }
+      ]
     }
   ],
-  "nextGroupId": 3,
-  "nextCardId": 204
+  "nextGroupId": 4,
+  "nextCardId": 209
 }

@@ -3,6 +3,7 @@ import initialGroupData from './initialGroups.json';
 import './flashcards.css';
 
 const LOCAL_STORAGE_KEY = 'flashcard_groups_v6_data';
+const STORAGE_VERSION = 2;
 const GEMINI_MODEL = 'gemini-1.5-flash-latest';
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const AI_SETTINGS_STORAGE_KEY = 'flashcard_ai_settings_v1';
@@ -65,12 +66,54 @@ const { nextGroupId: BASE_NEXT_GROUP_ID, nextCardId: BASE_NEXT_CARD_ID } = deriv
   initialGroupData.nextCardId,
 );
 
+const containsNonAscii = (value) => /[^\x00-\x7F]/.test(value || '');
+
+const cloneBaseGroup = (group) => ({
+  ...group,
+  cards: group.cards.map((card) => ({ ...card })),
+});
+
+const migrateGroups = (rawGroups) => {
+  const working = cloneGroupMap(rawGroups || {});
+
+  Object.entries(BASE_GROUPS).forEach(([id, baseGroup]) => {
+    const numericId = Number(id);
+    const existing = working[numericId];
+
+    if (!existing) {
+      working[numericId] = cloneBaseGroup(baseGroup);
+      return;
+    }
+
+    const nameHasNonAscii = containsNonAscii(existing.name);
+    const cardsHaveNonAscii = existing.cards.some(
+      (card) =>
+        containsNonAscii(card.question) ||
+        containsNonAscii(card.answer) ||
+        containsNonAscii(card.category),
+    );
+
+    if (nameHasNonAscii || cardsHaveNonAscii) {
+      working[numericId] = cloneBaseGroup(baseGroup);
+    }
+  });
+
+  return working;
+};
+
 const loadGroups = () => {
   const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
   if (savedData) {
     try {
-      const parsedGroups = JSON.parse(savedData);
-      const groups = cloneGroupMap(parsedGroups);
+      const parsed = JSON.parse(savedData);
+      const storedGroups =
+        parsed &&
+        typeof parsed === 'object' &&
+        !Array.isArray(parsed) &&
+        parsed.groups
+          ? parsed.groups
+          : parsed;
+      const groups = migrateGroups(storedGroups);
       const { nextGroupId, nextCardId } = deriveNextIds(
         groups,
         BASE_NEXT_GROUP_ID,
@@ -81,7 +124,7 @@ const loadGroups = () => {
       console.error('Failed to parse groups from localStorage:', e);
     }
   }
-  const groups = cloneGroupMap(BASE_GROUPS);
+  const groups = migrateGroups(BASE_GROUPS);
   const { nextGroupId, nextCardId } = deriveNextIds(
     groups,
     BASE_NEXT_GROUP_ID,
@@ -228,31 +271,27 @@ const requestFlashcardsFromGemini = async ({
 };
 
 const loadAiSettings = () => {
-  const fallback = {
-    apiKey: DEFAULT_GEMINI_API_KEY,
-    language: DEFAULT_FLASHCARD_LANGUAGE,
-  };
+  const fallbackLanguage = DEFAULT_FLASHCARD_LANGUAGE;
 
   if (typeof localStorage === 'undefined') {
-    return fallback;
+    return { language: fallbackLanguage };
   }
 
   try {
     const stored = localStorage.getItem(AI_SETTINGS_STORAGE_KEY);
     if (!stored) {
-      return fallback;
+      return { language: fallbackLanguage };
     }
 
     const parsed = JSON.parse(stored);
     return {
-      apiKey: (parsed?.apiKey || fallback.apiKey || '').trim(),
       language: LANGUAGE_OPTIONS.some((option) => option.value === parsed?.language)
         ? parsed.language
-        : fallback.language,
+        : fallbackLanguage,
     };
   } catch (error) {
     console.warn('Failed to load flashcard AI settings. Using defaults.', error);
-    return fallback;
+    return { language: fallbackLanguage };
   }
 };
 
@@ -400,9 +439,9 @@ function AiFlashcardGenerator({
   onSettingsChange,
 }) {
   const [mode, setMode] = useState('new');
-  const generatorSettings = settings ?? { apiKey: '', language: DEFAULT_FLASHCARD_LANGUAGE };
+  const generatorSettings = settings ?? { language: DEFAULT_FLASHCARD_LANGUAGE };
   const updateSettings = onSettingsChange ?? (() => {});
-  const resolvedApiKey = (generatorSettings.apiKey || DEFAULT_GEMINI_API_KEY || '').trim();
+  const resolvedApiKey = (DEFAULT_GEMINI_API_KEY || '').trim();
   const apiKeyMissing = resolvedApiKey.length === 0;
   const [formData, setFormData] = useState({
     topic: '',
@@ -514,21 +553,6 @@ function AiFlashcardGenerator({
           ))}
         </select>
 
-        <label className="form-label" htmlFor="ai-api-key">
-          Gemini API key
-        </label>
-        <input
-          autoComplete="off"
-          className="form-control"
-          id="ai-api-key"
-          name="apiKey"
-          onChange={(event) => updateSettings({ apiKey: event.target.value })}
-          placeholder="Paste your Gemini API key"
-          type="password"
-          value={generatorSettings.apiKey}
-        />
-        <span className="hint">Stored locally in your browser. Required for generating cards.</span>
-
         <div className="radio-group">
           <label className="radio-option">
             <input
@@ -591,7 +615,9 @@ function AiFlashcardGenerator({
         )}
 
         {apiKeyMissing && !error && (
-          <p className="form-error">Add a Gemini API key to enable AI flashcard generation.</p>
+          <p className="form-error">
+            Add VITE_GEMINI_API_KEY to your project .env file to enable AI flashcard generation.
+          </p>
         )}
 
         {error && <p className="form-error">{error}</p>}
@@ -989,16 +1015,27 @@ export default function FlashcardsPage() {
   });
 
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(groups));
+    try {
+      const payload = {
+        version: STORAGE_VERSION,
+        groups,
+      };
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload));
+    } catch (error) {
+      console.warn('Failed to persist flashcard groups.', error);
+    }
   }, [groups]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(AI_SETTINGS_STORAGE_KEY, JSON.stringify(aiSettings));
+      localStorage.setItem(
+        AI_SETTINGS_STORAGE_KEY,
+        JSON.stringify({ language: aiSettings.language }),
+      );
     } catch (error) {
       console.warn('Failed to persist flashcard AI settings.', error);
     }
-  }, [aiSettings]);
+  }, [aiSettings.language]);
 
   useEffect(() => () => {
     if (aiRequestControllerRef.current) {
@@ -1013,10 +1050,6 @@ export default function FlashcardsPage() {
   const handleAiSettingsChange = (partial) => {
     setAiSettings((previous) => {
       const next = { ...previous };
-      if (Object.prototype.hasOwnProperty.call(partial, 'apiKey')) {
-        const candidate = String(partial.apiKey ?? '').trim();
-        next.apiKey = candidate || DEFAULT_GEMINI_API_KEY || '';
-      }
       if (Object.prototype.hasOwnProperty.call(partial, 'language')) {
         next.language = getLanguageOption(partial.language).value;
       }
@@ -1088,7 +1121,7 @@ const handleGenerateAiCards = async ({
   const trimmedDetail = (detail || '').trim();
   const selectedLanguageOption = getLanguageOption(language ?? aiSettings.language);
   const selectedLanguage = selectedLanguageOption.value;
-  const resolvedApiKey = (aiSettings.apiKey || DEFAULT_GEMINI_API_KEY || '').trim();
+  const resolvedApiKey = (DEFAULT_GEMINI_API_KEY || '').trim();
 
   if (!trimmedTopic) {
     setAiState({
@@ -1103,7 +1136,7 @@ const handleGenerateAiCards = async ({
     setAiState({
       status: 'error',
       lastResult: null,
-      error: 'Add your Gemini API key before generating flashcards.',
+      error: 'Add VITE_GEMINI_API_KEY to your project .env file before generating flashcards.',
     });
     return;
   }

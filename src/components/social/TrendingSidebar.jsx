@@ -3,18 +3,18 @@ import { Search, TrendingUp, Hash } from 'lucide-react'
 import './TrendingSidebar.css'
 
 const TRENDING_TAGS = [
+  { tag: 'ActiveRecall', posts: 1580 },
   { tag: 'StudyWithMe', posts: 1234 },
-  { tag: 'LinearAlgebra', posts: 892 },
-  { tag: 'ReactJS', posts: 756 },
-  { tag: 'ProductivityTips', posts: 623 },
-  { tag: 'CodeChallenge', posts: 489 },
+  { tag: 'ExamPrep', posts: 997 },
+  { tag: 'DeepWorkSessions', posts: 812 },
+  { tag: 'FlashcardFriday', posts: 645 },
 ]
 
 const TRENDING_SEARCHES = [
-  'How to stay focused while studying',
-  'Best note-taking apps',
-  'Pomodoro technique',
-  'Study group tips',
+  'How to build a spaced repetition schedule',
+  'Best study planners for college',
+  'Techniques to improve active recall',
+  'Tips for balancing study and rest',
 ]
 
 export default function TrendingSidebar() {
