@@ -2,33 +2,33 @@
   {
     "id": 1,
     "userId": 1,
-    "content": "『編入数学徹底研究』の微積分の章を終えました！部分積分がやっとわかってきた🎉 次は線形代数に進みます。 #編入試験 #数学 #勉強記録",
+    "content": "「編入数学徹底研究」 is a staple comprehensive exercise book for transfer students. From calculus to linear algebra, it explains typical problems based on past exams in detail, making it easy to understand. The difficulty ranges from basic to standard, but the exercises at the end of each chapter can be quite challenging. There are also video explanations on YouTube, so even those who tend to struggle can keep going. Doing multiple rounds and focusing on the fundamentals is the key.[2]",
     "books": [
-      "1"
+      "6"
     ],
     "likes": 87,
     "comments": 12,
     "timestamp": "2025-10-20T14:30:00Z",
     "tags": [
-      "編入試験",
-      "数学",
-      "勉強記録"
+      "transfer exam",
+      "mathematics",
+      "book review"
     ]
   },
   {
     "id": 2,
     "userId": 2,
-    "content": "『大学編入のための数学問題集』の演習問題50問解いた。基礎固めは大事だね。間違えたところは復習しないと。 #編入対策 #問題集 #高専生",
+    "content": "Knockout Presentations is called the 'bible of public speaking' and is ideal for anyone who wants to improve their presentation skills. It helps reduce fear, build confidence, shorten preparation time, and teaches you how to craft persuasive talks. Each chapter's dos and don'ts help reinforce key points, making this a useful resource for both beginners and advanced speakers.[7][9]",
     "books": [
-      "2"
+      "7"
     ],
     "likes": 134,
     "comments": 18,
     "timestamp": "2025-10-21T09:15:00Z",
     "tags": [
-      "編入対策",
-      "問題集",
-      "高専生"
+      "presentation",
+      "public speaking",
+      "book review"
     ]
   },
   {

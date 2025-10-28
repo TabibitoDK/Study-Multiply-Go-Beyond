@@ -1,8 +1,23 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import initialGroupData from './initialGroups.json';
 import './flashcards.css';
 
 const LOCAL_STORAGE_KEY = 'flashcard_groups_v6_data';
+const GEMINI_MODEL = 'gemini-1.5-flash-latest';
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const AI_SETTINGS_STORAGE_KEY = 'flashcard_ai_settings_v1';
+const DEFAULT_FLASHCARD_LANGUAGE = 'en';
+const LANGUAGE_OPTIONS = [
+  { value: 'en', label: 'English' },
+  { value: 'es', label: 'Spanish' },
+  { value: 'fr', label: 'French' },
+  { value: 'de', label: 'German' },
+  { value: 'ja', label: 'Japanese' },
+];
+const DEFAULT_GEMINI_API_KEY =
+  typeof import.meta !== 'undefined' && import.meta.env
+    ? (import.meta.env.VITE_GEMINI_API_KEY || '').trim()
+    : '';
 
 const createGroupMap = (groupsArray) => {
   const map = {};
@@ -75,65 +90,182 @@ const loadGroups = () => {
   return { groups, nextGroupId, nextCardId };
 };
 
-const AI_CARD_TEMPLATES = [
-  {
-    question: (topic, focus) =>
-      `${topic}${focus ? `（${focus}）` : ''}の最も重要な定義は？`,
-    answer: (topic, focus) =>
-      `定義の整理:\n・概要: ${topic}の核となる意味を1文で説明\n・背景: なぜ重要かを把握\n・具体例: ${focus || '主要な場面'} に触れる`,
-  },
-  {
-    question: (topic, focus, index) =>
-      `${topic}を学ぶ上で押さえておきたいキーワード ${index} は？`,
-    answer: (topic, focus) =>
-      `覚えるキーワードのヒント:\n1. ${topic}の基礎語句\n2. ${focus || '関連領域'} の代表用語\n3. 説明できるようになる具体的なフレーズ`,
-  },
-  {
-    question: (topic, focus) =>
-      `${topic}${focus ? `（${focus}）` : ''}の代表的な事例・ユースケースは？`,
-    answer: (topic, focus) =>
-      `事例を語る際の構成:\n・状況: どこで${topic}が使われるか\n・課題: ${focus || '現場'} の課題や課題感\n・成果: 何が改善されるか`,
-  },
-  {
-    question: (topic) => `${topic}に関するよくある誤解や落とし穴は？`,
-    answer: (topic, focus) =>
-      `誤解を避ける視点:\n・本質: ${topic}のゴールを再確認\n・比較: 似ている概念との差分を整理\n・実務: ${focus || '実践'}での注意点を具体化`,
-  },
-  {
-    question: (topic, focus, index) =>
-      `${topic}${focus ? `（${focus}）` : ''}の確認テスト: チェックポイント${index}とは？`,
-    answer: (topic, focus) =>
-      `即答できるように準備:\n・問いかけ: ${topic}をどう説明するか\n・視点: ${focus || '関連領域'}の観点を加える\n・まとめ: 30秒で言える解答を作る`,
-  },
-];
+const getLanguageOption = (value) =>
+  LANGUAGE_OPTIONS.find((option) => option.value === value) ?? LANGUAGE_OPTIONS[0];
 
-const createAiFlashcards = (topic, detail, count, startId) => {
+const sanitizeJsonText = (raw) =>
+  (raw || '').replace(/```json/gi, '').replace(/```/g, '').trim();
+
+const parseFlashcardsJson = (rawText, fallbackCategory) => {
+  if (!rawText) {
+    throw new Error('Gemini returned an empty response.');
+  }
+
+  const sanitized = sanitizeJsonText(rawText);
+  const jsonMatch = sanitized.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+  const jsonCandidate = jsonMatch ? jsonMatch[0] : sanitized;
+
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonCandidate);
+  } catch (error) {
+    throw new Error('Unable to parse the AI response. Please try again.');
+  }
+
+  const cardsSource = Array.isArray(parsed)
+    ? parsed
+    : Array.isArray(parsed.cards)
+    ? parsed.cards
+    : Array.isArray(parsed.flashcards)
+    ? parsed.flashcards
+    : null;
+
+  if (!cardsSource) {
+    throw new Error('The AI response did not include flashcards.');
+  }
+
+  const cards = cardsSource
+    .map((item) => ({
+      question: typeof item.question === 'string' ? item.question.trim() : '',
+      answer: typeof item.answer === 'string' ? item.answer.trim() : '',
+      category: typeof item.category === 'string' ? item.category.trim() : '',
+    }))
+    .filter((card) => card.question && card.answer);
+
+  if (cards.length === 0) {
+    throw new Error('The AI response did not contain any usable flashcards.');
+  }
+
+  return cards.map((card) => ({
+    ...card,
+    category: card.category || fallbackCategory,
+  }));
+};
+
+const buildFlashcardPrompt = ({ topic, detail, count, languageLabel }) => {
   const trimmedTopic = topic.trim();
   const trimmedDetail = detail.trim();
-  const templates = AI_CARD_TEMPLATES;
+  const focusLine = trimmedDetail
+    ? `Focus on the subtopic "${trimmedDetail}" while covering the main topic "${trimmedTopic}".`
+    : `Cover the most important aspects of "${trimmedTopic}".`;
 
-  return Array.from({ length: count }, (_, index) => {
-    const template = templates[index % templates.length];
-    return {
-      id: startId + index,
-      category: trimmedDetail ? `${trimmedTopic} / ${trimmedDetail}` : trimmedTopic,
-      question: template.question(trimmedTopic, trimmedDetail, index + 1),
-      answer: template.answer(trimmedTopic, trimmedDetail, index + 1),
-      easyCount: 0,
-    };
+  return [
+    'You are an expert study coach who writes effective flashcards.',
+    `Write ${count} flashcards in ${languageLabel}.`,
+    focusLine,
+    'Respond ONLY with valid JSON that matches this schema:',
+    '{',
+    '  "cards": [',
+    '    { "question": "string", "answer": "string", "category": "string" }',
+    '  ]',
+    '}',
+    'Each question should be a single concise sentence.',
+    'Each answer should contain 2-4 sentences or bullet points.',
+    'The category should be short (max 5 words) and also written in the requested language.',
+    'Do not include explanations, markdown, or code fences outside of the JSON structure.',
+  ].join('\n');
+};
+
+const requestFlashcardsFromGemini = async ({
+  apiKey,
+  topic,
+  detail,
+  count,
+  language,
+  signal,
+}) => {
+  const languageOption = getLanguageOption(language);
+  const prompt = buildFlashcardPrompt({
+    topic,
+    detail,
+    count,
+    languageLabel: languageOption.label,
   });
+
+  const trimmedTopic = topic.trim();
+  const trimmedDetail = detail.trim();
+  const fallbackCategory =
+    trimmedTopic && trimmedDetail ? `${trimmedTopic} / ${trimmedDetail}` : trimmedTopic || 'General';
+
+  const response = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: prompt }],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.75,
+        maxOutputTokens: 768,
+      },
+    }),
+    signal,
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    const message = data?.error?.message || 'Gemini request failed.';
+    throw new Error(message);
+  }
+
+  const replyText = (data?.candidates?.[0]?.content?.parts ?? [])
+    .map((part) => (typeof part?.text === 'string' ? part.text.trim() : ''))
+    .filter(Boolean)
+    .join('\n');
+
+  const cards = parseFlashcardsJson(replyText, fallbackCategory).slice(0, count);
+
+  if (cards.length === 0) {
+    throw new Error('No flashcards were generated. Try again with more context.');
+  }
+
+  return cards;
+};
+
+const loadAiSettings = () => {
+  const fallback = {
+    apiKey: DEFAULT_GEMINI_API_KEY,
+    language: DEFAULT_FLASHCARD_LANGUAGE,
+  };
+
+  if (typeof localStorage === 'undefined') {
+    return fallback;
+  }
+
+  try {
+    const stored = localStorage.getItem(AI_SETTINGS_STORAGE_KEY);
+    if (!stored) {
+      return fallback;
+    }
+
+    const parsed = JSON.parse(stored);
+    return {
+      apiKey: (parsed?.apiKey || fallback.apiKey || '').trim(),
+      language: LANGUAGE_OPTIONS.some((option) => option.value === parsed?.language)
+        ? parsed.language
+        : fallback.language,
+    };
+  } catch (error) {
+    console.warn('Failed to load flashcard AI settings. Using defaults.', error);
+    return fallback;
+  }
 };
 
 const CardFace = ({ content, isFront, category, easyCount }) => (
   <div
     className={`flashcard-face ${isFront ? 'flashcard-face--front' : 'flashcard-face--back'}`}
-    aria-label={isFront ? '問題面' : '答え面'}
+    aria-label={isFront ? 'Question side' : 'Answer side'}
   >
-    <span className="flashcard-face__badge">{isFront ? '問題' : '答え'}</span>
-    <p className="flashcard-face__category">{category || 'カテゴリー未設定'}</p>
+    <span className="flashcard-face__badge">{isFront ? 'Question' : 'Answer'}</span>
+    <p className="flashcard-face__category">{category || 'Uncategorised'}</p>
     <p className="flashcard-face__content">{content}</p>
     {!isFront && (
-      <span className="flashcard-face__meta">わかった回数: {easyCount}</span>
+      <span className="flashcard-face__meta">Marked easy: {easyCount}</span>
     )}
   </div>
 );
@@ -142,7 +274,7 @@ function AddCardForm({ categories, onAddCard, onToggle }) {
   const [formData, setFormData] = useState({
     category:
       categories.length > 1
-        ? categories.filter((c) => c !== '全て')[0] || ''
+        ? categories.filter((c) => c !== 'All')[0] || ''
         : '',
     question: '',
     answer: '',
@@ -165,7 +297,7 @@ function AddCardForm({ categories, onAddCard, onToggle }) {
 
     if (!formData.question.trim() || !formData.answer.trim() || !categoryToUse) {
       setFormError(
-        '必須項目（問題、答え、カテゴリー）が入力されていません。カードを追加するには、これらの項目すべてが必要です。',
+        'Please provide a question, answer, and category before adding the card.',
       );
       return;
     }
@@ -185,18 +317,18 @@ function AddCardForm({ categories, onAddCard, onToggle }) {
     }));
   };
 
-  const existingCategories = categories.filter((c) => c !== '全て');
+  const existingCategories = categories.filter((c) => c !== 'All');
 
   return (
     <div className="panel">
       <div className="panel-header">
-        <h3 className="panel-title">カードを追加</h3>
+        <h3 className="panel-title">Add Card</h3>
         <button className="button button--ghost" onClick={onToggle} type="button">
-          閉じる
+          Close
         </button>
       </div>
       <form className="stack-form" onSubmit={handleSubmit}>
-        <label className="form-label">カテゴリー</label>
+        <label className="form-label">Category</label>
         <select
           className="form-control"
           name="category"
@@ -204,7 +336,7 @@ function AddCardForm({ categories, onAddCard, onToggle }) {
           value={formData.category}
           disabled={Boolean(formData.newCategory.trim())}
         >
-          <option value="">--- 既存のカテゴリーを選択 ---</option>
+          <option value="">--- Select an existing category ---</option>
           {existingCategories.map((cat) => (
             <option key={cat} value={cat}>
               {cat}
@@ -215,34 +347,34 @@ function AddCardForm({ categories, onAddCard, onToggle }) {
           className="form-control"
           name="newCategory"
           onChange={handleChange}
-          placeholder="新しいカテゴリー名"
+          placeholder="Or create a new category"
           type="text"
           value={formData.newCategory}
         />
 
         <label className="form-label" htmlFor="question">
-          問題
+          Question
         </label>
         <textarea
           className="form-control"
           id="question"
           name="question"
           onChange={handleChange}
-          placeholder="例: Reactの最新バージョンは？"
+          placeholder="e.g. What problem does React solve?"
           required
           rows={3}
           value={formData.question}
         />
 
         <label className="form-label" htmlFor="answer">
-          答え
+          Answer
         </label>
         <textarea
           className="form-control"
           id="answer"
           name="answer"
           onChange={handleChange}
-          placeholder="例: React 18 / React 19"
+          placeholder="e.g. It manages complex state transitions in UI."
           required
           rows={3}
           value={formData.answer}
@@ -251,7 +383,7 @@ function AddCardForm({ categories, onAddCard, onToggle }) {
         {formError && <p className="form-error">{formError}</p>}
 
         <button className="button button--primary" type="submit">
-          カードを追加
+          Add Card
         </button>
       </form>
     </div>
@@ -264,8 +396,14 @@ function AiFlashcardGenerator({
   lastResult,
   error,
   onGenerate,
+  settings,
+  onSettingsChange,
 }) {
   const [mode, setMode] = useState('new');
+  const generatorSettings = settings ?? { apiKey: '', language: DEFAULT_FLASHCARD_LANGUAGE };
+  const updateSettings = onSettingsChange ?? (() => {});
+  const resolvedApiKey = (generatorSettings.apiKey || DEFAULT_GEMINI_API_KEY || '').trim();
+  const apiKeyMissing = resolvedApiKey.length === 0;
   const [formData, setFormData] = useState({
     topic: '',
     detail: '',
@@ -281,19 +419,19 @@ function AiFlashcardGenerator({
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (!formData.topic.trim()) {
+    if (!formData.topic.trim() || apiKeyMissing) {
       return;
     }
 
-    const payload = {
+    onGenerate({
       topic: formData.topic,
       detail: formData.detail,
       count: Number(formData.count),
       mode,
       targetGroupId: formData.targetGroupId,
       newGroupName: formData.newGroupName,
-    };
-    onGenerate(payload);
+      language: generatorSettings.language,
+    });
   };
 
   const existingGroupOptions = useMemo(
@@ -307,17 +445,17 @@ function AiFlashcardGenerator({
 
   const suggestedGroupName =
     formData.newGroupName.trim() ||
-    (formData.topic.trim() ? `${formData.topic.trim()} (AI生成)` : '');
+    (formData.topic.trim() ? `${formData.topic.trim()} (AI)` : '');
 
   return (
     <div className="stack">
       <div className="stack-header">
-        <h2 className="panel-title">AIカード生成</h2>
-        <span className="tag">プレビュー</span>
+        <h2 className="panel-title">AI Flashcard Generator</h2>
+        <span className="tag">Beta</span>
       </div>
       <form className="stack-form" onSubmit={handleSubmit}>
         <label className="form-label" htmlFor="ai-topic">
-          トピック
+          Topic
         </label>
         <input
           autoComplete="off"
@@ -325,13 +463,13 @@ function AiFlashcardGenerator({
           id="ai-topic"
           name="topic"
           onChange={handleChange}
-          placeholder="例: React コンポーネント設計"
+          placeholder="e.g. React component patterns"
           required
           value={formData.topic}
         />
 
         <label className="form-label" htmlFor="ai-detail">
-          補足情報
+          Focus (optional)
         </label>
         <input
           autoComplete="off"
@@ -339,12 +477,12 @@ function AiFlashcardGenerator({
           id="ai-detail"
           name="detail"
           onChange={handleChange}
-          placeholder="例: フック / 状態管理 / テスト"
+          placeholder="e.g. Hooks, state management, testing"
           value={formData.detail}
         />
 
         <label className="form-label" htmlFor="ai-count">
-          作成枚数
+          Number of cards
         </label>
         <select
           className="form-control"
@@ -353,11 +491,43 @@ function AiFlashcardGenerator({
           onChange={handleChange}
           value={formData.count}
         >
-          <option value={3}>3 枚</option>
-          <option value={5}>5 枚</option>
-          <option value={8}>8 枚</option>
-          <option value={10}>10 枚</option>
+          <option value={3}>3 cards</option>
+          <option value={5}>5 cards</option>
+          <option value={8}>8 cards</option>
+          <option value={10}>10 cards</option>
         </select>
+
+        <label className="form-label" htmlFor="ai-language">
+          Flashcard language
+        </label>
+        <select
+          className="form-control"
+          id="ai-language"
+          name="language"
+          onChange={(event) => updateSettings({ language: event.target.value })}
+          value={generatorSettings.language}
+        >
+          {LANGUAGE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        <label className="form-label" htmlFor="ai-api-key">
+          Gemini API key
+        </label>
+        <input
+          autoComplete="off"
+          className="form-control"
+          id="ai-api-key"
+          name="apiKey"
+          onChange={(event) => updateSettings({ apiKey: event.target.value })}
+          placeholder="Paste your Gemini API key"
+          type="password"
+          value={generatorSettings.apiKey}
+        />
+        <span className="hint">Stored locally in your browser. Required for generating cards.</span>
 
         <div className="radio-group">
           <label className="radio-option">
@@ -367,7 +537,7 @@ function AiFlashcardGenerator({
               onChange={() => setMode('new')}
               type="radio"
             />
-            新しいグループ
+            Create new group
           </label>
           <label className="radio-option">
             <input
@@ -376,31 +546,31 @@ function AiFlashcardGenerator({
               onChange={() => setMode('existing')}
               type="radio"
             />
-            既存グループ
+            Add to existing group
           </label>
         </div>
 
         {mode === 'new' ? (
           <>
             <label className="form-label" htmlFor="ai-new-group">
-              グループ名
+              Group name
             </label>
             <input
               className="form-control"
               id="ai-new-group"
               name="newGroupName"
               onChange={handleChange}
-              placeholder="例: React基礎 (AI生成)"
+              placeholder="e.g. React Basics (AI)"
               value={formData.newGroupName}
             />
             <span className="hint">
-              未入力の場合は「{suggestedGroupName || '新規グループ'}」になります。
+              If left blank we will use "{suggestedGroupName || 'New AI Group'}".
             </span>
           </>
         ) : (
           <>
             <label className="form-label" htmlFor="ai-existing-group">
-              追加先グループ
+              Target group
             </label>
             <select
               className="form-control"
@@ -410,7 +580,7 @@ function AiFlashcardGenerator({
               required={mode === 'existing'}
               value={formData.targetGroupId}
             >
-              <option value="">--- グループを選択 ---</option>
+              <option value="">--- Choose a group ---</option>
               {existingGroupOptions.map((group) => (
                 <option key={group.id} value={group.id}>
                   {group.name}
@@ -420,19 +590,28 @@ function AiFlashcardGenerator({
           </>
         )}
 
+        {apiKeyMissing && !error && (
+          <p className="form-error">Add a Gemini API key to enable AI flashcard generation.</p>
+        )}
+
         {error && <p className="form-error">{error}</p>}
 
-        <button className="button button--primary" disabled={isGenerating} type="submit">
-          {isGenerating ? '生成中...' : 'カードを生成'}
+        <button
+          className="button button--primary"
+          disabled={isGenerating || apiKeyMissing}
+          type="submit"
+        >
+          {isGenerating ? 'Generating...' : 'Generate Cards'}
         </button>
       </form>
 
       {lastResult ? (
         <div className="result">
-          <p>{lastResult.groupName} に {lastResult.cardCount} 枚追加しました。</p>
+          <p>Added {lastResult.cardCount} cards to {lastResult.groupName}.</p>
           <p>
-            トピック: {lastResult.topic}
-            {lastResult.detail ? ` ｜ 補足: ${lastResult.detail}` : ''}
+            Topic: {lastResult.topic}
+            {lastResult.detail ? ` - Focus: ${lastResult.detail}` : ''}
+            {lastResult.languageLabel ? ` - Language: ${lastResult.languageLabel}` : ''}
           </p>
         </div>
       ) : null}
@@ -443,27 +622,23 @@ function AiFlashcardGenerator({
 function StudyScreen({ group, setGroup, setScreen, nextCardId, setNextCardId }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('全て');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [showAddForm, setShowAddForm] = useState(false);
 
   const cards = group.cards;
 
   const categories = useMemo(() => {
     const all = cards.map((card) => card.category).filter(Boolean);
-    return ['全て', ...new Set(all)].sort();
+    const unique = [...new Set(all)].sort((a, b) => a.localeCompare(b));
+    return ['All', ...unique];
   }, [cards]);
 
   const filteredCards = useMemo(() => {
-    if (selectedCategory === '全て') {
+    if (selectedCategory === 'All') {
       return cards;
     }
     return cards.filter((card) => card.category === selectedCategory);
   }, [cards, selectedCategory]);
-
-  const masteredCount = useMemo(
-    () => cards.filter((card) => (card.easyCount || 0) > 0).length,
-    [cards],
-  );
 
   const totalEasyCount = useMemo(
     () => cards.reduce((accumulator, card) => accumulator + (card.easyCount || 0), 0),
@@ -475,7 +650,7 @@ function StudyScreen({ group, setGroup, setScreen, nextCardId, setNextCardId }) 
     setIsFlipped(false);
   }, [selectedCategory, cards.length]);
 
-  const displayCard = filteredCards[currentIndex];
+  const displayCard = filteredCards[currentIndex] ?? null;
   const currentFilteredIndex = filteredCards.length > 0 ? currentIndex : -1;
 
   const handleFlip = () => {
@@ -525,7 +700,7 @@ function StudyScreen({ group, setGroup, setScreen, nextCardId, setNextCardId }) 
     <div className="screen">
       <header className="screen-header">
         <button className="button button--ghost" onClick={() => setScreen('Home')} type="button">
-          ← グループ一覧へ
+          ? Back to groups
         </button>
         <h1 className="screen-title">{group.name}</h1>
         <button
@@ -533,14 +708,14 @@ function StudyScreen({ group, setGroup, setScreen, nextCardId, setNextCardId }) 
           onClick={() => setShowAddForm((prev) => !prev)}
           type="button"
         >
-          {showAddForm ? 'フォームを閉じる' : 'カードを追加'}
+          {showAddForm ? 'Hide form' : 'Add card'}
         </button>
       </header>
 
       <section className="panel panel--thin">
         <div className="inline-controls">
           <label className="control-label" htmlFor="category-select">
-            カテゴリー
+            Category
           </label>
           <select
             className="form-control"
@@ -559,8 +734,8 @@ function StudyScreen({ group, setGroup, setScreen, nextCardId, setNextCardId }) 
               ? `${currentFilteredIndex + 1} / ${filteredCards.length}`
               : '0 / 0'}
           </span>
-          <span className="control-text">カード: {cards.length}</span>
-          <span className="control-text">Easy: {totalEasyCount}</span>
+          <span className="control-text">Cards: {cards.length}</span>
+          <span className="control-text">Marked easy: {totalEasyCount}</span>
         </div>
       </section>
 
@@ -611,24 +786,24 @@ function StudyScreen({ group, setGroup, setScreen, nextCardId, setNextCardId }) 
                   onClick={() => handleLearningAction('hard')}
                   type="button"
                 >
-                  もう一度
+                  Review again
                 </button>
                 <button
                   className="button button--secondary"
                   onClick={() => handleLearningAction('easy')}
                   type="button"
                 >
-                  わかった
+                  Got it
                 </button>
               </>
             ) : (
-              <p className="study-hint">カードをクリックすると答えを表示します</p>
+              <p className="study-hint">Click the card to reveal the answer.</p>
             )}
           </div>
         </>
       ) : (
         <div className="panel panel--empty">
-          <p>このカテゴリーにはカードがありません。</p>
+          <p>No cards available in this category yet.</p>
         </div>
       )}
     </div>
@@ -644,6 +819,8 @@ function HomeScreen({
   setNextGroupId,
   aiState,
   onGenerateAiCards,
+  aiSettings,
+  onUpdateAiSettings,
 }) {
   const groupList = Object.values(groups);
   const [newGroupName, setNewGroupName] = useState('');
@@ -679,36 +856,39 @@ function HomeScreen({
 
   const recentGroup = groupList[0] ?? null;
 
+  const handleQuickGenerate = () => {
+    onGenerateAiCards({
+      topic: 'Starter study set',
+      detail: 'Productivity habits',
+      count: 3,
+      mode: 'new',
+      targetGroupId: '',
+      newGroupName: 'Quick Start Deck (AI)',
+      language: aiSettings.language,
+    });
+  };
+
   return (
     <div className="screen">
       <header className="home-header">
         <div className="home-hero">
-          <h1 className="screen-title">フラッシュカード</h1>
+          <h1 className="screen-title">Flashcards</h1>
           <p className="home-subtitle">
-            グループを選んで学習するか、AIにカード生成を任せてください。
+            Build decks for every subject and let AI draft fresh flashcards in seconds.
           </p>
           <div className="home-summary">
-            <span>グループ: {groupList.length}</span>
-            <span>カード: {totalCards}</span>
-            <span>カテゴリー: {totalCategories}</span>
+            <span>Groups: {groupList.length}</span>
+            <span>Cards: {totalCards}</span>
+            <span>Categories: {totalCategories}</span>
           </div>
         </div>
         <div className="home-actions">
           <button
             className="button button--primary"
-            onClick={() =>
-              onGenerateAiCards({
-                topic: 'スターターテンプレート',
-                detail: 'UIチェック',
-                count: 3,
-                mode: 'new',
-                targetGroupId: '',
-                newGroupName: 'スタータースタック (AI)',
-              })
-            }
+            onClick={handleQuickGenerate}
             type="button"
           >
-            デモカードを生成
+            Generate sample deck
           </button>
           <button
             className="button button--secondary"
@@ -720,7 +900,7 @@ function HomeScreen({
             }}
             type="button"
           >
-            最近のグループ
+            Resume recent group
           </button>
         </div>
       </header>
@@ -732,42 +912,44 @@ function HomeScreen({
           isGenerating={aiState.status === 'generating'}
           lastResult={aiState.lastResult}
           onGenerate={onGenerateAiCards}
+          settings={aiSettings}
+          onSettingsChange={onUpdateAiSettings}
         />
       </section>
 
       <section className="panel">
         <form className="form" onSubmit={handleCreateGroup}>
           <label className="form-label" htmlFor="new-group">
-            新しいグループ
+            Create a new group
           </label>
           <div className="form-row">
             <input
               className="form-control"
               id="new-group"
               onChange={(event) => setNewGroupName(event.target.value)}
-              placeholder="例: 英単語テスト対策"
+              placeholder="e.g. Physics formulas"
               required
               type="text"
               value={newGroupName}
             />
             <button className="button button--secondary" type="submit">
-              作成
+              Create
             </button>
           </div>
         </form>
       </section>
 
       <section className="panel">
-        <h2 className="panel-title">グループ ({groupList.length})</h2>
+        <h2 className="panel-title">Groups ({groupList.length})</h2>
         {groupList.length === 0 ? (
-          <p className="panel-text">まだグループがありません。</p>
+          <p className="panel-text">No groups yet. Start by creating one above.</p>
         ) : (
           <ul className="group-list">
             {groupList.map((group) => (
               <li className="group-card" key={group.id}>
                 <div>
                   <p className="group-name">{group.name}</p>
-                  <span className="group-meta">{group.cards.length} 枚</span>
+                  <span className="group-meta">{group.cards.length} cards</span>
                 </div>
                 <div className="group-actions">
                   <button
@@ -775,14 +957,14 @@ function HomeScreen({
                     onClick={() => onSelectGroup(group.id)}
                     type="button"
                   >
-                    学習
+                    Study
                   </button>
                   <button
                     className="button button--ghost"
                     onClick={() => handleDeleteGroup(group.id)}
                     type="button"
                   >
-                    削除
+                    Delete
                   </button>
                 </div>
               </li>
@@ -798,6 +980,8 @@ export default function FlashcardsPage() {
   const [{ groups, nextGroupId, nextCardId }, setAppState] = useState(loadGroups);
   const [currentScreen, setCurrentScreen] = useState('Home');
   const [studyGroupId, setStudyGroupId] = useState(null);
+  const [aiSettings, setAiSettings] = useState(loadAiSettings);
+  const aiRequestControllerRef = useRef(null);
   const [aiState, setAiState] = useState({
     status: 'idle',
     lastResult: null,
@@ -807,6 +991,38 @@ export default function FlashcardsPage() {
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(groups));
   }, [groups]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(AI_SETTINGS_STORAGE_KEY, JSON.stringify(aiSettings));
+    } catch (error) {
+      console.warn('Failed to persist flashcard AI settings.', error);
+    }
+  }, [aiSettings]);
+
+  useEffect(() => () => {
+    if (aiRequestControllerRef.current) {
+      try {
+        aiRequestControllerRef.current.abort();
+      } catch (error) {
+        console.warn('Failed to abort in-flight Gemini request.', error);
+      }
+    }
+  }, []);
+
+  const handleAiSettingsChange = (partial) => {
+    setAiSettings((previous) => {
+      const next = { ...previous };
+      if (Object.prototype.hasOwnProperty.call(partial, 'apiKey')) {
+        const candidate = String(partial.apiKey ?? '').trim();
+        next.apiKey = candidate || DEFAULT_GEMINI_API_KEY || '';
+      }
+      if (Object.prototype.hasOwnProperty.call(partial, 'language')) {
+        next.language = getLanguageOption(partial.language).value;
+      }
+      return next;
+    });
+  };
 
   const setNextGroupIdValue = (updater) => {
     setAppState((prev) => {
@@ -859,110 +1075,183 @@ export default function FlashcardsPage() {
     setCurrentScreen('Study');
   };
 
-  const handleGenerateAiCards = ({
-    topic,
-    detail,
-    count,
-    mode,
-    targetGroupId,
-    newGroupName,
-  }) => {
-    if (!topic.trim()) {
-      setAiState({
-        status: 'error',
-        lastResult: null,
-        error: 'トピックを入力してください。',
-      });
-      return;
+const handleGenerateAiCards = async ({
+  topic,
+  detail,
+  count,
+  mode,
+  targetGroupId,
+  newGroupName,
+  language,
+}) => {
+  const trimmedTopic = (topic || '').trim();
+  const trimmedDetail = (detail || '').trim();
+  const selectedLanguageOption = getLanguageOption(language ?? aiSettings.language);
+  const selectedLanguage = selectedLanguageOption.value;
+  const resolvedApiKey = (aiSettings.apiKey || DEFAULT_GEMINI_API_KEY || '').trim();
+
+  if (!trimmedTopic) {
+    setAiState({
+      status: 'error',
+      lastResult: null,
+      error: 'Enter a topic before generating cards.',
+    });
+    return;
+  }
+
+  if (!resolvedApiKey) {
+    setAiState({
+      status: 'error',
+      lastResult: null,
+      error: 'Add your Gemini API key before generating flashcards.',
+    });
+    return;
+  }
+
+  if (mode === 'existing' && !targetGroupId) {
+    setAiState({
+      status: 'error',
+      lastResult: null,
+      error: 'Select a group to append the generated cards.',
+    });
+    return;
+  }
+
+  const numericCount = Number(count);
+  const safeCount = Number.isFinite(numericCount) && numericCount > 0 ? Math.min(numericCount, 10) : 5;
+
+  setAiState((prev) => ({ ...prev, status: 'generating', error: '' }));
+
+  if (aiRequestControllerRef.current) {
+    try {
+      aiRequestControllerRef.current.abort();
+    } catch (error) {
+      console.warn('Failed to cancel previous Gemini request.', error);
     }
+  }
 
-    if (mode === 'existing' && !targetGroupId) {
-      setAiState({
-        status: 'error',
-        lastResult: null,
-        error: '追加先のグループを選択してください。',
-      });
-      return;
-    }
+  const controller = new AbortController();
+  aiRequestControllerRef.current = controller;
 
-    setAiState((prev) => ({ ...prev, status: 'generating', error: '' }));
+  try {
+    const cards = await requestFlashcardsFromGemini({
+      apiKey: resolvedApiKey,
+      topic: trimmedTopic,
+      detail: trimmedDetail,
+      count: safeCount,
+      language: selectedLanguage,
+      signal: controller.signal,
+    });
 
-    const simulatedLatency = 700;
-    setTimeout(() => {
-      setAppState((prev) => {
-        const cards = createAiFlashcards(topic, detail, count, prev.nextCardId);
+    let resultSummary = null;
+    let errorMessage = null;
 
-        if (mode === 'existing') {
-          const numericId = Number(targetGroupId);
-          const targetGroup = prev.groups[numericId];
+    setAppState((prev) => {
+      const cardsWithIds = cards.map((card, index) => ({
+        id: prev.nextCardId + index,
+        category: card.category,
+        question: card.question,
+        answer: card.answer,
+        easyCount: 0,
+      }));
 
-          if (!targetGroup) {
-            setAiState({
-              status: 'error',
-              lastResult: null,
-              error: '選択したグループが見つかりませんでした。',
-            });
-            return prev;
-          }
+      if (cardsWithIds.length === 0) {
+        errorMessage = 'The AI did not return any cards. Try again with more detail.';
+        return prev;
+      }
 
-          const updatedGroup = {
-            ...targetGroup,
-            cards: [...targetGroup.cards, ...cards],
-          };
+      if (mode === 'existing') {
+        const numericId = Number(targetGroupId);
+        const targetGroup = prev.groups[numericId];
 
-          setAiState({
-            status: 'success',
-            lastResult: {
-              groupName: targetGroup.name,
-              cardCount: cards.length,
-              topic,
-              detail,
-            },
-            error: '',
-          });
-
-          return {
-            ...prev,
-            groups: {
-              ...prev.groups,
-              [numericId]: updatedGroup,
-            },
-            nextCardId: prev.nextCardId + cards.length,
-          };
+        if (!targetGroup) {
+          errorMessage = 'The selected group could not be found. Please refresh and try again.';
+          return prev;
         }
 
-        const assignedGroupId = prev.nextGroupId;
-        const resolvedName =
-          newGroupName.trim() || `${topic.trim()} (AI生成)`;
-        const newGroup = {
-          id: assignedGroupId,
-          name: resolvedName,
-          cards,
+        const updatedGroup = {
+          ...targetGroup,
+          cards: [...targetGroup.cards, ...cardsWithIds],
         };
 
-        setAiState({
-          status: 'success',
-          lastResult: {
-            groupName: resolvedName,
-            cardCount: cards.length,
-            topic,
-            detail,
-          },
-          error: '',
-        });
+        resultSummary = {
+          groupName: targetGroup.name,
+          cardCount: cardsWithIds.length,
+          topic: trimmedTopic,
+          detail: trimmedDetail,
+          languageLabel: selectedLanguageOption.label,
+        };
 
         return {
           ...prev,
           groups: {
             ...prev.groups,
-            [assignedGroupId]: newGroup,
+            [numericId]: updatedGroup,
           },
-          nextGroupId: prev.nextGroupId + 1,
-          nextCardId: prev.nextCardId + cards.length,
+          nextCardId: prev.nextCardId + cardsWithIds.length,
         };
+      }
+
+      const assignedGroupId = prev.nextGroupId;
+      const resolvedName = (newGroupName || '').trim() || `${trimmedTopic} (AI)`;
+      const newGroup = {
+        id: assignedGroupId,
+        name: resolvedName,
+        cards: cardsWithIds,
+      };
+
+      resultSummary = {
+        groupName: resolvedName,
+        cardCount: cardsWithIds.length,
+        topic: trimmedTopic,
+        detail: trimmedDetail,
+        languageLabel: selectedLanguageOption.label,
+      };
+
+      return {
+        ...prev,
+        groups: {
+          ...prev.groups,
+          [assignedGroupId]: newGroup,
+        },
+        nextGroupId: prev.nextGroupId + 1,
+        nextCardId: prev.nextCardId + cardsWithIds.length,
+      };
+    });
+
+    if (errorMessage) {
+      setAiState({
+        status: 'error',
+        lastResult: null,
+        error: errorMessage,
       });
-    }, simulatedLatency);
-  };
+      return;
+    }
+
+    if (resultSummary) {
+      setAiState({
+        status: 'success',
+        lastResult: resultSummary,
+        error: '',
+      });
+    }
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return;
+    }
+    console.error('Failed to generate flashcards with Gemini:', error);
+    setAiState({
+      status: 'error',
+      lastResult: null,
+      error:
+        error?.message || 'Something went wrong while generating flashcards. Please try again.',
+    });
+  } finally {
+    if (aiRequestControllerRef.current === controller) {
+      aiRequestControllerRef.current = null;
+    }
+  }
+};
 
   const currentGroup = studyGroupId ? groups[studyGroupId] : null;
 
@@ -981,13 +1270,14 @@ export default function FlashcardsPage() {
   } else {
     if (currentScreen === 'Study' && !currentGroup) {
       console.warn(
-        '学習中のグループデータが見つかりませんでした。ホーム画面に自動で戻ります。',
+        'Active study group data was not found. Returning to the overview screen.',
       );
       setCurrentScreen('Home');
     }
 
     content = (
       <HomeScreen
+        aiSettings={aiSettings}
         aiState={aiState}
         groups={groups}
         nextGroupId={nextGroupId}
@@ -995,6 +1285,7 @@ export default function FlashcardsPage() {
         onDeleteGroup={handleDeleteGroup}
         onGenerateAiCards={handleGenerateAiCards}
         onSelectGroup={handleSelectGroup}
+        onUpdateAiSettings={handleAiSettingsChange}
         setNextGroupId={setNextGroupIdValue}
       />
     );
