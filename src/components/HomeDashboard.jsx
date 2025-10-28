@@ -600,7 +600,6 @@ export default function HomeDashboard({
       return {}
     }
   })
-  const [newTaskText, setNewTaskText] = useState('')
 
   useEffect(() => {
     function refreshStats() {
@@ -757,23 +756,6 @@ export default function HomeDashboard({
   })
   const cancelLabel = t('buttons.cancel', { defaultValue: 'Cancel' })
   const saveLabel = t('buttons.save', { defaultValue: 'Save' })
-
-  function addTask() {
-    const text = newTaskText.trim()
-    if (!text) return
-    const key = getTodayKey()
-    setEvents(prev => {
-      const next = { ...prev }
-      const existing = Array.isArray(next[key]) ? next[key] : []
-      next[key] = [...existing, text]
-      return next
-    })
-    setNewTaskText('')
-  }
-
-  function removeTask(index) {
-    handleRemoveTask(index, todayKey)
-  }
 
   function openTaskModal() {
     const modalDateObj = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0)
@@ -943,27 +925,36 @@ export default function HomeDashboard({
                 <ul className="home-tasks-list">
                   {todaysTasks.map((task, index) => {
                     const isCurrent = currentTask?.title === task
+                    const handleTrigger = () => openTaskActions(task, todayKey, index)
+                    const handleTriggerKey = event => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        handleTrigger()
+                      }
+                    }
                     return (
                       <li
                         key={`${todayKey}-${index}`}
                         className={`home-task-item${isCurrent ? ' is-current' : ''}`}
                       >
-                        <button
-                          type="button"
+                        <div
+                          role="button"
+                          tabIndex={0}
                           className="home-task-trigger"
-                          onClick={() => openTaskActions(task, todayKey, index)}
+                          onClick={handleTrigger}
+                          onKeyDown={handleTriggerKey}
                         >
                           <span className="home-task-text">{task}</span>
                           {isCurrent && (
                             <span className="home-task-badge">{currentTaskBadgeLabel}</span>
                           )}
-                        </button>
+                        </div>
                         <button
                           type="button"
                           className="home-task-remove"
                           onClick={event => {
                             event.stopPropagation()
-                            removeTask(index)
+                            handleRemoveTask(index, todayKey)
                           }}
                           aria-label={removeTaskAria}
                         >
@@ -985,22 +976,31 @@ export default function HomeDashboard({
                   <ul className="home-tasks-list">
                     {upcomingEvents.map(item => {
                       const isCurrent = currentTask?.title === item.text
+                      const handleTrigger = () => openTaskActions(item.text, item.dayKey, item.eventIndex)
+                      const handleTriggerKey = event => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          handleTrigger()
+                        }
+                      }
                       return (
                         <li
                           key={item.id}
                           className={`home-task-item home-upcoming-item${isCurrent ? ' is-current' : ''}`}
                         >
-                          <button
-                            type="button"
+                          <div
+                            role="button"
+                            tabIndex={0}
                             className="home-task-trigger"
-                            onClick={() => openTaskActions(item.text, item.dayKey, item.eventIndex)}
+                            onClick={handleTrigger}
+                            onKeyDown={handleTriggerKey}
                           >
                             <span className="home-upcoming-date">{item.label}</span>
                             <span className="home-task-text">{item.text}</span>
                             {isCurrent && (
                               <span className="home-task-badge">{currentTaskBadgeLabel}</span>
                             )}
-                          </button>
+                          </div>
                           <button
                             type="button"
                             className="home-task-remove"
