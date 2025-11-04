@@ -1,4 +1,4 @@
-﻿import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 
 export default function RightPanel({ friends = [], groups = [], onOpenChat, isCollapsed, onToggleCollapse }) {
   const { t } = useTranslation()
@@ -12,9 +12,97 @@ export default function RightPanel({ friends = [], groups = [], onOpenChat, isCo
     }
   }
 
+  function renderFriendCard(friend) {
+    const isOnline = friend.status === 'online'
+    const chipText = isOnline
+      ? friend.activity ?? t('rightPanel.badgeOnline')
+      : t('rightPanel.badgeOffline')
+
+    return (
+      <button
+        key={friend.id}
+        type="button"
+        className={`friend-card panel-button ${isOnline ? 'friend-card--online' : 'friend-card--offline'}`}
+        onClick={() => handleChatOpen(friend.id, 'friend')}
+      >
+        <div
+          className="friend-card__avatar"
+          style={friend.profileImage ? { backgroundImage: `url(${friend.profileImage})` } : undefined}
+        >
+          <span className={`friend-card__status-dot ${isOnline ? 'friend-card__status-dot--online' : 'friend-card__status-dot--offline'}`} />
+        </div>
+        <div className="friend-card__body">
+          <div className="friend-card__top">
+            <span className="friend-card__name">{friend.name}</span>
+            <span className="friend-card__chip">{chipText}</span>
+          </div>
+          <span className="friend-card__status">
+            {isOnline ? t('rightPanel.online') : t('rightPanel.offline')}
+          </span>
+        </div>
+        <svg
+          className="friend-card__chevron"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M9 18l6-6-6-6" />
+        </svg>
+      </button>
+    )
+  }
+
+  function renderGroupCard(group) {
+    const initials = typeof group.name === 'string'
+      ? group.name
+        .split(' ')
+        .map(part => part[0])
+        .filter(Boolean)
+        .join('')
+        .slice(0, 2)
+        .toUpperCase()
+      : ''
+
+    return (
+      <button
+        key={group.id}
+        type="button"
+        className="group-card panel-button"
+        onClick={() => handleChatOpen(group.id, 'group')}
+      >
+        <div
+          className="group-card__avatar"
+          style={group.image ? { backgroundImage: `url(${group.image})` } : undefined}
+        >
+          {!group.image && <span className="group-card__initials">{initials || '?'}</span>}
+        </div>
+        <div className="group-card__body">
+          <span className="group-card__name">{group.name}</span>
+          <span className="group-card__meta">
+            {group.memberCount} {group.memberCount === 1 ? 'member' : 'members'}
+          </span>
+        </div>
+        <svg
+          className="group-card__chevron"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M9 18l6-6-6-6" />
+        </svg>
+      </button>
+    )
+  }
+
   if (isCollapsed) {
     return (
-      <aside className="panel panel-collapsed-view" style={{ height: '100%', padding: '16px 6px', justifyContent: 'flex-start' }}>
+      <aside className="panel panel-collapsed-view friends-panel-collapsed">
         <button
           type="button"
           className="panel-toggle-btn"
@@ -30,101 +118,71 @@ export default function RightPanel({ friends = [], groups = [], onOpenChat, isCo
   }
 
   return (
-    <aside className="panel" style={{ height: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexShrink: 0 }}>
-        <div className="section-title" style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>
+    <aside className="panel friends-panel">
+      <header className="friends-panel__header">
+        <div className="friends-panel__title">
           {t('rightPanel.friends')}
         </div>
         <button
           type="button"
-          className="panel-toggle-btn"
+          className="panel-toggle-btn friends-panel__toggle-btn"
           onClick={() => onToggleCollapse(true)}
           title="Hide sidebar"
-          style={{ width: 32, height: 32 }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M9 18l6-6-6-6" />
           </svg>
         </button>
-      </div>
+      </header>
 
-      <div className="hr" style={{ flexShrink: 0 }} />
+      <div className="friends-panel__divider" />
 
-      {/* Friends Section - 60% */}
-      <div style={{ flex: '6 1 0', overflow: 'auto', marginBottom: 16, minHeight: 0 }}>
-        <div className="section-title" style={{ marginTop: 6 }}>{t('rightPanel.online')}</div>
-        {online.length === 0 && (
-          <div style={{ color: 'var(--subtext)', fontSize: 13 }}>{t('rightPanel.nobodyOnline')}</div>
-        )}
-        {online.map(friend => (
-          <button
-            key={friend.id}
-            type="button"
-            className="friend panel-button"
-            onClick={() => handleChatOpen(friend.id, 'friend')}
-          >
-            <div className="friend-main">
-              <div
-                className="friend-avatar"
-                style={friend.profileImage ? { backgroundImage: `url(${friend.profileImage})` } : undefined}
-              />
-              <span>{friend.name}</span>
-            </div>
-            <span className="badge">{friend.activity ?? t('rightPanel.badgeOnline')}</span>
-          </button>
-        ))}
-
-        <div className="section-title" style={{ marginTop: 12 }}>{t('rightPanel.offline')}</div>
-        {offline.length === 0 && (
-          <div style={{ color: 'var(--subtext)', fontSize: 13 }}>{t('rightPanel.nobodyOffline')}</div>
-        )}
-        {offline.map(friend => (
-          <button
-            key={friend.id}
-            type="button"
-            className="friend panel-button"
-            onClick={() => handleChatOpen(friend.id, 'friend')}
-          >
-            <div className="friend-main">
-              <div
-                className="friend-avatar"
-                style={friend.profileImage ? { backgroundImage: `url(${friend.profileImage})` } : undefined}
-              />
-              <span>{friend.name}</span>
-            </div>
-            <span className="badge">{t('rightPanel.badgeOffline')}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="hr" style={{ flexShrink: 0 }} />
-
-      {/* Groups Section - 40% */}
-      <div style={{ flex: '4 1 0', overflow: 'auto', minHeight: 0 }}>
-        <div className="section-title" style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
-          Groups
+      <section className="friends-panel__section friends-panel__section--primary">
+        <div className="friends-panel__section-heading">
+          <span className="friends-panel__section-title">{t('rightPanel.online')}</span>
+          {online.length > 0 && <span className="friends-panel__section-count">{online.length}</span>}
         </div>
-        {groups.length === 0 && (
-          <div style={{ color: 'var(--subtext)', fontSize: 13 }}>No groups yet</div>
+
+        {online.length === 0 ? (
+          <p className="friends-panel__empty">{t('rightPanel.nobodyOnline')}</p>
+        ) : (
+          <div className="friends-panel__list">
+            {online.map(renderFriendCard)}
+          </div>
         )}
-        {groups.map(group => (
-          <button
-            key={group.id}
-            type="button"
-            className="friend panel-button"
-            onClick={() => handleChatOpen(group.id, 'group')}
-          >
-            <div className="friend-main">
-              <div
-                className="friend-avatar"
-                style={group.image ? { backgroundImage: `url(${group.image})` } : { background: 'var(--accent)' }}
-              />
-              <span>{group.name}</span>
-            </div>
-            <span className="badge" style={{ fontSize: 11 }}>{group.memberCount} members</span>
-          </button>
-        ))}
-      </div>
+      </section>
+
+      <section className="friends-panel__section">
+        <div className="friends-panel__section-heading">
+          <span className="friends-panel__section-title">{t('rightPanel.offline')}</span>
+          {offline.length > 0 && <span className="friends-panel__section-count">{offline.length}</span>}
+        </div>
+
+        {offline.length === 0 ? (
+          <p className="friends-panel__empty">{t('rightPanel.nobodyOffline')}</p>
+        ) : (
+          <div className="friends-panel__list">
+            {offline.map(renderFriendCard)}
+          </div>
+        )}
+      </section>
+
+      <div className="friends-panel__divider" />
+
+      <section className="friends-panel__section friends-panel__section--groups">
+        <div className="friends-panel__section-heading">
+          <span className="friends-panel__section-title friends-panel__section-title--groups">Groups</span>
+          {groups.length > 0 && <span className="friends-panel__section-count">{groups.length}</span>}
+        </div>
+
+        {groups.length === 0 ? (
+          <p className="friends-panel__empty">No groups yet</p>
+        ) : (
+          <div className="friends-panel__list">
+            {groups.map(renderGroupCard)}
+          </div>
+        )}
+      </section>
     </aside>
   )
 }

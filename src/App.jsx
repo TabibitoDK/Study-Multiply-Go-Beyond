@@ -18,6 +18,8 @@ import FlashcardsPage from './tools/flashcard/FlashcardsPage.jsx'
 import { StudinyChat } from './tools/studiny-chat/index.js'
 import { StudyStreamRoutes } from './tools/studystream/index.js'
 import './tools/studiny-chat/StudinyChat.css'
+import { TaskManagerProvider } from './context/TaskManagerContext.jsx'
+import TaskDetails from './pages/TaskDetails.jsx'
 import { profiles, getProfileById, getProfilesExcept } from './lib/profiles.js'
 import { getPosts } from './lib/posts.js'
 
@@ -149,89 +151,92 @@ export default function App() {
   }
 
   return (
-    <div className={containerClass}>
-      {isCalendarApp ? (
-        <CalendarTopbar />
-      ) : isToolPage ? (
-        <ToolTopbar toolId={toolId} />
-      ) : (
-        <Navbar currentTask={currentTask} lastCompletedTask={lastCompletedTask} />
-      )}
+    <TaskManagerProvider>
+      <div className={containerClass}>
+        {isCalendarApp ? (
+          <CalendarTopbar />
+        ) : isToolPage ? (
+          <ToolTopbar toolId={toolId} />
+        ) : (
+          <Navbar currentTask={currentTask} lastCompletedTask={lastCompletedTask} />
+        )}
 
-      <main className="canvas-wrap">
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <HomeDashboard
-                user={currentUser}
-                onOpenProfile={() => openProfile(CURRENT_USER_ID)}
-                currentTask={currentTask}
-                onSetCurrentTask={handleSetCurrentTask}
-                onCompleteTask={handleCompleteTask}
-              />
-            }
-          />
-          <Route
-            path="/social"
-            element={
-              <SocialPage
-                currentUser={currentUser}
-                posts={posts}
-                onCreatePost={handleCreatePost}
-                onSelectProfile={openProfile}
-              />
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <Profile
-                profileId={CURRENT_USER_ID}
-                currentUserId={CURRENT_USER_ID}
-                posts={posts}
-                onCreatePost={handleCreatePost}
-                onSelectProfile={openProfile}
-              />
-            }
-          />
-          <Route
-            path="/profile/:id"
-            element={
-              <ProfileWrapper
-                currentUserId={CURRENT_USER_ID}
-                posts={posts}
-                onCreatePost={handleCreatePost}
-                onSelectProfile={openProfile}
-              />
-            }
-          />
-          <Route
-            path="/chat/:type/:id"
-            element={<Chat currentUserId={CURRENT_USER_ID} friends={friends} groups={groups} />}
-          />
-          <Route path="/library" element={<Library />} />
-          <Route path="/library/:id" element={<BookDetails />} />
-          <Route path="/tools" element={<Tools />} />
-          <Route path="/tools/flashcards" element={<FlashcardsPage />} />
-          <Route path="/tools/chat" element={<StudinyChat title="Studiny Chat" />} />
-          <Route path="/tools/stream/*" element={<StudyStreamRoutes />} />
-          <Route path="/tools/summary" element={<ToolPlaceholder toolId="summary" />} />
-          <Route path="/tools/pomodoro" element={<ToolPlaceholder toolId="pomodoro" />} />
-          <Route path="/calendar" element={<CalendarPage />} />
-          <Route path="/immerse" element={<ImmerseMode onClose={handleCloseImmerse} />} />
-        </Routes>
-      </main>
+        <main className="canvas-wrap">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <HomeDashboard
+                  user={currentUser}
+                  onOpenProfile={() => openProfile(CURRENT_USER_ID)}
+                  currentTask={currentTask}
+                  onSetCurrentTask={handleSetCurrentTask}
+                  onCompleteTask={handleCompleteTask}
+                />
+              }
+            />
+            <Route
+              path="/social"
+              element={
+                <SocialPage
+                  currentUser={currentUser}
+                  posts={posts}
+                  onCreatePost={handleCreatePost}
+                  onSelectProfile={openProfile}
+                />
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <Profile
+                  profileId={CURRENT_USER_ID}
+                  currentUserId={CURRENT_USER_ID}
+                  posts={posts}
+                  onCreatePost={handleCreatePost}
+                  onSelectProfile={openProfile}
+                />
+              }
+            />
+            <Route
+              path="/profile/:id"
+              element={
+                <ProfileWrapper
+                  currentUserId={CURRENT_USER_ID}
+                  posts={posts}
+                  onCreatePost={handleCreatePost}
+                  onSelectProfile={openProfile}
+                />
+              }
+            />
+            <Route
+              path="/chat/:type/:id"
+              element={<Chat currentUserId={CURRENT_USER_ID} friends={friends} groups={groups} />}
+            />
+            <Route path="/library" element={<Library />} />
+            <Route path="/library/:id" element={<BookDetails />} />
+            <Route path="/tools" element={<Tools />} />
+            <Route path="/tools/flashcards" element={<FlashcardsPage />} />
+            <Route path="/tools/chat" element={<StudinyChat title="Studiny Chat" />} />
+            <Route path="/tools/stream/*" element={<StudyStreamRoutes />} />
+            <Route path="/tools/summary" element={<ToolPlaceholder toolId="summary" />} />
+            <Route path="/tools/pomodoro" element={<ToolPlaceholder toolId="pomodoro" />} />
+            <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/immerse" element={<ImmerseMode onClose={handleCloseImmerse} />} />
+            <Route path="/tasks/:taskId" element={<TaskDetails />} />
+          </Routes>
+        </main>
 
-      {showRightPanel && (
-        <RightPanel
-          friends={friends}
-          groups={groups}
-          onOpenChat={openChat}
-          isCollapsed={sidebarCollapsed}
-          onToggleCollapse={setSidebarCollapsed}
-        />
-      )}
-    </div>
+        {showRightPanel && (
+          <RightPanel
+            friends={friends}
+            groups={groups}
+            onOpenChat={openChat}
+            isCollapsed={sidebarCollapsed}
+            onToggleCollapse={setSidebarCollapsed}
+          />
+        )}
+      </div>
+    </TaskManagerProvider>
   )
 }

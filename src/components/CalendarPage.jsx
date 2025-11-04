@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import dayjs from 'dayjs'
+import { useTaskManager } from '../context/TaskManagerContext.jsx'
 import { useI18nFormats } from '../lib/i18n-format.js'
 const STORAGE_KEY = 'smgb-calendar-events-v1'
 
 export default function CalendarPage() {
   const today = new Date()
   const { t } = useTranslation()
+  const { plans, addTask } = useTaskManager()
   const { locale, formatDate } = useI18nFormats()
   const [currentMonth, setCurrentMonth] = useState(today.getMonth())
   const [currentYear, setCurrentYear] = useState(today.getFullYear())
@@ -22,15 +25,18 @@ export default function CalendarPage() {
   })
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedDay, setSelectedDay] = useState(null)
-  const [draftText, setDraftText] = useState('')
   const [quickText, setQuickText] = useState('')
-  const [viewingDate, setViewingDate] = useState(() => {
-    const d = new Date()
-    d.setHours(0, 0, 0, 0)
-    return d
-  })
-  const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [modalDate, setModalDate] = useState(null)
+  const [modalPlanId, setModalPlanId] = useState('')
+  const [modalTaskName, setModalTaskName] = useState('')
+  const [modalTaskDescription, setModalTaskDescription] = useState('')
+  const [modalCreatedAt, setModalCreatedAt] = useState(() => dayjs().toISOString())
+  const [modalStartAt, setModalStartAt] = useState(() => dayjs().format('YYYY-MM-DDTHH:mm'))
+
+  const modalCreatedDisplay = useMemo(() => {
+    const created = modalCreatedAt ? dayjs(modalCreatedAt) : null
+    return created?.isValid() ? created.format('MMMM D, YYYY h:mm A') : ''
+  }, [modalCreatedAt])
 
   const weekdayLabels = useMemo(() => {
     const reference = new Date(Date.UTC(2021, 5, 6))
@@ -48,6 +54,20 @@ export default function CalendarPage() {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(events))
     } catch {}
   }, [events])
+
+  useEffect(() => {
+    setModalPlanId(prev => {
+      if (!Array.isArray(plans) || plans.length === 0) {
+        return ''
+      }
+      if (prev && plans.some(plan => plan.id === prev)) {
+        return prev
+      }
+      return plans[0].id
+    })
+  }, [plans])
+
+  const hasPlans = Array.isArray(plans) && plans.length > 0
 
   useEffect(() => {
     if (!modalOpen) return
@@ -106,8 +126,11 @@ export default function CalendarPage() {
 
   const modalDateLabel = useMemo(() => {
     if (!modalDate) return ''
-    return formatDate(modalDate, { dateStyle: 'long' })
-  }, [modalDate, formatDate])
+    const fallback = formatDate(modalDate, { dateStyle: 'long' })
+    if (!modalStartAt) return fallback
+    const parsed = dayjs(modalStartAt)
+    return parsed.isValid() ? parsed.format('dddd, MMMM D, YYYY h:mm A') : fallback
+  }, [modalDate, modalStartAt, formatDate])
 
   const modalEvents = useMemo(() => {
     if (!modalDateKey) return []
@@ -118,13 +141,6 @@ export default function CalendarPage() {
     setQuickText('')
   }, [selectedDayKey])
 
-  useEffect(() => {
-    // Update viewing date when selected day changes
-    if (selectedDay) {
-      const newViewingDate = new Date(currentYear, currentMonth, selectedDay, 0, 0, 0, 0)
-      setViewingDate(newViewingDate)
-    }
-  }, [selectedDay, currentMonth, currentYear])
 
   const selectedDateLabel = useMemo(() => {
     if (!selectedDay) return ''
@@ -257,34 +273,74 @@ export default function CalendarPage() {
     setSelectedDay(day)
   }
 
+  function initializeModalState(dateObj) {
+    const now = dayjs()
+    setModalTaskName('')
+    setModalTaskDescription('')
+    setModalCreatedAt(now.toISOString())
+    if (hasPlans) {
+      setModalPlanId(prev => {
+        if (prev && plans.some(plan => plan.id === prev)) {
+          return prev
+        }
+        return plans[0].id
+      })
+    } else {
+      setModalPlanId('')
+    }
+
+    const base = dateObj ? dayjs(dateObj) : now
+    const start = base.hour(now.hour()).minute(now.minute()).second(0).millisecond(0)
+    setModalStartAt(start.format('YYYY-MM-DDTHH:mm'))
+    setModalDate(dateObj ?? start.toDate())
+  }
+
   function openModalForDay(day) {
     selectDay(day)
     const modalDateObj = new Date(currentYear, currentMonth, day, 0, 0, 0, 0)
-    setModalDate(modalDateObj)
-    setDraftText('')
+    initializeModalState(modalDateObj)
     setModalOpen(true)
   }
 
   function closeModal() {
     setModalOpen(false)
-    setDraftText('')
     setModalDate(null)
+    setModalTaskName('')
+    setModalTaskDescription('')
   }
 
   function handleSaveEvent(event) {
     event.preventDefault()
-    if (!modalDateKey) return
-    const text = draftText.trim()
-    if (!text) return
-    setEvents(prev => {
-      const next = { ...prev }
-      const existing = Array.isArray(next[modalDateKey]) ? next[modalDateKey] : []
-      next[modalDateKey] = [...existing, text]
-      return next
+    if (!modalDate || !modalPlanId) return
+    const name = modalTaskName.trim()
+    if (!name) return
+
+    const description = modalTaskDescription.trim()
+    const createdAt = modalCreatedAt || dayjs().toISOString()
+    const parsedStart = modalStartAt ? dayjs(modalStartAt) : null
+    const startAt = parsedStart?.isValid()
+      ? parsedStart.toISOString()
+      : dayjs(modalDate).toISOString()
+
+    addTask(modalPlanId, {
+      title: name,
+      description,
+      createdAt,
+      startAt,
     })
-    setDraftText('')
-    setModalOpen(false)
-    setModalDate(null)
+
+    if (modalDateKey) {
+      setEvents(prev => {
+        const next = { ...prev }
+        const existing = Array.isArray(next[modalDateKey]) ? next[modalDateKey] : []
+        const planTitle = plans.find(plan => plan.id === modalPlanId)?.title ?? ''
+        const entryLabel = planTitle ? `${name} · ${planTitle}` : name
+        next[modalDateKey] = [...existing, entryLabel]
+        return next
+      })
+    }
+
+    closeModal()
   }
 
   function handleQuickAdd(event) {
@@ -334,8 +390,7 @@ export default function CalendarPage() {
     }
 
     const modalDateObj = new Date(targetYear, targetMonth, targetDay, 0, 0, 0, 0)
-    setModalDate(modalDateObj)
-    setDraftText('')
+    initializeModalState(modalDateObj)
     setModalOpen(true)
   }
 
@@ -351,8 +406,7 @@ export default function CalendarPage() {
       event.preventDefault()
       selectDay(day)
       if (event.shiftKey) {
-        setDraftText('')
-        setModalOpen(true)
+        openModalForDay(day)
       }
     }
   }
@@ -592,51 +646,135 @@ export default function CalendarPage() {
 
       {modalOpen && (
         <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal calendar-modal" onClick={event => event.stopPropagation()}>
-            <h2 className="modal-title">{t('calendar.modal.title', { defaultValue: 'Add task to this day' })}</h2>
+          <div
+            className="modal calendar-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="calendar-add-task-title"
+            onClick={event => event.stopPropagation()}
+          >
+            <header className="calendar-modal__header">
+              <h2 className="calendar-modal__title" id="calendar-add-task-title">
+                {t('calendar.modal.title', { defaultValue: 'Schedule a task' })}
+              </h2>
+              <p className="calendar-modal__subtitle">{modalDateLabel}</p>
+            </header>
 
-            <div className="calendar-modal-date-picker">
-              <label htmlFor="modal-date">{t('calendar.modal.selectDate', { defaultValue: 'Date' })}</label>
-              <input
-                id="modal-date"
-                type="date"
-                value={modalDate ? `${modalDate.getFullYear()}-${String(modalDate.getMonth() + 1).padStart(2, '0')}-${String(modalDate.getDate()).padStart(2, '0')}` : ''}
-                onChange={(e) => {
-                  const [year, month, day] = e.target.value.split('-').map(Number)
-                  const newDate = new Date(year, month - 1, day, 0, 0, 0, 0)
-                  setModalDate(newDate)
-                }}
-                className="calendar-modal-date-input"
-              />
-            </div>
-
-            <p className="calendar-modal-subtitle">{modalDateLabel}</p>
+            {!hasPlans && (
+              <p className="calendar-modal__note">
+                {t('calendar.modal.noPlans', {
+                  defaultValue: 'Create a plan on the dashboard to start scheduling tasks.',
+                })}
+              </p>
+            )}
 
             {modalEvents.length > 0 && (
-              <div className="calendar-modal-existing">
-                <span className="calendar-modal-section">{t('calendar.modal.existing', { defaultValue: 'Tasks already scheduled' })}</span>
+              <section className="calendar-modal-existing">
+                <span className="calendar-modal-section">
+                  {t('calendar.modal.existing', { defaultValue: 'Tasks already scheduled' })}
+                </span>
                 <ul>
                   {modalEvents.map((text, index) => (
                     <li key={index}>{text}</li>
                   ))}
                 </ul>
-              </div>
+              </section>
             )}
 
             <form className="calendar-modal-form" onSubmit={handleSaveEvent}>
-              <textarea
-                className="input calendar-modal-textarea"
-                rows={4}
-                placeholder={t('calendar.modal.placeholder', { defaultValue: 'Add your task here...' })}
-                value={draftText}
-                onChange={event => setDraftText(event.target.value)}
-              />
-              <div className="modal-actions">
+              <div className="calendar-modal-field">
+                <label htmlFor="calendar-modal-plan">
+                  {t('calendar.modal.planLabel', { defaultValue: 'Plan' })}
+                </label>
+                <select
+                  id="calendar-modal-plan"
+                  className="calendar-modal-input"
+                  value={modalPlanId}
+                  onChange={event => setModalPlanId(event.target.value)}
+                  disabled={!hasPlans}
+                >
+                  {plans.map(plan => (
+                    <option key={plan.id} value={plan.id}>
+                      {plan.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="calendar-modal-field">
+                <label htmlFor="calendar-modal-name">
+                  {t('calendar.modal.nameLabel', { defaultValue: 'Task name' })}
+                </label>
+                <input
+                  id="calendar-modal-name"
+                  className="calendar-modal-input"
+                  placeholder={t('calendar.modal.namePlaceholder', {
+                    defaultValue: 'Focus session or deliverable',
+                  })}
+                  value={modalTaskName}
+                  onChange={event => setModalTaskName(event.target.value)}
+                  required
+                  disabled={!hasPlans}
+                />
+              </div>
+
+              <div className="calendar-modal-field">
+                <label htmlFor="calendar-modal-description">
+                  {t('calendar.modal.descriptionLabel', { defaultValue: 'Description (optional)' })}
+                </label>
+                <textarea
+                  id="calendar-modal-description"
+                  className="calendar-modal-input calendar-modal-textarea"
+                  rows={3}
+                  placeholder={t('calendar.modal.descriptionPlaceholder', {
+                    defaultValue: 'Add context, resources, or checkpoints.',
+                  })}
+                  value={modalTaskDescription}
+                  onChange={event => setModalTaskDescription(event.target.value)}
+                  disabled={!hasPlans}
+                />
+              </div>
+
+              <div className="calendar-modal-grid">
+                <div className="calendar-modal-field">
+                  <label htmlFor="calendar-modal-created">
+                    {t('calendar.modal.createdLabel', { defaultValue: 'Created' })}
+                  </label>
+                  <input
+                    id="calendar-modal-created"
+                    className="calendar-modal-input"
+                    type="text"
+                    value={modalCreatedDisplay}
+                    readOnly
+                  />
+                </div>
+                <div className="calendar-modal-field">
+                  <label htmlFor="calendar-modal-start">
+                    {t('calendar.modal.startLabel', { defaultValue: 'Start date & time' })}
+                  </label>
+                  <input
+                    id="calendar-modal-start"
+                    className="calendar-modal-input"
+                    type="datetime-local"
+                    value={modalStartAt}
+                    onChange={event => {
+                      setModalStartAt(event.target.value)
+                      const parsed = dayjs(event.target.value)
+                      if (parsed.isValid()) {
+                        setModalDate(parsed.toDate())
+                      }
+                    }}
+                    disabled={!hasPlans}
+                  />
+                </div>
+              </div>
+
+              <div className="calendar-modal-actions">
                 <button type="button" className="btn ghost" onClick={closeModal}>
                   {t('buttons.cancel')}
                 </button>
-                <button type="submit" className="btn">
-                  {t('calendar.modal.save', { defaultValue: 'Save' })}
+                <button type="submit" className="btn cat-primary" disabled={!hasPlans}>
+                  {t('calendar.modal.save', { defaultValue: 'Save task' })}
                 </button>
               </div>
             </form>
