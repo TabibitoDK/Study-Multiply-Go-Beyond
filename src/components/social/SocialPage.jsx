@@ -7,6 +7,7 @@ import ProfileSidebar from './ProfileSidebar.jsx'
 import TrendingSidebar from './TrendingSidebar.jsx'
 import { getPosts } from '../../lib/posts.js'
 import { getProfileById } from '../../lib/profiles.js'
+import CatPeekAnimation from '../CatPeekAnimation.jsx'
 import './SocialPage.css'
 
 export default function SocialPage({ currentUser, posts, onCreatePost, onSelectProfile }) {
@@ -52,6 +53,10 @@ export default function SocialPage({ currentUser, posts, onCreatePost, onSelectP
       </div>
 
       <TrendingSidebar />
+
+      <div className="cat-peek-spot">
+        <CatPeekAnimation size={150} />
+      </div>
 
       <button
         type="button"

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { useTaskManager } from '../context/TaskManagerContext.jsx'
+import CatPeekAnimation from './CatPeekAnimation.jsx'
 
 const STATUS_LABELS = {
   'not-started': 'Not started',
@@ -1232,6 +1233,10 @@ export default function HomeDashboard({
           </div>
         )}
       </section>
+
+      <div className="cat-peek-spot">
+        <CatPeekAnimation size={160} />
+      </div>
 
       {isAddingLongTerm && (
         <div

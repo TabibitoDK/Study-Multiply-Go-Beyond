@@ -2335,6 +2335,7 @@ body {
    TOOLS PAGE
    ======================================================= */
 .tools-page {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -4451,6 +4452,7 @@ body {
   --main-border: rgba(17, 24, 39, 0.08);
   --main-text: #111111;
   --main-muted: #4a4a4a;
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -5832,5 +5834,56 @@ body {
 
   .task-card-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Cat peek hover animation */
+.cat-peek-spot {
+  position: absolute;
+  right: 0;
+  bottom: clamp(10px, 3vw, 24px);
+  width: clamp(120px, 11vw, 176px);
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.cat-peek-spot .cat-peek-animation {
+  pointer-events: auto;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(245, 245, 246, 0.92));
+  border: 1px solid rgba(17, 17, 17, 0.06);
+  box-shadow: none;
+}
+
+.cat-peek-spot .cat-peek-animation:focus-visible {
+  outline: 2px solid rgba(17, 17, 17, 0.28);
+  outline-offset: 4px;
+}
+
+.cat-peek-spot .cat-peek-animation:hover,
+.cat-peek-spot .cat-peek-animation:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px rgba(17, 17, 17, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 245, 246, 0.96));
+}
+
+.cat-peek-animation canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 24px;
+  background: transparent;
+}
+
+@media (max-width: 1024px) {
+  .cat-peek-spot {
+    display: none;
   }
 }

@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { TOOL_IDS, getToolCopy } from '../lib/tools.js'
+import CatPeekAnimation from '../components/CatPeekAnimation.jsx'
 
 const TOOL_ROUTES = {
   calendar: '/calendar',
@@ -54,6 +55,10 @@ export default function Tools() {
           </Link>
         ))}
       </section>
+
+      <div className="cat-peek-spot">
+        <CatPeekAnimation size={152} />
+      </div>
     </div>
   )
 }
