@@ -1,4 +1,4 @@
-﻿/* =======================================================
+/* =======================================================
    GLOBAL VARIABLES & BASE
    ======================================================= */
 :root {
@@ -5839,47 +5839,68 @@ body {
 
 /* Cat peek hover animation */
 .cat-peek-spot {
-  position: absolute;
-  right: 0;
-  bottom: clamp(10px, 3vw, 24px);
-  width: clamp(120px, 11vw, 176px);
+  --cat-peek-offset: 16px;
+  position: fixed;
+  right: var(--cat-peek-offset, 16px);
+  bottom: 0;
+  width: clamp(115px, 10.5vw, 172px);
   display: flex;
   justify-content: flex-end;
+  align-items: flex-end;
   pointer-events: none;
   z-index: 20;
+}
+
+.container.has-sidebar .cat-peek-spot {
+  --cat-peek-offset: calc(var(--sidebar-w) + 20px);
+}
+
+.container.has-sidebar-collapsed .cat-peek-spot {
+  --cat-peek-offset: calc(52px + 8px);
+}
+
+.container:not(.has-sidebar):not(.has-sidebar-collapsed) .cat-peek-spot {
+  --cat-peek-offset: 16px;
 }
 
 .cat-peek-spot .cat-peek-animation {
   pointer-events: auto;
   cursor: pointer;
   display: inline-flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  border-radius: 24px;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(245, 245, 246, 0.92));
-  border: 1px solid rgba(17, 17, 17, 0.06);
+  border-radius: 28px;
+  transition: transform 0.25s ease, filter 0.25s ease;
+  background: transparent;
+  border: none;
   box-shadow: none;
+  filter: drop-shadow(0 16px 28px rgba(15, 23, 42, 0.18));
 }
 
 .cat-peek-spot .cat-peek-animation:focus-visible {
-  outline: 2px solid rgba(17, 17, 17, 0.28);
+  outline: 2px solid rgba(17, 17, 17, 0.18);
   outline-offset: 4px;
 }
 
 .cat-peek-spot .cat-peek-animation:hover,
 .cat-peek-spot .cat-peek-animation:focus-visible {
   transform: translateY(-4px);
-  box-shadow: 0 14px 28px rgba(17, 17, 17, 0.18);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 245, 246, 0.96));
+  filter: drop-shadow(0 20px 34px rgba(15, 23, 42, 0.22));
 }
 
 .cat-peek-animation canvas {
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 24px;
+  border-radius: 28px;
   background: transparent;
+}
+
+@supports (mask-image: radial-gradient(circle, #000 60%, transparent 95%)) {
+  .cat-peek-animation canvas {
+    mask-image: radial-gradient(160% 160% at 50% 50%, rgba(0, 0, 0, 1) 72%, rgba(0, 0, 0, 0) 98%);
+    -webkit-mask-image: radial-gradient(160% 160% at 50% 50%, rgba(0, 0, 0, 1) 72%, rgba(0, 0, 0, 0) 98%);
+  }
 }
 
 @media (max-width: 1024px) {
