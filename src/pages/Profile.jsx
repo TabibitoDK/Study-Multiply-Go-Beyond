@@ -101,15 +101,6 @@ export default function Profile({
 
   return (
     <div className="profile-container">
-      <div
-        className="profile-banner"
-        style={
-          resolvedProfile.backgroundImage
-            ? { backgroundImage: `url(${resolvedProfile.backgroundImage})` }
-            : undefined
-        }
-      />
-
       <div className="profile-header">
         <div className="profile-header-left">
           <div className="profile-avatar">

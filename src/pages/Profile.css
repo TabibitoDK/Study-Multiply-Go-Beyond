@@ -6,16 +6,6 @@
   width: 100%;
 }
 
-.profile-banner {
-  height: 180px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--ring) 100%);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
 .profile-header {
   display: flex;
   align-items: center;
@@ -375,10 +365,6 @@
 }
 
 @media (max-width: 900px) {
-  .profile-banner {
-    height: 120px;
-  }
-
   .profile-avatar {
     width: 80px;
     height: 80px;
