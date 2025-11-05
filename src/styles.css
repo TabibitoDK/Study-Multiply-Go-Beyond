@@ -692,6 +692,91 @@ body {
   padding: 18px 8px;
   background: transparent;
 }
+
+.friends-panel__collapsible-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.friends-panel__collapsible-content {
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.friends-panel__collapsible-content--expanded {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+.friends-panel__collapsible-content--collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+.friends-panel__list--scrollable {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.friends-panel__list--scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.friends-panel__list--scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.friends-panel__list--scrollable::-webkit-scrollbar-thumb {
+  background: var(--ring);
+  border-radius: 3px;
+}
+
+.friends-panel__list--scrollable::-webkit-scrollbar-thumb:hover {
+  background: var(--subtext);
+}
+
+.friends-panel__subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.friends-panel__subsection:last-child {
+  margin-bottom: 0;
+}
+
+.friends-panel__subsection-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.friends-panel__subsection-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(17, 17, 17, 0.58);
+}
+
+.friends-panel__subsection-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(17, 17, 17, 0.65);
+  background: rgba(var(--accent-rgb), 0.06);
+}
 /* =======================================================
    WIDGET CANVAS
    ======================================================= */

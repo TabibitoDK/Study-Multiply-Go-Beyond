@@ -37,7 +37,9 @@
     "badgeOnline": "オンライン",
     "offline": "オフライン",
     "nobodyOffline": "オフラインのフレンドはいません",
-    "badgeOffline": "オフライン"
+    "badgeOffline": "オフライン",
+    "groups": "グループ",
+    "noGroupsYet": "まだグループはありません"
   },
   "widgetPicker": {
     "add": "{{name}}を追加"
