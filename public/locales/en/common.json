@@ -1,4 +1,4 @@
-﻿{
+{
   "brand": {
     "title": "Nyacademy"
   },
@@ -71,12 +71,46 @@
     "subtitle": "Plan study sessions and deadlines at a glance.",
     "appSubtitle": "Nyacademy",
     "moreEvents": "+{{count}} more",
+    "stats": {
+      "focusDay": "Focused day",
+      "pickDay": "Select a day",
+      "tasksPlanned_one": "{{count}} task planned",
+      "tasksPlanned_other": "{{count}} tasks planned",
+      "month": "This month",
+      "monthHint": "Scheduled tasks across this month",
+      "nextSeven": "Next 7 days",
+      "nextSevenHint": "Upcoming tasks this week"
+    },
+    "actions": {
+      "addTask": "Add task"
+    },
+    "sidebar": {
+      "tasksCount_one": "{{count}} task",
+      "tasksCount_other": "{{count}} tasks",
+      "noTasks": "No tasks",
+      "noTasksYet": "No tasks scheduled.",
+      "removeTask": "Remove task",
+      "upcomingTitle": "Upcoming",
+      "upcomingEmpty": "No upcoming tasks."
+    },
+    "today": "Today",
     "modal": {
-      "title": "Add calendar entry",
-      "existing": "Existing events",
-      "placeholder": "Add study plans or reminders...",
-      "save": "Save event"
-    }
+      "title": "Schedule a task",
+      "noPlans": "Create a plan on the dashboard to start scheduling tasks.",
+      "existing": "Tasks already scheduled",
+      "planLabel": "Plan",
+      "nameLabel": "Task name",
+      "namePlaceholder": "Focus session or deliverable",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "Add context, resources, or checkpoints.",
+      "createdLabel": "Created",
+      "startLabel": "Start date & time",
+      "save": "Save task"
+    },
+    "nav": {
+      "back": "Back to Tools"
+    },
+    "appTitle": "Calendar"
   },
   "home": {
     "header": {
@@ -145,6 +179,102 @@
         "honors": "Graduate with honors",
         "react": "Master React",
         "projects": "Build 5 projects"
+      }
+    },
+    "dashboard": {
+      "tabs": {
+        "aria": "Dashboard sections",
+        "tasks": "Tasks",
+        "progress": "Progress"
+      },
+      "profile": {
+        "view": "View profile"
+      },
+      "longTerm": {
+        "title": "Long-term focus",
+        "add": "Add plan",
+        "count": "{{count}} plan",
+        "count_plural": "{{count}} plans",
+        "taskCount": "{{count}} task",
+        "taskCount_plural": "{{count}} tasks",
+        "empty": "Add a plan to begin tracking your long-term goals.",
+        "status": {
+          "notStarted": "Not started",
+          "inProgress": "In progress",
+          "cancelled": "Cancelled",
+          "completed": "Completed"
+        },
+        "modal": {
+          "title": "Add plan",
+          "close": "Close add plan dialog",
+          "nameLabel": "Plan name",
+          "namePlaceholder": "e.g. Exam preparation",
+          "summaryLabel": "Summary (optional)",
+          "summaryPlaceholder": "Add quick notes for this focus area.",
+          "cancel": "Cancel",
+          "save": "Save plan"
+        }
+      },
+      "shortTerm": {
+        "placeholderTitle": "Choose a plan",
+        "selectPrompt": "Select a plan to view its tasks.",
+        "add": "Add task",
+        "noteFallback": "Add a quick note to keep the focus of this plan clear.",
+        "statusLabel": "Plan status",
+        "filtersAria": "Task filters",
+        "searchLabel": "Search",
+        "searchPlaceholder": "Find a task...",
+        "statusFilterLabel": "Status",
+        "allStatuses": "All statuses",
+        "empty": "No tasks yet. Add one to start making progress.",
+        "noMatches": "No tasks match your filters. Adjust or clear them to see more tasks.",
+        "noSelection": "Select a long-term focus on the left to view its tasks.",
+        "openTask": "Open task {{title}}",
+        "inFocus": "In focus",
+        "statusFieldLabel": "Status",
+        "visibleSummary": "Showing {{visible}} of {{total}} tasks",
+        "modal": {
+          "title": "Add task",
+          "planLabel": "Plan: {{title}}",
+          "close": "Close add task dialog",
+          "nameLabel": "Name",
+          "namePlaceholder": "Focus session or deliverable",
+          "descriptionLabel": "Description (optional)",
+          "descriptionPlaceholder": "Add context, resources, or checkpoints.",
+          "createdLabel": "Created time",
+          "startLabel": "Start time",
+          "cancel": "Cancel",
+          "save": "Save task"
+        }
+      },
+      "progress": {
+        "panelAria": "Progress tab",
+        "viewsAria": "Focus views",
+        "title": "Focus Time Tracker Database",
+        "tableAria": "Focus time entries",
+        "tableHeaders": {
+          "task": "Task",
+          "plan": "Plan",
+          "start": "Start",
+          "finish": "Finish",
+          "minutes": "M",
+          "hours": "H"
+        },
+        "empty": "No short-term tasks have been logged yet.",
+        "trendsAria": "Plan progress trends",
+        "badge": "Study Time",
+        "rangeLabel": "Monthly totals",
+        "chartAria": "Tracked hours per plan over time",
+        "noTrends": "Add tasks to see timeline insights.",
+        "summaryAria": "Tracked time summary",
+        "summaryRangeAria": "Summary range",
+        "totalHoursLabel": "Total H",
+        "noSegments": "Track time to see a breakdown."
+      },
+      "demoPlans": {
+        "capstone": "Capstone Project",
+        "language": "Language Sprint",
+        "foundations": "Foundations Refresh"
       }
     }
   },
@@ -263,5 +393,98 @@
     "deleteConfirm": "Delete Book?",
     "deleteConfirmMsg": "Are you sure you want to delete this book? This action cannot be undone.",
     "deleteConfirmBook": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone."
+  },
+  "profile": {
+    "defaults": {
+      "goal1": "Graduate with honors",
+      "goal2": "Master React",
+      "goal3": "Build 5 projects"
+    },
+    "header": {
+      "joined": "Joined {{date}}",
+      "stats": {
+        "followers": "Followers",
+        "following": "Following",
+        "posts": "Posts"
+      }
+    },
+    "actions": {
+      "current": "Your Profile",
+      "viewMine": "View My Profile"
+    },
+    "sections": {
+      "bio": "Bio",
+      "bioEdit": "Edit bio",
+      "interests": "Interests",
+      "interestsEdit": "Edit interests",
+      "posts": "Recent Posts",
+      "goals": "Goals",
+      "goalsEdit": "Edit goals"
+    },
+    "bio": {
+      "empty": "No bio yet."
+    },
+    "privacy": {
+      "public": "Public",
+      "private": "Private"
+    },
+    "interests": {
+      "empty": "No interests yet"
+    },
+    "posts": {
+      "shareTitle": "Share an update",
+      "shareSubtitle": "Let others know what you are working on.",
+      "shareButton": "Create Post",
+      "empty": "No posts yet.",
+      "anonymous": "Anonymous Student",
+      "unknownHandle": "@unknown",
+      "viewProfileAria": "View {{name}}'s profile",
+      "viewBook": "View {{title}}",
+      "likes_one": "{{formattedCount}} like",
+      "likes_other": "{{formattedCount}} likes",
+      "comments_one": "{{formattedCount}} comment",
+      "comments_other": "{{formattedCount}} comments"
+    },
+    "goals": {
+      "empty": "No goals yet"
+    },
+    "edit": {
+      "title": "Edit",
+      "bioTitle": "Edit Bio",
+      "interestsTitle": "Edit Interests",
+      "goalsTitle": "Edit Goals",
+      "bioPlaceholder": "Tell others about yourself...",
+      "addInterestPlaceholder": "Add an interest...",
+      "addGoalPlaceholder": "Add a goal...",
+      "addButton": "Add",
+      "makePrivate": "Public - Click to make private",
+      "makePublic": "Private - Click to make public",
+      "remove": "Remove",
+      "interestsEmpty": "No interests yet. Add some above!",
+      "goalsEmpty": "No goals yet. Add some above!",
+      "save": "Save Changes"
+    }
+  },
+  "social": {
+    "postModal": {
+      "title": "New Study Post",
+      "subtitle": "Capture today’s progress, wins, or questions for your study circle.",
+      "close": "Close dialog",
+      "fields": {
+        "text": "What did you work on?",
+        "book": "Book / Resource",
+        "duration": "Duration",
+        "subject": "Subject / Tag"
+      },
+      "placeholders": {
+        "text": "Share study notes, questions, or insights from today…",
+        "book": "e.g. Essential Calculus, lecture slides",
+        "duration": "e.g. 45m, 2h",
+        "subject": "e.g. Linear algebra, grade 2 Kanji"
+      },
+      "characters_one": "{{formattedCount}} character",
+      "characters_other": "{{formattedCount}} characters",
+      "submit": "Post"
+    }
   }
 }

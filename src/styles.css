@@ -272,6 +272,12 @@ body {
   gap: 16px;
 }
 
+.calendar-navbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
 .calendar-navbar-logo {
   width: 44px;
   height: 44px;
@@ -1145,6 +1151,120 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.25);
   box-shadow: 0 36px 80px rgba(15, 23, 42, 0.18);
   animation: fadeIn 0.22s ease;
+}
+
+.post-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px;
+}
+
+.post-modal__header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px;
+  align-items: start;
+}
+
+.post-modal__badge {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(var(--accent-rgb), 0.12);
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.18);
+}
+
+.post-modal__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.post-modal__subtitle {
+  margin: 0;
+  font-size: 0.92rem;
+  color: rgba(15, 23, 42, 0.64);
+  line-height: 1.5;
+}
+
+.post-modal__close {
+  border: none;
+  background: transparent;
+  color: rgba(15, 23, 42, 0.45);
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 12px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.post-modal__close:hover,
+.post-modal__close:focus-visible {
+  background: rgba(15, 23, 42, 0.08);
+  color: rgba(15, 23, 42, 0.8);
+  outline: none;
+}
+
+.post-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.post-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.post-modal__field span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(15, 23, 42, 0.72);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.post-modal__grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) 170px 170px;
+}
+
+.post-modal__helper {
+  font-size: 0.78rem;
+  color: rgba(15, 23, 42, 0.5);
+}
+
+.post-modal .textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+@media (max-width: 768px) {
+  .post-modal {
+    padding: 28px;
+  }
+
+  .post-modal__header {
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .post-modal__close {
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  .post-modal__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .modal-title {

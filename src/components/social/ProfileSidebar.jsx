@@ -28,15 +28,15 @@ export default function ProfileSidebar({ user, onNavigateToProfile }) {
         <div className="profile-sidebar-stats">
           <div className="stat-box">
             <span className="stat-value">{user.posts || 0}</span>
-            <span className="stat-label">Posts</span>
+            <span className="stat-label">投稿</span>
           </div>
           <div className="stat-box">
             <span className="stat-value">{user.followers || 0}</span>
-            <span className="stat-label">Followers</span>
+            <span className="stat-label">フォロワー</span>
           </div>
           <div className="stat-box">
             <span className="stat-value">{user.following || 0}</span>
-            <span className="stat-label">Following</span>
+            <span className="stat-label">フォロー中</span>
           </div>
         </div>
 

@@ -1,12 +1,14 @@
-import { useMemo, useState, useEffect } from "react"
-import dayjs from "dayjs"
-import { Edit3, Globe, Lock } from "lucide-react"
-import "./Profile.css"
-import PostCard from "../components/social/PostCard.jsx"
-import PostModal from "../components/social/PostModal.jsx"
-import ProfileEditModal from "../components/ProfileEditModal.jsx"
-import { profiles, getProfileById } from "../lib/profiles.js"
-import { getPostsByUser } from "../lib/posts.js"
+import { useMemo, useState, useEffect } from 'react'
+import dayjs from 'dayjs'
+import { Edit3, Globe, Lock } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import './Profile.css'
+import PostCard from '../components/social/PostCard.jsx'
+import PostModal from '../components/social/PostModal.jsx'
+import ProfileEditModal from '../components/ProfileEditModal.jsx'
+import { profiles, getProfileById } from '../lib/profiles.js'
+import { getPostsByUser } from '../lib/posts.js'
+import { useI18nFormats } from '../lib/i18n-format.js'
 
 const GOALS_STORAGE_KEY = 'smgb-user-goals-v1'
 
@@ -17,11 +19,25 @@ export default function Profile({
   onCreatePost,
   onSelectProfile,
 }) {
+  const { t } = useTranslation()
+  const { formatDate, formatNumber } = useI18nFormats()
   const resolvedProfile =
     getProfileById(profileId) ?? getProfileById(currentUserId) ?? profiles[0]
   const isCurrentUser = resolvedProfile.id === currentUserId
   const joinedDate = dayjs(resolvedProfile.joined)
   const tags = Array.isArray(resolvedProfile.tags) ? resolvedProfile.tags : []
+
+  const defaultGoals = useMemo(
+    () => [
+      { text: t('profile.defaults.goal1', { defaultValue: 'Graduate with honors' }), isPublic: true },
+      { text: t('profile.defaults.goal2', { defaultValue: 'Master React' }), isPublic: true },
+      { text: t('profile.defaults.goal3', { defaultValue: 'Build 5 projects' }), isPublic: true },
+    ],
+    [t],
+  )
+  const joinedLabel = joinedDate.isValid()
+    ? formatDate(joinedDate.toDate(), { year: 'numeric', month: 'long' })
+    : resolvedProfile.joined
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -42,17 +58,9 @@ export default function Profile({
         return parsed
       }
       // Return default goals if none exist
-      return [
-        { text: 'Graduate with honors', isPublic: true },
-        { text: 'Master React', isPublic: true },
-        { text: 'Build 5 projects', isPublic: true }
-      ]
+      return defaultGoals
     } catch {
-      return [
-        { text: 'Graduate with honors', isPublic: true },
-        { text: 'Master React', isPublic: true },
-        { text: 'Build 5 projects', isPublic: true }
-      ]
+      return defaultGoals
     }
   })
 
@@ -119,10 +127,10 @@ export default function Profile({
               {resolvedProfile.location && <span>{resolvedProfile.location}</span>}
               {resolvedProfile.joined && (
                 <span>
-                  Joined{" "}
-                  {joinedDate.isValid()
-                    ? joinedDate.format("MMMM YYYY")
-                    : resolvedProfile.joined}
+                  {t('profile.header.joined', {
+                    defaultValue: 'Joined {{date}}',
+                    date: joinedLabel,
+                  })}
                 </span>
               )}
             </div>
@@ -132,21 +140,27 @@ export default function Profile({
         <div className="profile-stats-inline">
           <div className="stat-item">
             <span className="profile-stat-value">
-              {resolvedProfile.followers}
+              {formatNumber(resolvedProfile.followers ?? 0)}
             </span>
-            <span className="profile-stat-label">Followers</span>
+            <span className="profile-stat-label">
+              {t('profile.header.stats.followers', { defaultValue: 'Followers' })}
+            </span>
           </div>
           <div className="stat-item">
             <span className="profile-stat-value">
-              {resolvedProfile.following}
+              {formatNumber(resolvedProfile.following ?? 0)}
             </span>
-            <span className="profile-stat-label">Following</span>
+            <span className="profile-stat-label">
+              {t('profile.header.stats.following', { defaultValue: 'Following' })}
+            </span>
           </div>
           <div className="stat-item">
             <span className="profile-stat-value">
-              {resolvedProfile.posts}
+              {formatNumber(resolvedProfile.posts ?? 0)}
             </span>
-            <span className="profile-stat-label">Posts</span>
+            <span className="profile-stat-label">
+              {t('profile.header.stats.posts', { defaultValue: 'Posts' })}
+            </span>
           </div>
         </div>
 
@@ -160,7 +174,9 @@ export default function Profile({
           }}
           disabled={isCurrentUser}
         >
-          {isCurrentUser ? "Your Profile" : "View My Profile"}
+          {isCurrentUser
+            ? t('profile.actions.current', { defaultValue: 'Your Profile' })
+            : t('profile.actions.viewMine', { defaultValue: 'View My Profile' })}
         </button>
       </div>
 
@@ -170,12 +186,12 @@ export default function Profile({
         <div className="profile-left-column">
           <div className="card">
             <div className="card-header">
-              <h3>Bio</h3>
+              <h3>{t('profile.sections.bio', { defaultValue: 'Bio' })}</h3>
               {isCurrentUser && (
                 <button
                   type="button"
                   className="edit-icon-btn"
-                  title="Edit Bio"
+                  title={t('profile.sections.bioEdit', { defaultValue: 'Edit bio' })}
                   onClick={() => openEditModal('bio', bio)}
                 >
                   <Edit3 size={16} />
@@ -183,18 +199,20 @@ export default function Profile({
               )}
             </div>
             <div className="bio-section">
-              <p className="profile-about">{bio || 'No bio yet.'}</p>
+              <p className="profile-about">
+                {bio || t('profile.bio.empty', { defaultValue: 'No bio yet.' })}
+              </p>
               {isCurrentUser && (
                 <span className={`privacy-badge ${bioPrivacy ? 'public' : 'private'}`}>
                   {bioPrivacy ? (
                     <>
                       <Globe size={14} />
-                      Public
+                      {t('profile.privacy.public', { defaultValue: 'Public' })}
                     </>
                   ) : (
                     <>
                       <Lock size={14} />
-                      Private
+                      {t('profile.privacy.private', { defaultValue: 'Private' })}
                     </>
                   )}
                 </span>
@@ -204,12 +222,12 @@ export default function Profile({
 
           <div className="card">
             <div className="card-header">
-              <h3>Interests</h3>
+              <h3>{t('profile.sections.interests', { defaultValue: 'Interests' })}</h3>
               {isCurrentUser && (
                 <button
                   type="button"
                   className="edit-icon-btn"
-                  title="Edit Interests"
+                  title={t('profile.sections.interestsEdit', { defaultValue: 'Edit interests' })}
                   onClick={() => openEditModal('interests', interests)}
                 >
                   <Edit3 size={16} />
@@ -221,14 +239,23 @@ export default function Profile({
                 <span key={index} className="profile-tag">
                   {interest.text}
                   {isCurrentUser && (
-                    <span className={`privacy-icon ${interest.isPublic ? 'public' : 'private'}`}>
+                    <span
+                      className={`privacy-icon ${interest.isPublic ? 'public' : 'private'}`}
+                      title={
+                        interest.isPublic
+                          ? t('profile.privacy.public', { defaultValue: 'Public' })
+                          : t('profile.privacy.private', { defaultValue: 'Private' })
+                      }
+                    >
                       {interest.isPublic ? <Globe size={12} /> : <Lock size={12} />}
                     </span>
                   )}
                 </span>
               ))}
               {interests.filter(i => isCurrentUser || i.isPublic).length === 0 && (
-                <span className="profile-tag">No interests yet</span>
+                <span className="profile-tag">
+                  {t('profile.interests.empty', { defaultValue: 'No interests yet' })}
+                </span>
               )}
             </div>
           </div>
@@ -236,24 +263,32 @@ export default function Profile({
 
         <div className="profile-middle-column">
           <div className="profile-posts-header">
-            <h3>Recent Posts</h3>
+            <h3>{t('profile.sections.posts', { defaultValue: 'Recent Posts' })}</h3>
           </div>
 
           <div className="profile-post-list">
             {isCurrentUser && (
               <article className="post create-post-card">
-                <h4>Share an update</h4>
-                <p>Let others know what you are working on.</p>
+                <h4>{t('profile.posts.shareTitle', { defaultValue: 'Share an update' })}</h4>
+                <p>
+                  {t('profile.posts.shareSubtitle', {
+                    defaultValue: 'Let others know what you are working on.',
+                  })}
+                </p>
                 <button
                   type="button"
                   className="btn"
                   onClick={() => setIsModalOpen(true)}
                 >
-                  Create Post
+                  {t('profile.posts.shareButton', { defaultValue: 'Create Post' })}
                 </button>
               </article>
             )}
-            {posts.length === 0 && <div className="profile-empty">No posts yet.</div>}
+            {posts.length === 0 && (
+              <div className="profile-empty">
+                {t('profile.posts.empty', { defaultValue: 'No posts yet.' })}
+              </div>
+            )}
             {posts.map(post => (
               <PostCard
                 key={post.id}
@@ -267,12 +302,12 @@ export default function Profile({
         <div className="profile-right-column">
           <div className="card">
             <div className="card-header">
-              <h3>Goals</h3>
+              <h3>{t('profile.sections.goals', { defaultValue: 'Goals' })}</h3>
               {isCurrentUser && (
                 <button
                   type="button"
                   className="edit-icon-btn"
-                  title="Edit Goals"
+                  title={t('profile.sections.goalsEdit', { defaultValue: 'Edit goals' })}
                   onClick={() => openEditModal('goals', goals)}
                 >
                   <Edit3 size={16} />
@@ -284,14 +319,23 @@ export default function Profile({
                 <span key={index} className="profile-tag">
                   {goal.text}
                   {isCurrentUser && (
-                    <span className={`privacy-icon ${goal.isPublic ? 'public' : 'private'}`}>
+                    <span
+                      className={`privacy-icon ${goal.isPublic ? 'public' : 'private'}`}
+                      title={
+                        goal.isPublic
+                          ? t('profile.privacy.public', { defaultValue: 'Public' })
+                          : t('profile.privacy.private', { defaultValue: 'Private' })
+                      }
+                    >
                       {goal.isPublic ? <Globe size={12} /> : <Lock size={12} />}
                     </span>
                   )}
                 </span>
               ))}
               {goals.filter(g => isCurrentUser || g.isPublic).length === 0 && (
-                <span className="profile-tag">No goals yet</span>
+                <span className="profile-tag">
+                  {t('profile.goals.empty', { defaultValue: 'No goals yet' })}
+                </span>
               )}
             </div>
           </div>

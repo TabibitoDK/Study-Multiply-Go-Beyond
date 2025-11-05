@@ -1,10 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { useTaskManager } from '../context/TaskManagerContext.jsx'
 import CatPeekAnimation from './CatPeekAnimation.jsx'
 
-const STATUS_LABELS = {
+const STATUS_LABEL_KEYS = {
+  'not-started': 'home.dashboard.longTerm.status.notStarted',
+  'in-progress': 'home.dashboard.longTerm.status.inProgress',
+  cancelled: 'home.dashboard.longTerm.status.cancelled',
+  completed: 'home.dashboard.longTerm.status.completed',
+}
+
+const STATUS_DEFAULT_LABELS = {
   'not-started': 'Not started',
   'in-progress': 'In progress',
   cancelled: 'Cancelled',
@@ -16,16 +24,26 @@ const TASK_STATUS_OPTIONS = ['not-started', 'in-progress', 'cancelled', 'complet
 const LONG_TERM_STATUS_OPTIONS = ['not-started', 'in-progress', 'cancelled', 'completed']
 
 const PROGRESS_PRIMARY_TABS = [
-  { id: 'today', label: 'Today', icon: 'calendar-day' },
-  { id: 'yesterday', label: 'Yesterday', icon: 'clock-rotate' },
-  { id: 'days', label: 'Days', icon: 'list' },
-  { id: 'tags', label: 'Tags', icon: 'tag' },
-  { id: 'database', label: 'Database', icon: 'database' },
+  { id: 'today', labelKey: 'home.progress.tabs.today', defaultLabel: 'Today', icon: 'calendar-day' },
+  {
+    id: 'yesterday',
+    labelKey: 'home.progress.tabs.yesterday',
+    defaultLabel: 'Yesterday',
+    icon: 'clock-rotate',
+  },
+  { id: 'days', labelKey: 'home.progress.tabs.days', defaultLabel: 'Days', icon: 'list' },
+  { id: 'tags', labelKey: 'home.progress.tabs.tags', defaultLabel: 'Tags', icon: 'tag' },
+  {
+    id: 'database',
+    labelKey: 'home.progress.tabs.database',
+    defaultLabel: 'Database',
+    icon: 'database',
+  },
 ]
 
 const PROGRESS_SUMMARY_RANGES = [
-  { id: 'today', label: 'Today' },
-  { id: 'week', label: 'This Week' },
+  { id: 'today', labelKey: 'home.progress.summary.today', defaultLabel: 'Today' },
+  { id: 'week', labelKey: 'home.progress.summary.week', defaultLabel: 'This Week' },
 ]
 
 const PROGRESS_TAG_VARIANTS = ['indigo', 'stone', 'teal', 'violet', 'amber', 'slate']
@@ -210,6 +228,7 @@ export default function HomeDashboard({
   onSetCurrentTask,
   onCompleteTask,
 }) {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { plans, addPlan, addTask, updatePlanStatus, updateTaskStatus } = useTaskManager()
   const [activeTab, setActiveTab] = useState('tasks')
@@ -235,6 +254,64 @@ export default function HomeDashboard({
   )
   const addPlanModalTitleId = 'dashboard-add-plan-title'
   const addTaskModalTitleId = 'dashboard-add-task-title'
+
+  const statusLabels = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(STATUS_LABEL_KEYS).map(([status, key]) => [
+          status,
+          t(key, { defaultValue: STATUS_DEFAULT_LABELS[status] ?? status }),
+        ]),
+      ),
+    [t],
+  )
+
+  const progressPrimaryTabs = useMemo(
+    () =>
+      PROGRESS_PRIMARY_TABS.map(tab => ({
+        ...tab,
+        label: t(tab.labelKey, { defaultValue: tab.defaultLabel }),
+      })),
+    [t],
+  )
+
+  const progressSummaryRanges = useMemo(
+    () =>
+      PROGRESS_SUMMARY_RANGES.map(range => ({
+        ...range,
+        label: t(range.labelKey, { defaultValue: range.defaultLabel }),
+      })),
+    [t],
+  )
+
+  function formatPlanCount(count) {
+    const value = Number.isFinite(count) ? count : 0
+    const fallback = `${value} plan${value === 1 ? '' : 's'}`
+    return t('home.dashboard.longTerm.count', {
+      count: value,
+      defaultValue: fallback,
+    })
+  }
+
+  function formatTaskCount(count) {
+    const value = Number.isFinite(count) ? count : 0
+    const fallback = `${value} task${value === 1 ? '' : 's'}`
+    return t('home.dashboard.longTerm.taskCount', {
+      count: value,
+      defaultValue: fallback,
+    })
+  }
+
+  function formatVisibleTaskSummary(visible, total) {
+    const safeVisible = Number.isFinite(visible) ? visible : 0
+    const safeTotal = Number.isFinite(total) ? total : 0
+    const fallback = `Showing ${safeVisible} of ${safeTotal} task${safeTotal === 1 ? '' : 's'}`
+    return t('home.dashboard.shortTerm.visibleSummary', {
+      visible: safeVisible,
+      total: safeTotal,
+      defaultValue: fallback,
+    })
+  }
 
   useEffect(() => {
     if (plans.length === 0) {
@@ -376,7 +453,7 @@ export default function HomeDashboard({
       ...segment,
       hours: Number((segment.minutes / 60).toFixed(2)),
     }))
-  }, [progressEntries])
+  }, [progressEntries, t])
 
   const progressLineData = useMemo(() => {
     const monthSet = new Set()
@@ -412,9 +489,21 @@ export default function HomeDashboard({
         dayjs().startOf('month'),
       ]
       const demoPlans = [
-        { label: 'Capstone Project', variant: 'teal', values: [420, 520, 600, 720, 810] },
-        { label: 'Language Sprint', variant: 'stone', values: [180, 220, 280, 315, 360] },
-        { label: 'Foundations Refresh', variant: 'violet', values: [240, 260, 320, 280, 360] },
+        {
+          label: t('home.dashboard.demoPlans.capstone', { defaultValue: 'Capstone Project' }),
+          variant: 'teal',
+          values: [420, 520, 600, 720, 810],
+        },
+        {
+          label: t('home.dashboard.demoPlans.language', { defaultValue: 'Language Sprint' }),
+          variant: 'stone',
+          values: [180, 220, 280, 315, 360],
+        },
+        {
+          label: t('home.dashboard.demoPlans.foundations', { defaultValue: 'Foundations Refresh' }),
+          variant: 'violet',
+          values: [240, 260, 320, 280, 360],
+        },
       ]
 
       demoMonths.forEach(month => monthSet.add(month.format('YYYY-MM')))
@@ -607,7 +696,11 @@ export default function HomeDashboard({
   return (
     <div className="main-dashboard">
       <div className="main-dashboard__topbar">
-        <div className="main-dashboard__tabs" role="tablist" aria-label="Dashboard sections">
+        <div
+          className="main-dashboard__tabs"
+          role="tablist"
+          aria-label={t('home.dashboard.tabs.aria', { defaultValue: 'Dashboard sections' })}
+        >
           <button
             type="button"
             className={`main-dashboard__tab${activeTab === 'tasks' ? ' is-active' : ''}`}
@@ -615,7 +708,7 @@ export default function HomeDashboard({
             role="tab"
             aria-selected={activeTab === 'tasks'}
           >
-            Tasks
+            {t('home.dashboard.tabs.tasks', { defaultValue: 'Tasks' })}
           </button>
           <button
             type="button"
@@ -624,13 +717,13 @@ export default function HomeDashboard({
             role="tab"
             aria-selected={activeTab === 'progress'}
           >
-            Progress
+            {t('home.dashboard.tabs.progress', { defaultValue: 'Progress' })}
           </button>
         </div>
 
         {typeof onOpenProfile === 'function' && (
           <button type="button" className="btn ghost main-dashboard__profile-btn" onClick={onOpenProfile}>
-            View profile
+            {t('home.dashboard.profile.view', { defaultValue: 'View profile' })}
           </button>
         )}
       </div>
@@ -641,17 +734,17 @@ export default function HomeDashboard({
             <div className="task-panel__column">
               <div className="task-panel__header">
                 <div>
-                  <h2 className="task-panel__title">Long-term focus</h2>
-                  <p className="task-panel__meta">
-                    {longTermCount} plan{longTermCount === 1 ? '' : 's'}
-                  </p>
+                  <h2 className="task-panel__title">
+                    {t('home.dashboard.longTerm.title', { defaultValue: 'Long-term focus' })}
+                  </h2>
+                  <p className="task-panel__meta">{formatPlanCount(longTermCount)}</p>
                 </div>
                 <button
                   type="button"
                   className="btn cat-primary"
                   onClick={handleOpenAddLongTerm}
                 >
-                  Add plan
+                  {t('home.dashboard.longTerm.add', { defaultValue: 'Add plan' })}
                 </button>
               </div>
 
@@ -673,15 +766,13 @@ export default function HomeDashboard({
                           onClick={() => handleSelectLongTerm(group.id)}
                         >
                           <span className="long-term-list__title">{group.title}</span>
-                          <span className="long-term-list__count">
-                            {group.tasks.length} task{group.tasks.length === 1 ? '' : 's'}
-                          </span>
+                          <span className="long-term-list__count">{formatTaskCount(group.tasks.length)}</span>
                           {group.description && (
                             <span className="long-term-list__description">{group.description}</span>
                           )}
                         </button>
                           <span className={`long-term-list__status status-${currentStatus}`}>
-                          {STATUS_LABELS[currentStatus] ?? STATUS_LABELS['not-started']}
+                          {statusLabels[currentStatus] ?? statusLabels['not-started']}
                         </span>
                       </div>
                     </li>
@@ -689,7 +780,9 @@ export default function HomeDashboard({
                 })}
                 {plans.length === 0 && (
                   <li className="long-term-list__empty">
-                    Add a plan to begin tracking your long-term goals.
+                    {t('home.dashboard.longTerm.empty', {
+                      defaultValue: 'Add a plan to begin tracking your long-term goals.',
+                    })}
                   </li>
                 )}
               </ul>
@@ -699,14 +792,16 @@ export default function HomeDashboard({
               <div className="task-panel__header">
                 <div>
                   <h2 className="task-panel__title">
-                    {selectedLongTerm ? selectedLongTerm.title : 'Choose a plan'}
+                    {selectedLongTerm
+                      ? selectedLongTerm.title
+                      : t('home.dashboard.shortTerm.placeholderTitle', { defaultValue: 'Choose a plan' })}
                   </h2>
                   <p className="task-panel__meta">
                     {selectedLongTerm
-                      ? `Showing ${visibleTaskCount} of ${shortTaskCount} task${
-                          shortTaskCount === 1 ? '' : 's'
-                        }`
-                      : 'Select a plan to view its tasks.'}
+                      ? formatVisibleTaskSummary(visibleTaskCount, shortTaskCount)
+                      : t('home.dashboard.shortTerm.selectPrompt', {
+                          defaultValue: 'Select a plan to view its tasks.',
+                        })}
                   </p>
                 </div>
                 <button
@@ -715,7 +810,7 @@ export default function HomeDashboard({
                   disabled={!selectedLongTerm}
                   onClick={handleOpenAddShortTask}
                 >
-                  Add task
+                  {t('home.dashboard.shortTerm.add', { defaultValue: 'Add task' })}
                 </button>
               </div>
 
@@ -727,11 +822,13 @@ export default function HomeDashboard({
                     }`}
                   >
                     {selectedLongTerm.description ||
-                      'Add a quick note to keep the focus of this plan clear.'}
+                      t('home.dashboard.shortTerm.noteFallback', {
+                        defaultValue: 'Add a quick note to keep the focus of this plan clear.',
+                      })}
                   </p>
                   <div className="task-panel__plan-controls">
                     <label className="task-panel__filters-label" htmlFor={selectedPlanStatusId}>
-                      Plan status
+                      {t('home.dashboard.shortTerm.statusLabel', { defaultValue: 'Plan status' })}
                     </label>
                     <select
                       id={selectedPlanStatusId}
@@ -743,7 +840,7 @@ export default function HomeDashboard({
                     >
                       {LONG_TERM_STATUS_OPTIONS.map(option => (
                         <option key={option} value={option}>
-                          {STATUS_LABELS[option]}
+                          {statusLabels[option]}
                         </option>
                       ))}
                     </select>
@@ -752,23 +849,29 @@ export default function HomeDashboard({
               )}
 
               {selectedLongTerm && selectedLongTerm.tasks.length > 0 && (
-                <div className="task-panel__filters" role="group" aria-label="Task filters">
+                <div
+                  className="task-panel__filters"
+                  role="group"
+                  aria-label={t('home.dashboard.shortTerm.filtersAria', { defaultValue: 'Task filters' })}
+                >
                   <div className="task-panel__search">
                     <label className="task-panel__filters-label" htmlFor="task-search-input">
-                      Search
+                      {t('home.dashboard.shortTerm.searchLabel', { defaultValue: 'Search' })}
                     </label>
                     <input
                       id="task-search-input"
                       className="input"
                       type="search"
-                      placeholder="Find a task..."
+                      placeholder={t('home.dashboard.shortTerm.searchPlaceholder', {
+                        defaultValue: 'Find a task...',
+                      })}
                       value={taskSearchQuery}
                       onChange={event => setTaskSearchQuery(event.target.value)}
                     />
                   </div>
                   <div className="task-panel__filter">
                     <label className="task-panel__filters-label" htmlFor="task-status-filter">
-                      Status
+                      {t('home.dashboard.shortTerm.statusFilterLabel', { defaultValue: 'Status' })}
                     </label>
                     <select
                       id="task-status-filter"
@@ -776,10 +879,12 @@ export default function HomeDashboard({
                       value={taskStatusFilter}
                       onChange={event => setTaskStatusFilter(event.target.value)}
                     >
-                      <option value="all">All statuses</option>
+                      <option value="all">
+                        {t('home.dashboard.shortTerm.allStatuses', { defaultValue: 'All statuses' })}
+                      </option>
                       {TASK_STATUS_OPTIONS.map(option => (
                         <option key={option} value={option}>
-                          {STATUS_LABELS[option]}
+                          {statusLabels[option]}
                         </option>
                       ))}
                     </select>
@@ -790,11 +895,15 @@ export default function HomeDashboard({
               {selectedLongTerm ? (
                 selectedLongTerm.tasks.length === 0 ? (
                   <div className="task-panel__empty">
-                    No tasks yet. Add one to start making progress.
+                    {t('home.dashboard.shortTerm.empty', {
+                      defaultValue: 'No tasks yet. Add one to start making progress.',
+                    })}
                   </div>
                 ) : filteredTasks.length === 0 ? (
                   <div className="task-panel__empty">
-                    No tasks match your filters. Adjust or clear them to see more tasks.
+                    {t('home.dashboard.shortTerm.noMatches', {
+                      defaultValue: 'No tasks match your filters. Adjust or clear them to see more tasks.',
+                    })}
                   </div>
                 ) : (
                   <div className="task-card-grid">
@@ -811,7 +920,10 @@ export default function HomeDashboard({
                           }`}
                           role="button"
                           tabIndex={0}
-                          aria-label={`Open task ${task.title}`}
+                          aria-label={t('home.dashboard.shortTerm.openTask', {
+                            title: task.title,
+                            defaultValue: `Open task ${task.title}`,
+                          })}
                           onClick={() => handleOpenTaskDetail(selectedLongTerm, task)}
                           onKeyDown={event => {
                             if (event.key === 'Enter' || event.key === ' ') {
@@ -822,9 +934,13 @@ export default function HomeDashboard({
                         >
                           <header className="task-card__header">
                             <span className={statusLabelClass}>
-                              {STATUS_LABELS[task.status] ?? STATUS_LABELS['not-started']}
+                              {statusLabels[task.status] ?? statusLabels['not-started']}
                             </span>
-                            {isCurrent && <span className="task-card__badge">In focus</span>}
+                            {isCurrent && (
+                              <span className="task-card__badge">
+                                {t('home.dashboard.shortTerm.inFocus', { defaultValue: 'In focus' })}
+                              </span>
+                            )}
                           </header>
                           <h3 className="task-card__title">{task.title}</h3>
                           {task.description && (
@@ -832,7 +948,7 @@ export default function HomeDashboard({
                           )}
                           <footer className="task-card__footer">
                             <label className="task-card__footer-label" htmlFor={selectId}>
-                              Status
+                              {t('home.dashboard.shortTerm.statusFieldLabel', { defaultValue: 'Status' })}
                             </label>
                             <select
                               id={selectId}
@@ -847,7 +963,7 @@ export default function HomeDashboard({
                             >
                               {TASK_STATUS_OPTIONS.map(option => (
                                 <option key={option} value={option}>
-                                  {STATUS_LABELS[option]}
+                                  {statusLabels[option]}
                                 </option>
                               ))}
                             </select>
@@ -859,16 +975,25 @@ export default function HomeDashboard({
                 )
               ) : (
                 <div className="task-panel__empty">
-                  Select a long-term focus on the left to view its tasks.
+                  {t('home.dashboard.shortTerm.noSelection', {
+                    defaultValue: 'Select a long-term focus on the left to view its tasks.',
+                  })}
                 </div>
               )}
             </div>
           </div>
         ) : (
-          <div className="progress-panel" aria-label="Progress tab">
+          <div
+            className="progress-panel"
+            aria-label={t('home.dashboard.progress.panelAria', { defaultValue: 'Progress tab' })}
+          >
             <div className="progress-panel__main">
-              <div className="progress-panel__tabs" role="tablist" aria-label="Focus views">
-                {PROGRESS_PRIMARY_TABS.map(filter => {
+              <div
+                className="progress-panel__tabs"
+                role="tablist"
+                aria-label={t('home.dashboard.progress.viewsAria', { defaultValue: 'Focus views' })}
+              >
+                {progressPrimaryTabs.map(filter => {
                   const isActive = progressPrimaryFilter === filter.id
                   return (
                     <button
@@ -886,45 +1011,53 @@ export default function HomeDashboard({
                 })}
               </div>
 
-              <h2 className="progress-panel__title">Focus Time Tracker Database</h2>
+              <h2 className="progress-panel__title">
+                {t('home.dashboard.progress.title', { defaultValue: 'Focus Time Tracker Database' })}
+              </h2>
 
-              <div className="progress-table" role="table" aria-label="Focus time entries">
+              <div
+                className="progress-table"
+                role="table"
+                aria-label={t('home.dashboard.progress.tableAria', {
+                  defaultValue: 'Focus time entries',
+                })}
+              >
                 <div className="progress-table__header" role="row">
                   <span
                     className="progress-table__cell progress-table__cell--head"
                     role="columnheader"
                   >
-                    Task
+                    {t('home.dashboard.progress.tableHeaders.task', { defaultValue: 'Task' })}
                   </span>
                   <span
                     className="progress-table__cell progress-table__cell--head"
                     role="columnheader"
                   >
-                    Plan
+                    {t('home.dashboard.progress.tableHeaders.plan', { defaultValue: 'Plan' })}
                   </span>
                   <span
                     className="progress-table__cell progress-table__cell--head"
                     role="columnheader"
                   >
-                    Start
+                    {t('home.dashboard.progress.tableHeaders.start', { defaultValue: 'Start' })}
                   </span>
                   <span
                     className="progress-table__cell progress-table__cell--head"
                     role="columnheader"
                   >
-                    Finish
+                    {t('home.dashboard.progress.tableHeaders.finish', { defaultValue: 'Finish' })}
                   </span>
                   <span
                     className="progress-table__cell progress-table__cell--head progress-table__cell--meta"
                     role="columnheader"
                   >
-                    M
+                    {t('home.dashboard.progress.tableHeaders.minutes', { defaultValue: 'M' })}
                   </span>
                   <span
                     className="progress-table__cell progress-table__cell--head progress-table__cell--meta"
                     role="columnheader"
                   >
-                    H
+                    {t('home.dashboard.progress.tableHeaders.hours', { defaultValue: 'H' })}
                   </span>
                 </div>
 
@@ -967,23 +1100,28 @@ export default function HomeDashboard({
                       </div>
                     ))
                   ) : (
-                    <div
-                      className="progress-table__empty"
-                      role="row"
-                      aria-live="polite"
-                    >
-                      No short-term tasks have been logged yet.
+                    <div className="progress-table__empty" role="row" aria-live="polite">
+                      {t('home.dashboard.progress.empty', {
+                        defaultValue: 'No short-term tasks have been logged yet.',
+                      })}
                     </div>
                   )}
                 </div>
               </div>
 
-              <section className="progress-trends" aria-label="Plan progress trends">
+              <section
+                className="progress-trends"
+                aria-label={t('home.dashboard.progress.trendsAria', {
+                  defaultValue: 'Plan progress trends',
+                })}
+              >
                 <header className="progress-trends__header">
                   <span className="progress-trends__badge" aria-hidden="true">
-                    Study Time
+                    {t('home.dashboard.progress.badge', { defaultValue: 'Study Time' })}
                   </span>
-                  <span className="progress-trends__range">Monthly totals</span>
+                  <span className="progress-trends__range">
+                    {t('home.dashboard.progress.rangeLabel', { defaultValue: 'Monthly totals' })}
+                  </span>
                 </header>
 
                 {progressLineData.series.length > 0 ? (
@@ -992,7 +1130,9 @@ export default function HomeDashboard({
                       className="progress-line-chart"
                       viewBox={`0 0 ${trendChartDimensions.width} ${trendChartDimensions.height}`}
                       role="img"
-                      aria-label="Tracked hours per plan over time"
+                      aria-label={t('home.dashboard.progress.chartAria', {
+                        defaultValue: 'Tracked hours per plan over time',
+                      })}
                     >
                       <rect
                         className="progress-line-chart__background"
@@ -1165,14 +1305,29 @@ export default function HomeDashboard({
                     </ul>
                   </div>
                 ) : (
-                  <div className="progress-trends__empty">Add tasks to see timeline insights.</div>
+                  <div className="progress-trends__empty">
+                    {t('home.dashboard.progress.noTrends', {
+                      defaultValue: 'Add tasks to see timeline insights.',
+                    })}
+                  </div>
                 )}
               </section>
             </div>
 
-            <aside className="progress-summary" aria-label="Tracked time summary">
-              <div className="progress-summary__tabs" role="tablist" aria-label="Summary range">
-                {PROGRESS_SUMMARY_RANGES.map(range => {
+            <aside
+              className="progress-summary"
+              aria-label={t('home.dashboard.progress.summaryAria', {
+                defaultValue: 'Tracked time summary',
+              })}
+            >
+              <div
+                className="progress-summary__tabs"
+                role="tablist"
+                aria-label={t('home.dashboard.progress.summaryRangeAria', {
+                  defaultValue: 'Summary range',
+                })}
+              >
+                {progressSummaryRanges.map(range => {
                   const isActive = progressSummaryRange === range.id
                   return (
                     <button
@@ -1197,7 +1352,9 @@ export default function HomeDashboard({
                 >
                   <div className="progress-donut__center">
                     <span className="progress-donut__value">{formattedTrackedHours}</span>
-                    <span className="progress-donut__label">Total H</span>
+                    <span className="progress-donut__label">
+                      {t('home.dashboard.progress.totalHoursLabel', { defaultValue: 'Total H' })}
+                    </span>
                   </div>
                 </div>
 
@@ -1225,7 +1382,11 @@ export default function HomeDashboard({
                       </li>
                     ))
                   ) : (
-                    <li className="progress-legend__item is-empty">Track time to see a breakdown.</li>
+                    <li className="progress-legend__item is-empty">
+                      {t('home.dashboard.progress.noSegments', {
+                        defaultValue: 'Track time to see a breakdown.',
+                      })}
+                    </li>
                   )}
                 </ul>
               </div>
@@ -1253,12 +1414,14 @@ export default function HomeDashboard({
           >
             <header className="dashboard-modal__header">
               <h2 className="dashboard-modal__title" id={addPlanModalTitleId}>
-                Add plan
+                {t('home.dashboard.longTerm.modal.title', { defaultValue: 'Add plan' })}
               </h2>
               <button
                 type="button"
                 className="dashboard-modal__close"
-                aria-label="Close add plan dialog"
+                aria-label={t('home.dashboard.longTerm.modal.close', {
+                  defaultValue: 'Close add plan dialog',
+                })}
                 onClick={closeAddLongTerm}
               >
                 &times;
@@ -1266,18 +1429,22 @@ export default function HomeDashboard({
             </header>
             <form className="dashboard-modal__form" onSubmit={handleAddLongTerm}>
               <label className="task-panel__label" htmlFor="new-long-term-title">
-                Plan name
+                {t('home.dashboard.longTerm.modal.nameLabel', { defaultValue: 'Plan name' })}
               </label>
               <input
                 id="new-long-term-title"
                 className="input"
                 value={newLongTermTitle}
                 onChange={event => setNewLongTermTitle(event.target.value)}
-                placeholder="e.g. Exam preparation"
+                placeholder={t('home.dashboard.longTerm.modal.namePlaceholder', {
+                  defaultValue: 'e.g. Exam preparation',
+                })}
                 autoFocus
               />
               <label className="task-panel__label" htmlFor="new-long-term-description">
-                Summary (optional)
+                {t('home.dashboard.longTerm.modal.summaryLabel', {
+                  defaultValue: 'Summary (optional)',
+                })}
               </label>
               <textarea
                 id="new-long-term-description"
@@ -1285,14 +1452,16 @@ export default function HomeDashboard({
                 rows={3}
                 value={newLongTermDescription}
                 onChange={event => setNewLongTermDescription(event.target.value)}
-                placeholder="Add quick notes for this focus area."
+                placeholder={t('home.dashboard.longTerm.modal.summaryPlaceholder', {
+                  defaultValue: 'Add quick notes for this focus area.',
+                })}
               />
               <div className="dashboard-modal__actions">
                 <button type="button" className="btn ghost" onClick={closeAddLongTerm}>
-                  Cancel
+                  {t('home.dashboard.longTerm.modal.cancel', { defaultValue: 'Cancel' })}
                 </button>
                 <button type="submit" className="btn cat-primary">
-                  Save plan
+                  {t('home.dashboard.longTerm.modal.save', { defaultValue: 'Save plan' })}
                 </button>
               </div>
             </form>
@@ -1311,75 +1480,88 @@ export default function HomeDashboard({
           <div
             className="dashboard-modal__dialog"
             role="document"
-            onClick={event => event.stopPropagation()}
-          >
-            <header className="dashboard-modal__header">
-              <h2 className="dashboard-modal__title" id={addTaskModalTitleId}>
-                Add task
-              </h2>
-              <p className="dashboard-modal__subtitle">Plan: {selectedLongTerm.title}</p>
-              <button
-                type="button"
-                className="dashboard-modal__close"
-                aria-label="Close add task dialog"
-                onClick={closeAddShortTask}
-              >
-                &times;
+          onClick={event => event.stopPropagation()}
+        >
+          <header className="dashboard-modal__header">
+            <h2 className="dashboard-modal__title" id={addTaskModalTitleId}>
+              {t('home.dashboard.shortTerm.modal.title', { defaultValue: 'Add task' })}
+            </h2>
+            <p className="dashboard-modal__subtitle">
+              {t('home.dashboard.shortTerm.modal.planLabel', {
+                title: selectedLongTerm.title,
+                defaultValue: `Plan: ${selectedLongTerm.title}`,
+              })}
+            </p>
+            <button
+              type="button"
+              className="dashboard-modal__close"
+              aria-label={t('home.dashboard.shortTerm.modal.close', {
+                defaultValue: 'Close add task dialog',
+              })}
+              onClick={closeAddShortTask}
+            >
+              &times;
+            </button>
+          </header>
+          <form className="dashboard-modal__form" onSubmit={handleAddShortTask}>
+            <label className="task-panel__label" htmlFor="new-short-task-title">
+              {t('home.dashboard.shortTerm.modal.nameLabel', { defaultValue: 'Name' })}
+            </label>
+            <input
+              id="new-short-task-title"
+              className="input"
+              value={newShortTaskTitle}
+              onChange={event => setNewShortTaskTitle(event.target.value)}
+              placeholder={t('home.dashboard.shortTerm.modal.namePlaceholder', {
+                defaultValue: 'Focus session or deliverable',
+              })}
+              autoFocus
+            />
+            <label className="task-panel__label" htmlFor="new-short-task-description">
+              {t('home.dashboard.shortTerm.modal.descriptionLabel', {
+                defaultValue: 'Description (optional)',
+              })}
+            </label>
+            <textarea
+              id="new-short-task-description"
+              className="input"
+              rows={3}
+              value={newShortTaskDescription}
+              onChange={event => setNewShortTaskDescription(event.target.value)}
+              placeholder={t('home.dashboard.shortTerm.modal.descriptionPlaceholder', {
+                defaultValue: 'Add context, resources, or checkpoints.',
+              })}
+            />
+            <label className="task-panel__label" htmlFor="new-short-task-created">
+              {t('home.dashboard.shortTerm.modal.createdLabel', { defaultValue: 'Created time' })}
+            </label>
+            <input
+              id="new-short-task-created"
+              className="input"
+              type="text"
+              value={newShortTaskCreatedDisplay}
+              readOnly
+            />
+            <label className="task-panel__label" htmlFor="new-short-task-start">
+              {t('home.dashboard.shortTerm.modal.startLabel', { defaultValue: 'Start time' })}
+            </label>
+            <input
+              id="new-short-task-start"
+              className="input"
+              type="datetime-local"
+              value={newShortTaskStartAt}
+              onChange={event => setNewShortTaskStartAt(event.target.value)}
+            />
+            <div className="dashboard-modal__actions">
+              <button type="button" className="btn ghost" onClick={closeAddShortTask}>
+                {t('home.dashboard.shortTerm.modal.cancel', { defaultValue: 'Cancel' })}
               </button>
-            </header>
-            <form className="dashboard-modal__form" onSubmit={handleAddShortTask}>
-              <label className="task-panel__label" htmlFor="new-short-task-title">
-                Name
-              </label>
-              <input
-                id="new-short-task-title"
-                className="input"
-                value={newShortTaskTitle}
-                onChange={event => setNewShortTaskTitle(event.target.value)}
-                placeholder="Focus session or deliverable"
-                autoFocus
-              />
-              <label className="task-panel__label" htmlFor="new-short-task-description">
-                Description (optional)
-              </label>
-              <textarea
-                id="new-short-task-description"
-                className="input"
-                rows={3}
-                value={newShortTaskDescription}
-                onChange={event => setNewShortTaskDescription(event.target.value)}
-                placeholder="Add context, resources, or checkpoints."
-              />
-              <label className="task-panel__label" htmlFor="new-short-task-created">
-                Created time
-              </label>
-              <input
-                id="new-short-task-created"
-                className="input"
-                type="text"
-                value={newShortTaskCreatedDisplay}
-                readOnly
-              />
-              <label className="task-panel__label" htmlFor="new-short-task-start">
-                Start time
-              </label>
-              <input
-                id="new-short-task-start"
-                className="input"
-                type="datetime-local"
-                value={newShortTaskStartAt}
-                onChange={event => setNewShortTaskStartAt(event.target.value)}
-              />
-              <div className="dashboard-modal__actions">
-                <button type="button" className="btn ghost" onClick={closeAddShortTask}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn cat-primary">
-                  Save task
-                </button>
-              </div>
-            </form>
-          </div>
+              <button type="submit" className="btn cat-primary">
+                {t('home.dashboard.shortTerm.modal.save', { defaultValue: 'Save task' })}
+              </button>
+            </div>
+          </form>
+        </div>
         </div>
       )}
     </div>

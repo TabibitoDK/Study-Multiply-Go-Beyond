@@ -10,12 +10,10 @@ const TOOL_ROUTES = {
   flashcards: '/tools/flashcards',
   chat: '/tools/chat',
   stream: '/tools/stream',
-  summary: '/tools/summary',
-  pomodoro: '/tools/pomodoro',
   aichat: '/tools/aichat',
 }
 
-const SAME_TAB_TOOLS = new Set(['calendar', 'immerse', 'flashcards', 'chat', 'stream', 'summary', 'pomodoro', 'aichat'])
+const SAME_TAB_TOOLS = new Set(['calendar', 'immerse', 'flashcards', 'chat', 'stream', 'aichat'])
 
 export default function Tools() {
   const { t } = useTranslation()

@@ -4,8 +4,8 @@ import './flashcards.css';
 
 const LOCAL_STORAGE_KEY = 'flashcard_groups_v6_data';
 const STORAGE_VERSION = 2;
-const GEMINI_MODEL = 'gemini-1.5-flash-latest';
-const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent`;
 const AI_SETTINGS_STORAGE_KEY = 'flashcard_ai_settings_v1';
 const DEFAULT_FLASHCARD_LANGUAGE = 'en';
 const LANGUAGE_OPTIONS = [

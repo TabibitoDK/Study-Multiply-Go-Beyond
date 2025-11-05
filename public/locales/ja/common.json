@@ -1,4 +1,4 @@
-﻿{
+{
   "brand": {
     "title": "Nyacademy"
   },
@@ -72,11 +72,45 @@
     "appSubtitle": "Nyacademy",
     "moreEvents": "ほか{{count}}件",
     "modal": {
-      "title": "予定を追加",
-      "existing": "登録済みの予定",
-      "placeholder": "予定やメモを入力してください...",
-      "save": "保存する"
-    }
+      "title": "タスクをスケジュール",
+      "noPlans": "ダッシュボードでプランを作成してタスクをスケジュールしましょう。",
+      "existing": "登録済みのタスク",
+      "planLabel": "プラン",
+      "nameLabel": "タスク名",
+      "namePlaceholder": "フォーカスセッションや成果物など",
+      "descriptionLabel": "説明 (任意)",
+      "descriptionPlaceholder": "背景・リソース・チェックポイントなどを入力してください。",
+      "createdLabel": "作成日時",
+      "startLabel": "開始日時",
+      "save": "タスクを保存"
+    },
+    "stats": {
+      "focusDay": "フォーカスしている日",
+      "pickDay": "日付を選択してください",
+      "tasksPlanned_one": "{{count}}件のタスクを予定",
+      "tasksPlanned_other": "{{count}}件のタスクを予定",
+      "month": "今月",
+      "monthHint": "今月に予定されたタスク",
+      "nextSeven": "今後7日間",
+      "nextSevenHint": "今週の予定タスク"
+    },
+    "actions": {
+      "addTask": "タスクを追加"
+    },
+    "sidebar": {
+      "tasksCount_one": "{{count}}件のタスク",
+      "tasksCount_other": "{{count}}件のタスク",
+      "noTasks": "タスクはありません",
+      "noTasksYet": "予定されたタスクはありません。",
+      "removeTask": "タスクを削除",
+      "upcomingTitle": "今後の予定",
+      "upcomingEmpty": "今後のタスクはありません。"
+    },
+    "today": "今日",
+    "nav": {
+      "back": "ツール一覧に戻る"
+    },
+    "appTitle": "カレンダー"
   },
   "home": {
     "header": {
@@ -146,6 +180,102 @@
         "react": "Reactを使いこなす",
         "projects": "プロジェクトを5つ完成させる"
       }
+    },
+    "dashboard": {
+      "tabs": {
+        "aria": "ダッシュボードのセクション",
+        "tasks": "タスク",
+        "progress": "進捗"
+      },
+      "profile": {
+        "view": "プロフィールを見る"
+      },
+      "longTerm": {
+        "title": "長期プラン",
+        "add": "プランを追加",
+        "count": "プラン {{count}} 件",
+        "count_plural": "プラン {{count}} 件",
+        "taskCount": "タスク {{count}} 件",
+        "taskCount_plural": "タスク {{count}} 件",
+        "empty": "長期目標を管理するためにプランを追加しましょう。",
+        "status": {
+          "notStarted": "未着手",
+          "inProgress": "進行中",
+          "cancelled": "中止",
+          "completed": "完了"
+        },
+        "modal": {
+          "title": "プランを追加",
+          "close": "プラン追加ダイアログを閉じる",
+          "nameLabel": "プラン名",
+          "namePlaceholder": "例: 試験対策",
+          "summaryLabel": "概要 (任意)",
+          "summaryPlaceholder": "このフォーカス領域のメモを追加してください。",
+          "cancel": "キャンセル",
+          "save": "プランを保存"
+        }
+      },
+      "shortTerm": {
+        "placeholderTitle": "プランを選択してください",
+        "selectPrompt": "タスクを見るには左のプランを選択してください。",
+        "add": "タスクを追加",
+        "noteFallback": "このプランのポイントを簡単にメモしておきましょう。",
+        "statusLabel": "プランのステータス",
+        "filtersAria": "タスクのフィルター",
+        "searchLabel": "検索",
+        "searchPlaceholder": "タスクを検索...",
+        "statusFilterLabel": "ステータス",
+        "allStatuses": "すべてのステータス",
+        "empty": "まだタスクがありません。追加して進捗を始めましょう。",
+        "noMatches": "条件に合致するタスクがありません。フィルターを調整してください。",
+        "noSelection": "タスクを表示するには左の長期プランを選択してください。",
+        "openTask": "タスク「{{title}}」を開く",
+        "inFocus": "フォーカス中",
+        "statusFieldLabel": "ステータス",
+        "visibleSummary": "{{total}} 件中 {{visible}} 件を表示",
+        "modal": {
+          "title": "タスクを追加",
+          "planLabel": "プラン: {{title}}",
+          "close": "タスク追加ダイアログを閉じる",
+          "nameLabel": "名称",
+          "namePlaceholder": "フォーカスセッションや成果物など",
+          "descriptionLabel": "説明 (任意)",
+          "descriptionPlaceholder": "背景・リソース・チェックポイントなどを記載してください。",
+          "createdLabel": "作成日時",
+          "startLabel": "開始日時",
+          "cancel": "キャンセル",
+          "save": "タスクを保存"
+        }
+      },
+      "progress": {
+        "panelAria": "進捗タブ",
+        "viewsAria": "表示モード",
+        "title": "フォーカス時間データベース",
+        "tableAria": "フォーカス時間の一覧",
+        "tableHeaders": {
+          "task": "タスク",
+          "plan": "プラン",
+          "start": "開始",
+          "finish": "終了",
+          "minutes": "分",
+          "hours": "時間"
+        },
+        "empty": "短期タスクの記録はまだありません。",
+        "trendsAria": "プラン別進捗推移",
+        "badge": "学習時間",
+        "rangeLabel": "月別集計",
+        "chartAria": "プラン別の学習時間の推移",
+        "noTrends": "タスクを追加するとタイムラインが表示されます。",
+        "summaryAria": "学習時間のサマリー",
+        "summaryRangeAria": "サマリー期間",
+        "totalHoursLabel": "合計時間",
+        "noSegments": "時間を記録すると内訳が表示されます。"
+      },
+      "demoPlans": {
+        "capstone": "キャップストーン・プロジェクト",
+        "language": "語学スプリント",
+        "foundations": "基礎復習"
+      }
     }
   },
   "tools": {
@@ -153,23 +283,23 @@
     "subtitle": "学習を支えるツールをすぐに起動し、必要な機能を1か所にまとめましょう。",
     "apps": {
       "calendar": {
-        "title": "Calendar Planner",
+        "title": "カレンダー",
         "description": "学習予定や締め切りを一括管理し、スケジュールを可視化します。"
       },
       "immerse": {
-        "title": "Immerse Mode",
+        "title": "集中モード",
         "description": "雑念を遮り、全画面の集中レイアウトに切り替えます。"
       },
       "flashcards": {
-        "title": "Flashcards",
+        "title": "フラッシュカード",
         "description": "重要な概念を間隔反復で繰り返し復習し、記憶を定着させます。"
       },
       "chat": {
-        "title": "Studiny Chat",
+        "title": "AIチャット",
         "description": "課題の疑問をAIアシスタントに相談し、学習のサポートを受けましょう。"
       },
       "stream": {
-        "title": "Study Stream",
+        "title": "勉強会ルーム",
         "description": "仲間とバーチャル学習ルームに参加し、ホワイトボードで協働できます。"
       },
       "summary": {
@@ -187,20 +317,20 @@
     }
   },
   "immerse": {
-    "close": "Exit Immerse Mode",
+    "close": "集中モードから出る",
     "settings": {
-      "open": "Settings",
-      "title": "Immersive settings",
-      "close": "Close",
-      "typeLabel": "Background type",
-      "mediaLabel": "Media URL",
-      "mediaPlaceholder": "Paste an image or video link...",
-      "colorLabel": "Background color",
-      "apply": "Apply changes",
+      "open": "設定",
+      "title": "集中モード設定",
+      "close": "閉じる",
+      "typeLabel": "バックグラウンドタイプ",
+      "mediaLabel": "メディアURL",
+      "mediaPlaceholder": "イメージまたはビデオのURLを入力してください...",
+      "colorLabel": "カラーコード",
+      "apply": "変更を保存",
       "type": {
-        "image": "Image",
-        "video": "Video",
-        "color": "Solid color"
+        "image": "図像",
+        "video": "動画",
+        "color": "カラー"
       }
     }
   },
@@ -275,5 +405,98 @@
     "deleteConfirm": "本を削除しますか？",
     "deleteConfirmMsg": "この本を削除してもよろしいですか？この操作は元に戻せません。",
     "deleteConfirmBook": "\"{{title}}\"を削除してもよろしいですか？この操作は元に戻せません。"
+  },
+  "profile": {
+    "defaults": {
+      "goal1": "栄誉ある卒業を目指す",
+      "goal2": "React を習得する",
+      "goal3": "プロジェクトを5件完成させる"
+    },
+    "header": {
+      "joined": "参加: {{date}}",
+      "stats": {
+        "followers": "フォロワー",
+        "following": "フォロー中",
+        "posts": "投稿"
+      }
+    },
+    "actions": {
+      "current": "自分のプロフィール",
+      "viewMine": "自分のプロフィールを見る"
+    },
+    "sections": {
+      "bio": "自己紹介",
+      "bioEdit": "自己紹介を編集",
+      "interests": "興味・関心",
+      "interestsEdit": "興味・関心を編集",
+      "posts": "最近の投稿",
+      "goals": "目標",
+      "goalsEdit": "目標を編集"
+    },
+    "bio": {
+      "empty": "自己紹介はまだありません。"
+    },
+    "privacy": {
+      "public": "公開",
+      "private": "非公開"
+    },
+    "interests": {
+      "empty": "興味・関心はまだありません"
+    },
+    "posts": {
+      "shareTitle": "近況を共有する",
+      "shareSubtitle": "取り組んでいることを仲間に伝えましょう。",
+      "shareButton": "投稿を作成",
+      "empty": "まだ投稿がありません。",
+      "anonymous": "匿名の学習者",
+      "unknownHandle": "@unknown",
+      "viewProfileAria": "{{name}} さんのプロフィールを表示",
+      "viewBook": "「{{title}}」を見る",
+      "likes_one": "{{formattedCount}}件のいいね",
+      "likes_other": "{{formattedCount}}件のいいね",
+      "comments_one": "{{formattedCount}}件のコメント",
+      "comments_other": "{{formattedCount}}件のコメント"
+    },
+    "goals": {
+      "empty": "目標はまだありません"
+    },
+    "edit": {
+      "title": "編集",
+      "bioTitle": "自己紹介を編集",
+      "interestsTitle": "興味・関心を編集",
+      "goalsTitle": "目標を編集",
+      "bioPlaceholder": "自己紹介を書いてみましょう...",
+      "addInterestPlaceholder": "興味・関心を追加...",
+      "addGoalPlaceholder": "目標を追加...",
+      "addButton": "追加",
+      "makePrivate": "公開設定: クリックで非公開に変更",
+      "makePublic": "非公開: クリックで公開に変更",
+      "remove": "削除",
+      "interestsEmpty": "興味・関心はまだありません。上から追加できます。",
+      "goalsEmpty": "目標はまだありません。上から追加できます。",
+      "save": "変更を保存"
+    }
+  },
+  "social": {
+    "postModal": {
+      "title": "学習投稿を作成",
+      "subtitle": "今日の進捗や気付き、質問を共有しましょう。",
+      "close": "ダイアログを閉じる",
+      "fields": {
+        "text": "今日の内容",
+        "book": "教材 / リソース",
+        "duration": "学習時間",
+        "subject": "科目 / タグ"
+      },
+      "placeholders": {
+        "text": "学習したことや気付き、質問などを記入してください…",
+        "book": "例: Essential Calculus、講義スライド",
+        "duration": "例: 45分、2時間",
+        "subject": "例: 線形代数、小学2年漢字"
+      },
+      "characters_one": "{{formattedCount}}文字",
+      "characters_other": "{{formattedCount}}文字",
+      "submit": "投稿する"
+    }
   }
 }

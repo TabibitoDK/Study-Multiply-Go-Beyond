@@ -217,7 +217,7 @@ const ChatInput = ({ onSend, isLoading }) => {
                 handleSubmit(event);
               }
             }}
-            placeholder="Generate a document about..."
+            placeholder="ニャー神様、教えてください..."
             className="studiny-chat__textarea"
             rows={1}
             disabled={isLoading}
@@ -366,11 +366,11 @@ export default function StudinyChat({
                 <AppLogo className="studiny-chat__logo" />
               </div>
               <p className="studiny-chat__empty-description">
-                Generate a document by typing a topic below.
+                なんでもニャー神に聞いてみてください！
               </p>
               {!apiKey && (
                 <p className="studiny-chat__empty-description studiny-chat__muted">
-                  Add your Gemini API key to begin.
+                  ニャー神への通信鍵（Gemini API key）がない.
                 </p>
               )}
             </div>

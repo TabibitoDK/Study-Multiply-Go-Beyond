@@ -1,4 +1,4 @@
-export const TOOL_IDS = ['calendar', 'immerse', 'flashcards', 'chat', 'stream', 'summary', 'pomodoro']
+export const TOOL_IDS = ['calendar', 'immerse', 'flashcards', 'chat', 'stream']
 
 export const TOOL_DEFAULTS = {
   calendar: {
@@ -20,14 +20,6 @@ export const TOOL_DEFAULTS = {
   stream: {
     title: 'Study Stream',
     description: 'Virtual study rooms with video chat and collaborative whiteboard.'
-  },
-  summary: {
-    title: 'Summary AI',
-    description: 'Generate concise study notes from your materials.'
-  },
-  pomodoro: {
-    title: 'Pomodoro Coach',
-    description: 'Structure sessions with focus and break timers.'
   }
 }
 
@@ -46,16 +38,6 @@ export const TOOL_FEATURES = {
     'Join virtual study rooms with peers.',
     'Collaborate on shared whiteboard in real-time.',
     'Video chat while studying together.'
-  ],
-  summary: [
-    'Paste notes or upload text to generate concise takeaways.',
-    'Highlight key sentences and action items automatically.',
-    'Export summaries to share with your study partners.'
-  ],
-  pomodoro: [
-    'Customize focus and break lengths to match your rhythm.',
-    'Log completed cycles to visualize productivity trends.',
-    'Queue quick notes between sessions so you never lose ideas.'
   ]
 }
 

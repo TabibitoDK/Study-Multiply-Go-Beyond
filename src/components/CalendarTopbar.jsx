@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import LanguageSwitcher from './LanguageSwitcher.jsx'
 
 export default function CalendarTopbar() {
   const { t } = useTranslation()
@@ -19,6 +20,9 @@ export default function CalendarTopbar() {
           <h1>{t('calendar.appTitle', { defaultValue: 'Calendar' })}</h1>
           <p>{t('calendar.appSubtitle', { defaultValue: 'Nyacademy' })}</p>
         </div>
+      </div>
+      <div className="calendar-navbar-actions">
+        <LanguageSwitcher />
       </div>
     </header>
   )

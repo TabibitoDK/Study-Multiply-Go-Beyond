@@ -105,8 +105,8 @@ const AI_SUGGESTIONS = [
   'Generate follow-up questions for today’s topic.',
 ];
 
-const GEMINI_MODEL = 'gemini-1.5-flash-latest';
-const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent`;
 const MAX_ASSISTANT_HISTORY = 8;
 
 const MeetingRoom = () => {

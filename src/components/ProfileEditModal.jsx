@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X, Plus, Trash2, Globe, Lock, Save } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import './ProfileEditModal.css'
 
 export default function ProfileEditModal({
@@ -9,6 +10,7 @@ export default function ProfileEditModal({
   type, // 'bio', 'interests', 'goals'
   initialValue
 }) {
+  const { t } = useTranslation()
   const [value, setValue] = useState(initialValue || '')
   const [items, setItems] = useState(
     type === 'bio' ? [] : (Array.isArray(initialValue) ? initialValue.map(item =>
@@ -64,10 +66,14 @@ export default function ProfileEditModal({
 
   const getTitle = () => {
     switch (type) {
-      case 'bio': return 'Edit Bio'
-      case 'interests': return 'Edit Interests'
-      case 'goals': return 'Edit Goals'
-      default: return 'Edit'
+      case 'bio':
+        return t('profile.edit.bioTitle', { defaultValue: 'Edit Bio' })
+      case 'interests':
+        return t('profile.edit.interestsTitle', { defaultValue: 'Edit Interests' })
+      case 'goals':
+        return t('profile.edit.goalsTitle', { defaultValue: 'Edit Goals' })
+      default:
+        return t('profile.edit.title', { defaultValue: 'Edit' })
     }
   }
 
@@ -88,7 +94,9 @@ export default function ProfileEditModal({
                 className="bio-textarea"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                placeholder="Tell others about yourself..."
+                placeholder={t('profile.edit.bioPlaceholder', {
+                  defaultValue: 'Tell others about yourself...',
+                })}
                 rows={6}
               />
               <div className="privacy-toggle">
@@ -102,12 +110,12 @@ export default function ProfileEditModal({
                     {bioPrivacy ? (
                       <>
                         <Globe size={16} />
-                        Public
+                        {t('profile.privacy.public', { defaultValue: 'Public' })}
                       </>
                     ) : (
                       <>
                         <Lock size={16} />
-                        Private
+                        {t('profile.privacy.private', { defaultValue: 'Private' })}
                       </>
                     )}
                   </span>
@@ -122,12 +130,17 @@ export default function ProfileEditModal({
                   className="item-input"
                   value={newItemText}
                   onChange={(e) => setNewItemText(e.target.value)}
-                  placeholder={`Add ${type === 'interests' ? 'an interest' : 'a goal'}...`}
+                  placeholder={t(
+                    type === 'interests'
+                      ? 'profile.edit.addInterestPlaceholder'
+                      : 'profile.edit.addGoalPlaceholder',
+                    { defaultValue: type === 'interests' ? 'Add an interest...' : 'Add a goal...' },
+                  )}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
                 />
                 <button type="button" className="add-btn" onClick={handleAddItem}>
                   <Plus size={18} />
-                  Add
+                  {t('profile.edit.addButton', { defaultValue: 'Add' })}
                 </button>
               </div>
 
@@ -140,7 +153,9 @@ export default function ProfileEditModal({
                         type="button"
                         className={`privacy-btn ${item.isPublic ? 'public' : 'private'}`}
                         onClick={() => toggleItemPrivacy(index)}
-                        title={item.isPublic ? 'Public - Click to make private' : 'Private - Click to make public'}
+                        title={item.isPublic
+                          ? t('profile.edit.makePrivate', { defaultValue: 'Public - Click to make private' })
+                          : t('profile.edit.makePublic', { defaultValue: 'Private - Click to make public' })}
                       >
                         {item.isPublic ? <Globe size={16} /> : <Lock size={16} />}
                       </button>
@@ -148,7 +163,7 @@ export default function ProfileEditModal({
                         type="button"
                         className="remove-btn"
                         onClick={() => handleRemoveItem(index)}
-                        title="Remove"
+                        title={t('profile.edit.remove', { defaultValue: 'Remove' })}
                       >
                         <Trash2 size={16} />
                       </button>
@@ -156,7 +171,17 @@ export default function ProfileEditModal({
                   </div>
                 ))}
                 {items.length === 0 && (
-                  <p className="empty-message">No {type} yet. Add some above!</p>
+                  <p className="empty-message">
+                    {t(
+                      type === 'interests' ? 'profile.edit.interestsEmpty' : 'profile.edit.goalsEmpty',
+                      {
+                        defaultValue:
+                          type === 'interests'
+                            ? 'No interests yet. Add some above!'
+                            : 'No goals yet. Add some above!',
+                      },
+                    )}
+                  </p>
                 )}
               </div>
             </>
@@ -165,11 +190,11 @@ export default function ProfileEditModal({
 
         <div className="modal-footer">
           <button type="button" className="cancel-btn" onClick={onClose}>
-            Cancel
+            {t('buttons.cancel')}
           </button>
           <button type="button" className="save-btn" onClick={handleSave}>
             <Save size={18} />
-            Save Changes
+            {t('profile.edit.save', { defaultValue: 'Save Changes' })}
           </button>
         </div>
       </div>
