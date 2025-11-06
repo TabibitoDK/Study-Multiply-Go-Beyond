@@ -182,39 +182,42 @@ export default function RightPanel({ friends = [], groups = [], onOpenChat, isCo
         <section className="friends-panel__section friends-panel__section--primary">
           {renderSectionHeader(t('rightPanel.friends'), friends.length, 'friends')}
           
-          <div 
+          <div
             id="friends-section-content"
             className={`friends-panel__collapsible-content ${isFriendsExpanded ? 'friends-panel__collapsible-content--expanded' : 'friends-panel__collapsible-content--collapsed'}`}
             aria-hidden={!isFriendsExpanded}
           >
-            <div className="friends-panel__subsection">
-              <div className="friends-panel__subsection-heading">
-                <span className="friends-panel__subsection-title">{t('rightPanel.online')}</span>
-                {online.length > 0 && <span className="friends-panel__subsection-count">{online.length}</span>}
+            {/* This wrapper will contain both online and offline subsections and handle scrolling */}
+            <div className="friends-panel__scrollable-wrapper">
+              <div className="friends-panel__subsection">
+                <div className="friends-panel__subsection-heading">
+                  <span className="friends-panel__subsection-title">{t('rightPanel.online')}</span>
+                  {online.length > 0 && <span className="friends-panel__subsection-count">{online.length}</span>}
+                </div>
+
+                {online.length === 0 ? (
+                  <p className="friends-panel__empty">{t('rightPanel.nobodyOnline')}</p>
+                ) : (
+                  <div className="friends-panel__list">
+                    {online.map(renderFriendCard)}
+                  </div>
+                )}
               </div>
 
-              {online.length === 0 ? (
-                <p className="friends-panel__empty">{t('rightPanel.nobodyOnline')}</p>
-              ) : (
-                <div className="friends-panel__list friends-panel__list--scrollable">
-                  {online.map(renderFriendCard)}
+              <div className="friends-panel__subsection">
+                <div className="friends-panel__subsection-heading">
+                  <span className="friends-panel__subsection-title">{t('rightPanel.offline')}</span>
+                  {offline.length > 0 && <span className="friends-panel__subsection-count">{offline.length}</span>}
                 </div>
-              )}
-            </div>
 
-            <div className="friends-panel__subsection">
-              <div className="friends-panel__subsection-heading">
-                <span className="friends-panel__subsection-title">{t('rightPanel.offline')}</span>
-                {offline.length > 0 && <span className="friends-panel__subsection-count">{offline.length}</span>}
+                {offline.length === 0 ? (
+                  <p className="friends-panel__empty">{t('rightPanel.nobodyOffline')}</p>
+                ) : (
+                  <div className="friends-panel__list">
+                    {offline.map(renderFriendCard)}
+                  </div>
+                )}
               </div>
-
-              {offline.length === 0 ? (
-                <p className="friends-panel__empty">{t('rightPanel.nobodyOffline')}</p>
-              ) : (
-                <div className="friends-panel__list friends-panel__list--scrollable">
-                  {offline.map(renderFriendCard)}
-                </div>
-              )}
             </div>
           </div>
         </section>
@@ -223,18 +226,21 @@ export default function RightPanel({ friends = [], groups = [], onOpenChat, isCo
         <section className="friends-panel__section friends-panel__section--groups">
           {renderSectionHeader(t('rightPanel.groups'), groups.length, 'groups')}
           
-          <div 
+          <div
             id="groups-section-content"
             className={`friends-panel__collapsible-content ${isGroupsExpanded ? 'friends-panel__collapsible-content--expanded' : 'friends-panel__collapsible-content--collapsed'}`}
             aria-hidden={!isGroupsExpanded}
           >
-            {groups.length === 0 ? (
-              <p className="friends-panel__empty">{t('rightPanel.noGroupsYet')}</p>
-            ) : (
-              <div className="friends-panel__list">
-                {groups.map(renderGroupCard)}
-              </div>
-            )}
+            {/* Groups section has its own scrollable wrapper */}
+            <div className="friends-panel__scrollable-wrapper groups-scrollable-wrapper">
+              {groups.length === 0 ? (
+                <p className="friends-panel__empty">{t('rightPanel.noGroupsYet')}</p>
+              ) : (
+                <div className="friends-panel__list">
+                  {groups.map(renderGroupCard)}
+                </div>
+              )}
+            </div>
           </div>
         </section>
       </div>
