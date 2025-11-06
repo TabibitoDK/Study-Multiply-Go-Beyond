@@ -236,6 +236,9 @@ export default function HomeDashboard({
   const [isAddingLongTerm, setIsAddingLongTerm] = useState(false)
   const [newLongTermTitle, setNewLongTermTitle] = useState('')
   const [newLongTermDescription, setNewLongTermDescription] = useState('')
+  const [newLongTermDueDate, setNewLongTermDueDate] = useState(() =>
+    dayjs().add(30, 'day').format('YYYY-MM-DD'),
+  )
 
   const [isAddingShortTask, setIsAddingShortTask] = useState(false)
   const [newShortTaskTitle, setNewShortTaskTitle] = useState('')
@@ -243,6 +246,9 @@ export default function HomeDashboard({
   const [newShortTaskCreatedAt, setNewShortTaskCreatedAt] = useState(() => dayjs().toISOString())
   const [newShortTaskStartAt, setNewShortTaskStartAt] = useState(() =>
     dayjs().format('YYYY-MM-DDTHH:mm'),
+  )
+  const [newShortTaskDueAt, setNewShortTaskDueAt] = useState(() =>
+    dayjs().add(2, 'hour').format('YYYY-MM-DDTHH:mm'),
   )
   const [taskStatusFilter, setTaskStatusFilter] = useState('all')
   const [taskSearchQuery, setTaskSearchQuery] = useState('')
@@ -322,6 +328,20 @@ export default function HomeDashboard({
     }
   }, [plans, selectedLongTermId])
 
+  useEffect(() => {
+    if (!newShortTaskStartAt || !newShortTaskDueAt) {
+      return
+    }
+    const start = dayjs(newShortTaskStartAt)
+    const due = dayjs(newShortTaskDueAt)
+    if (!start.isValid()) {
+      return
+    }
+    if (!due.isValid() || due.isBefore(start)) {
+      setNewShortTaskDueAt(start.add(1, 'hour').format('YYYY-MM-DDTHH:mm'))
+    }
+  }, [newShortTaskStartAt, newShortTaskDueAt])
+
   const newShortTaskCreatedDisplay = useMemo(() => {
     const created = newShortTaskCreatedAt ? dayjs(newShortTaskCreatedAt) : null
     return created?.isValid() ? created.format('MMMM D, YYYY h:mm A') : ''
@@ -332,19 +352,24 @@ export default function HomeDashboard({
     setNewShortTaskTitle('')
     setNewShortTaskDescription('')
     setNewShortTaskCreatedAt(now.toISOString())
-    setNewShortTaskStartAt(now.format('YYYY-MM-DDTHH:mm'))
+    const startValue = now.format('YYYY-MM-DDTHH:mm')
+    const dueValue = now.add(2, 'hour').format('YYYY-MM-DDTHH:mm')
+    setNewShortTaskStartAt(startValue)
+    setNewShortTaskDueAt(dueValue)
   }
 
   function closeAddLongTerm() {
     setIsAddingLongTerm(false)
     setNewLongTermTitle('')
     setNewLongTermDescription('')
+    setNewLongTermDueDate(dayjs().add(30, 'day').format('YYYY-MM-DD'))
   }
 
   function handleOpenAddLongTerm() {
     closeAddShortTask()
     setNewLongTermTitle('')
     setNewLongTermDescription('')
+    setNewLongTermDueDate(dayjs().add(30, 'day').format('YYYY-MM-DD'))
     setIsAddingLongTerm(true)
   }
 
@@ -598,6 +623,7 @@ export default function HomeDashboard({
     const plan = addPlan({
       title,
       description: newLongTermDescription.trim(),
+      dueDate: newLongTermDueDate || null,
     })
     setSelectedLongTermId(plan.id)
     closeAddLongTerm()
@@ -614,12 +640,19 @@ export default function HomeDashboard({
     const parsedStart = newShortTaskStartAt ? dayjs(newShortTaskStartAt) : null
     const startAt =
       parsedStart && parsedStart.isValid() ? parsedStart.toISOString() : createdAt
+    const parsedDue = newShortTaskDueAt ? dayjs(newShortTaskDueAt) : null
+    let dueDate =
+      parsedDue && parsedDue.isValid() ? parsedDue.toISOString() : startAt
+    if (dueDate && startAt && dayjs(dueDate).isBefore(dayjs(startAt))) {
+      dueDate = startAt
+    }
 
     addTask(selectedLongTerm.id, {
       title,
       description,
       createdAt,
       startAt,
+      dueDate,
     })
 
     closeAddShortTask()
@@ -1456,6 +1489,16 @@ export default function HomeDashboard({
                   defaultValue: 'Add quick notes for this focus area.',
                 })}
               />
+              <label className="task-panel__label" htmlFor="new-long-term-due-date">
+                {t('home.dashboard.longTerm.modal.dueLabel', { defaultValue: 'Due date' })}
+              </label>
+              <input
+                id="new-long-term-due-date"
+                className="input"
+                type="date"
+                value={newLongTermDueDate}
+                onChange={event => setNewLongTermDueDate(event.target.value)}
+              />
               <div className="dashboard-modal__actions">
                 <button type="button" className="btn ghost" onClick={closeAddLongTerm}>
                   {t('home.dashboard.longTerm.modal.cancel', { defaultValue: 'Cancel' })}
@@ -1551,6 +1594,17 @@ export default function HomeDashboard({
               type="datetime-local"
               value={newShortTaskStartAt}
               onChange={event => setNewShortTaskStartAt(event.target.value)}
+            />
+            <label className="task-panel__label" htmlFor="new-short-task-due">
+              {t('home.dashboard.shortTerm.modal.dueLabel', { defaultValue: 'Due time' })}
+            </label>
+            <input
+              id="new-short-task-due"
+              className="input"
+              type="datetime-local"
+              value={newShortTaskDueAt}
+              min={newShortTaskStartAt || undefined}
+              onChange={event => setNewShortTaskDueAt(event.target.value)}
             />
             <div className="dashboard-modal__actions">
               <button type="button" className="btn ghost" onClick={closeAddShortTask}>

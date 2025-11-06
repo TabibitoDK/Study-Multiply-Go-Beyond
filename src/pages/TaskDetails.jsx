@@ -1,6 +1,9 @@
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { useTaskManager } from '../context/TaskManagerContext.jsx'
+
+const TASK_STATUS_OPTIONS = ['not-started', 'in-progress', 'cancelled', 'completed']
 
 const STATUS_LABELS = {
   'not-started': 'Not started',

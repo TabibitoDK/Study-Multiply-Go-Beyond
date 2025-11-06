@@ -32,6 +32,9 @@ export default function CalendarPage() {
   const [modalTaskDescription, setModalTaskDescription] = useState('')
   const [modalCreatedAt, setModalCreatedAt] = useState(() => dayjs().toISOString())
   const [modalStartAt, setModalStartAt] = useState(() => dayjs().format('YYYY-MM-DDTHH:mm'))
+  const [modalDueAt, setModalDueAt] = useState(() =>
+    dayjs().add(2, 'hour').format('YYYY-MM-DDTHH:mm'),
+  )
 
   const modalCreatedDisplay = useMemo(() => {
     const created = modalCreatedAt ? dayjs(modalCreatedAt) : null
@@ -79,6 +82,20 @@ export default function CalendarPage() {
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [modalOpen])
+
+  useEffect(() => {
+    if (!modalStartAt || !modalDueAt) {
+      return
+    }
+    const start = dayjs(modalStartAt)
+    const due = dayjs(modalDueAt)
+    if (!start.isValid()) {
+      return
+    }
+    if (!due.isValid() || due.isBefore(start)) {
+      setModalDueAt(start.add(1, 'hour').format('YYYY-MM-DDTHH:mm'))
+    }
+  }, [modalStartAt, modalDueAt])
 
   const monthLabel = useMemo(() => {
     const monthDate = new Date(currentYear, currentMonth, 1)
@@ -292,6 +309,7 @@ export default function CalendarPage() {
     const base = dateObj ? dayjs(dateObj) : now
     const start = base.hour(now.hour()).minute(now.minute()).second(0).millisecond(0)
     setModalStartAt(start.format('YYYY-MM-DDTHH:mm'))
+    setModalDueAt(start.add(2, 'hour').format('YYYY-MM-DDTHH:mm'))
     setModalDate(dateObj ?? start.toDate())
   }
 
@@ -307,6 +325,9 @@ export default function CalendarPage() {
     setModalDate(null)
     setModalTaskName('')
     setModalTaskDescription('')
+    const now = dayjs()
+    setModalStartAt(now.format('YYYY-MM-DDTHH:mm'))
+    setModalDueAt(now.add(2, 'hour').format('YYYY-MM-DDTHH:mm'))
   }
 
   function handleSaveEvent(event) {
@@ -321,12 +342,21 @@ export default function CalendarPage() {
     const startAt = parsedStart?.isValid()
       ? parsedStart.toISOString()
       : dayjs(modalDate).toISOString()
+    const parsedDue = modalDueAt ? dayjs(modalDueAt) : null
+    let dueDate =
+      parsedDue?.isValid()
+        ? parsedDue.toISOString()
+        : startAt
+    if (dueDate && startAt && dayjs(dueDate).isBefore(dayjs(startAt))) {
+      dueDate = startAt
+    }
 
     addTask(modalPlanId, {
       title: name,
       description,
       createdAt,
       startAt,
+      dueDate,
     })
 
     if (modalDateKey) {
@@ -764,6 +794,20 @@ export default function CalendarPage() {
                         setModalDate(parsed.toDate())
                       }
                     }}
+                    disabled={!hasPlans}
+                  />
+                </div>
+                <div className="calendar-modal-field">
+                  <label htmlFor="calendar-modal-due">
+                    {t('calendar.modal.dueLabel', { defaultValue: 'Due date & time' })}
+                  </label>
+                  <input
+                    id="calendar-modal-due"
+                    className="calendar-modal-input"
+                    type="datetime-local"
+                    value={modalDueAt}
+                    min={modalStartAt || undefined}
+                    onChange={event => setModalDueAt(event.target.value)}
                     disabled={!hasPlans}
                   />
                 </div>

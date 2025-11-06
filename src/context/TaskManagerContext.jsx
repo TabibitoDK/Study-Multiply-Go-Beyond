@@ -12,8 +12,35 @@ function createId(prefix) {
   return `${prefix}-${stamp}-${random}`
 }
 
+function toIsoOrNull(value) {
+  if (!value) return null
+  const parsed = dayjs(value)
+  return parsed.isValid() ? parsed.toISOString() : null
+}
+
+function computePlanDueDate(tasks, fallback = null) {
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    return fallback
+  }
+  return (
+    tasks.reduce((latest, task) => {
+      if (!task || !task.dueDate) {
+        return latest
+      }
+      if (!latest || task.dueDate > latest) {
+        return task.dueDate
+      }
+      return latest
+    }, null) ?? fallback
+  )
+}
+
+function hasOwn(object, key) {
+  return Object.prototype.hasOwnProperty.call(object, key)
+}
+
 function buildDefaultPlans() {
-  return [
+  const plans = [
     {
       id: 'lt-math-transfer',
       title: '編入数学徹底研究',
@@ -147,17 +174,32 @@ function buildDefaultPlans() {
       ],
     },
   ]
+
+  return plans.map(plan => {
+    const tasks = Array.isArray(plan.tasks)
+      ? plan.tasks.map(task => ({
+          ...task,
+          dueDate: task.dueDate ?? task.startAt ?? task.createdAt ?? task.completedAt ?? null,
+        }))
+      : []
+    return {
+      ...plan,
+      tasks,
+      dueDate: plan.dueDate ?? computePlanDueDate(tasks, null),
+    }
+  })
 }
 
 export function TaskManagerProvider({ children }) {
   const [plans, setPlans] = useState(() => buildDefaultPlans())
 
-  const addPlan = useCallback(({ title, description }) => {
+  const addPlan = useCallback(({ title, description, dueDate }) => {
     const plan = {
       id: createId('lt'),
       title,
       description: description ?? '',
       status: 'not-started',
+      dueDate: toIsoOrNull(dueDate),
       tasks: [],
     }
     setPlans(prev => [...prev, plan])
@@ -179,19 +221,24 @@ export function TaskManagerProvider({ children }) {
 
   const addTask = useCallback((planId, data) => {
     const now = dayjs()
-    const createdAt = data.createdAt ?? now.toISOString()
-    const startAt =
-      data.startAt && dayjs(data.startAt).isValid()
-        ? dayjs(data.startAt).toISOString()
-        : createdAt
+    const status = data.status ?? 'not-started'
+    const createdAt = toIsoOrNull(data.createdAt) ?? now.toISOString()
+    const startAt = toIsoOrNull(data.startAt) ?? createdAt
+    const dueDate = toIsoOrNull(data.dueDate) ?? startAt ?? createdAt
+    const completedAt =
+      status === 'completed'
+        ? toIsoOrNull(data.completedAt) ?? now.toISOString()
+        : null
+
     const task = {
       id: createId('task'),
       title: data.title,
       description: data.description ?? '',
-      status: data.status ?? 'not-started',
+      status,
       createdAt,
       startAt,
-      completedAt: data.completedAt ?? null,
+      dueDate,
+      completedAt,
     }
 
     setPlans(prev =>
@@ -199,9 +246,11 @@ export function TaskManagerProvider({ children }) {
         if (plan.id !== planId) {
           return plan
         }
+        const nextTasks = [task, ...(plan.tasks ?? [])]
         return {
           ...plan,
-          tasks: [task, ...(plan.tasks ?? [])],
+          tasks: nextTasks,
+          dueDate: computePlanDueDate(nextTasks, plan.dueDate ?? dueDate),
         }
       }),
     )
@@ -219,20 +268,22 @@ export function TaskManagerProvider({ children }) {
         if (plan.id !== planId) {
           return plan
         }
+        const nextTasks = (plan.tasks ?? []).map(task => {
+          if (task.id !== taskId) {
+            return task
+          }
+          previousTask = task
+          nextTask = {
+            ...task,
+            status,
+            completedAt: status === 'completed' ? completedAt : null,
+          }
+          return nextTask
+        })
         return {
           ...plan,
-          tasks: plan.tasks.map(task => {
-            if (task.id !== taskId) {
-              return task
-            }
-            previousTask = task
-            nextTask = {
-              ...task,
-              status,
-              completedAt,
-            }
-            return nextTask
-          }),
+          tasks: nextTasks,
+          dueDate: computePlanDueDate(nextTasks, plan.dueDate),
         }
       }),
     )
@@ -241,11 +292,99 @@ export function TaskManagerProvider({ children }) {
       nextTask = {
         ...previousTask,
         status,
-        completedAt,
+        completedAt: status === 'completed' ? completedAt : null,
       }
     }
 
     return { previousTask, nextTask }
+  }, [])
+
+  const updateTask = useCallback((planId, taskId, updates) => {
+    let updatedTask = null
+    const payload = updates ?? {}
+
+    setPlans(prev =>
+      prev.map(plan => {
+        if (plan.id !== planId) {
+          return plan
+        }
+
+        const nextTasks = (plan.tasks ?? []).map(task => {
+          if (task.id !== taskId) {
+            return task
+          }
+
+          const status = hasOwn(payload, 'status')
+            ? payload.status ?? 'not-started'
+            : task.status ?? 'not-started'
+
+          let createdAt = task.createdAt ?? null
+          if (hasOwn(payload, 'createdAt')) {
+            createdAt =
+              payload.createdAt === null
+                ? null
+                : toIsoOrNull(payload.createdAt) ?? createdAt ?? dayjs().toISOString()
+          }
+
+          let startAt = task.startAt ?? createdAt
+          if (hasOwn(payload, 'startAt')) {
+            startAt =
+              payload.startAt === null
+                ? null
+                : toIsoOrNull(payload.startAt) ?? startAt ?? createdAt
+          }
+
+          let dueDate = task.dueDate ?? startAt ?? createdAt
+          if (hasOwn(payload, 'dueDate')) {
+            dueDate =
+              payload.dueDate === null
+                ? null
+                : toIsoOrNull(payload.dueDate) ?? dueDate ?? startAt ?? createdAt
+          }
+
+          let completedAt = task.completedAt ?? null
+          if (hasOwn(payload, 'completedAt')) {
+            completedAt =
+              payload.completedAt === null
+                ? null
+                : toIsoOrNull(payload.completedAt) ?? completedAt
+          }
+
+          if (status === 'completed' && !completedAt) {
+            completedAt = dayjs().toISOString()
+          }
+
+          if (status !== 'completed') {
+            completedAt = null
+          }
+
+          const nextTask = {
+            ...task,
+            ...payload,
+            title: hasOwn(payload, 'title') ? payload.title ?? '' : task.title,
+            description: hasOwn(payload, 'description')
+              ? payload.description ?? ''
+              : task.description ?? '',
+            status,
+            createdAt,
+            startAt,
+            dueDate,
+            completedAt,
+          }
+
+          updatedTask = nextTask
+          return nextTask
+        })
+
+        return {
+          ...plan,
+          tasks: nextTasks,
+          dueDate: computePlanDueDate(nextTasks, plan.dueDate),
+        }
+      }),
+    )
+
+    return updatedTask
   }, [])
 
   const value = useMemo(
@@ -255,8 +394,9 @@ export function TaskManagerProvider({ children }) {
       addTask,
       updatePlanStatus,
       updateTaskStatus,
+      updateTask,
     }),
-    [plans, addPlan, addTask, updatePlanStatus, updateTaskStatus],
+    [plans, addPlan, addTask, updatePlanStatus, updateTaskStatus, updateTask],
   )
 
   return <TaskManagerContext.Provider value={value}>{children}</TaskManagerContext.Provider>
