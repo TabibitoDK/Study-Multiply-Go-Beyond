@@ -483,11 +483,13 @@ body {
 }
 
 .friends-panel__section--primary {
-  flex: 1 1 0;
+  flex: 0 1 auto;
+  min-height: 0;
 }
 
 .friends-panel__section--groups {
   flex: 0 0 auto;
+  min-height: 0;
 }
 
 .friends-panel__section-heading {
@@ -698,22 +700,29 @@ body {
   flex-direction: column;
   gap: 16px;
   flex: 1;
-  overflow: hidden;
+  overflow: auto;
+  min-height: 0;
 }
 
 .friends-panel__collapsible-content {
   overflow: hidden;
   transition: max-height 0.3s ease, opacity 0.3s ease;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .friends-panel__collapsible-content--expanded {
-  max-height: 1000px;
+  max-height: none;
   opacity: 1;
+  min-height: 0;
+  flex: 1;
 }
 
 .friends-panel__collapsible-content--collapsed {
   max-height: 0;
   opacity: 0;
+  flex: 0;
 }
 
 .friends-panel__list--scrollable {

@@ -4,7 +4,10 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 
 export default function RightPanel({ friends = [], groups = [], onOpenChat, isCollapsed, onToggleCollapse }) {
   const { t } = useTranslation()
-  const [expandedSection, setExpandedSection] = useState('friends') // 'friends' or 'groups'
+  const [expandedSections, setExpandedSections] = useState({
+    friends: true,
+    groups: true
+  })
 
   const online = friends.filter(friend => friend.status === 'online')
   const offline = friends.filter(friend => friend.status !== 'online')
@@ -16,7 +19,10 @@ export default function RightPanel({ friends = [], groups = [], onOpenChat, isCo
   }
 
   function toggleSection(section) {
-    setExpandedSection(expandedSection === section ? null : section)
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }))
   }
 
   function renderFriendCard(friend) {
@@ -109,7 +115,7 @@ export default function RightPanel({ friends = [], groups = [], onOpenChat, isCo
   }
 
   function renderSectionHeader(title, count, sectionKey) {
-    const isExpanded = expandedSection === sectionKey
+    const isExpanded = expandedSections[sectionKey]
     const ChevronIcon = isExpanded ? ChevronDown : ChevronRight
 
     return (
@@ -149,8 +155,8 @@ export default function RightPanel({ friends = [], groups = [], onOpenChat, isCo
     )
   }
 
-  const isFriendsExpanded = expandedSection === 'friends'
-  const isGroupsExpanded = expandedSection === 'groups'
+  const isFriendsExpanded = expandedSections.friends
+  const isGroupsExpanded = expandedSections.groups
 
   return (
     <aside className="panel friends-panel">
