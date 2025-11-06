@@ -13,6 +13,7 @@ import ImmerseMode from './pages/ImmerseMode.jsx'
 import HomeDashboard from './components/HomeDashboard.jsx'
 import Library from './pages/Library.jsx'
 import BookDetails from './pages/BookDetails.jsx'
+import FlowView from './pages/FlowView.jsx'
 import FlashcardsPage from './tools/flashcard/FlashcardsPage.jsx'
 import { StudinyChat } from './tools/studiny-chat/index.js'
 import { StudyStreamRoutes } from './tools/studystream/index.js'
@@ -221,6 +222,7 @@ export default function App() {
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/immerse" element={<ImmerseMode onClose={handleCloseImmerse} />} />
             <Route path="/tasks/:taskId" element={<TaskDetails />} />
+            <Route path="/plans/:planId/flow" element={<FlowView />} />
           </Routes>
         </main>
 

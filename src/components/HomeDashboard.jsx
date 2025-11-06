@@ -385,6 +385,11 @@ export default function HomeDashboard({
     setIsAddingShortTask(true)
   }
 
+  function handleOpenFlowView() {
+    if (!selectedLongTermId) return
+    navigate(`/plans/${selectedLongTermId}/flow`)
+  }
+
   useEffect(() => {
     function handleKeyDown(event) {
       if (event.key === 'Escape') {
@@ -837,14 +842,24 @@ export default function HomeDashboard({
                         })}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  className="btn"
-                  disabled={!selectedLongTerm}
-                  onClick={handleOpenAddShortTask}
-                >
-                  {t('home.dashboard.shortTerm.add', { defaultValue: 'Add task' })}
-                </button>
+                <div className="task-panel__actions">
+                  <button
+                    type="button"
+                    className="btn ghost task-panel__flow-button"
+                    disabled={!selectedLongTerm}
+                    onClick={handleOpenFlowView}
+                  >
+                    {t('home.dashboard.shortTerm.flowView', { defaultValue: 'Flow view (フロー表示)' })}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    disabled={!selectedLongTerm}
+                    onClick={handleOpenAddShortTask}
+                  >
+                    {t('home.dashboard.shortTerm.add', { defaultValue: 'Add task' })}
+                  </button>
+                </div>
               </div>
 
               {selectedLongTerm && (
