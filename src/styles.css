@@ -83,6 +83,20 @@ body {
   grid-template-columns: 1fr 52px;
 }
 
+.login-standalone {
+  min-height: 100vh;
+  background: var(--background);
+  display: flex;
+  flex-direction: column;
+}
+
+.login-main {
+  flex: 1;
+  padding: 0;
+  background: var(--background);
+  overflow: auto;
+}
+
 .canvas-wrap {
   padding: 16px;
   overflow: auto;

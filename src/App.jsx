@@ -22,6 +22,7 @@ import { TaskManagerProvider } from './context/TaskManagerContext.jsx'
 import TaskDetails from './pages/TaskDetails.jsx'
 import { profiles, getProfileById, getProfilesExcept } from './lib/profiles.js'
 import { getPosts } from './lib/posts.js'
+import LoginPage from './pages/LoginPage.jsx'
 
 const CURRENT_USER_ID = 1
 
@@ -76,7 +77,8 @@ export default function App() {
 
   const currentUser = getProfileById(CURRENT_USER_ID) ?? profiles[0]
   const friends = derivedFriends
-  const showRightPanel = location.pathname === '/' || location.pathname.startsWith('/tools') || location.pathname.startsWith('/social') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/chat') || location.pathname.startsWith('/library')
+  const isLoginPage = location.pathname.startsWith('/login')
+  const showRightPanel = !isLoginPage && (location.pathname === '/' || location.pathname.startsWith('/tools') || location.pathname.startsWith('/social') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/chat') || location.pathname.startsWith('/library'))
   const isCalendarApp = location.pathname.startsWith('/calendar')
 
   // Check if it's a tool page (but not immerse)
@@ -84,10 +86,11 @@ export default function App() {
   const isToolPage = toolMatch !== null
   const toolId = toolMatch ? toolMatch[1] : null
 
-  let containerClass = 'container'
-  if (showRightPanel) {
+  let containerClass = isLoginPage ? 'login-standalone' : 'container'
+  if (!isLoginPage && showRightPanel) {
     containerClass = sidebarCollapsed ? 'container has-sidebar-collapsed' : 'container has-sidebar'
   }
+  const mainClassName = isLoginPage ? 'login-main' : 'canvas-wrap'
 
   function openProfile(profileId) {
     navigate(`/profile/${profileId}`)
@@ -153,15 +156,16 @@ export default function App() {
   return (
     <TaskManagerProvider>
       <div className={containerClass}>
-        {isCalendarApp ? (
-          <CalendarTopbar />
-        ) : isToolPage ? (
-          <ToolTopbar toolId={toolId} />
-        ) : (
-          <Navbar currentTask={currentTask} lastCompletedTask={lastCompletedTask} />
-        )}
+        {!isLoginPage &&
+          (isCalendarApp ? (
+            <CalendarTopbar />
+          ) : isToolPage ? (
+            <ToolTopbar toolId={toolId} />
+          ) : (
+            <Navbar currentTask={currentTask} lastCompletedTask={lastCompletedTask} />
+          ))}
 
-        <main className="canvas-wrap">
+        <main className={mainClassName}>
           <Routes>
             <Route
               path="/"
@@ -215,6 +219,7 @@ export default function App() {
             />
             <Route path="/library" element={<Library />} />
             <Route path="/library/:id" element={<BookDetails />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="/tools" element={<Tools />} />
             <Route path="/tools/flashcards" element={<FlashcardsPage />} />
             <Route path="/tools/chat" element={<StudinyChat title="Studiny Chat" />} />
