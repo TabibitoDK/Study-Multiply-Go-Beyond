@@ -74,6 +74,15 @@ const FlowTaskNode = memo(function FlowTaskNode({ data }) {
   )
 })
 
+function getEdgePairKeyFromEndpoints(a, b) {
+  const [first, second] = [a, b].sort()
+  return `${first}__${second}`
+}
+
+function getEdgePairKey(edge) {
+  return getEdgePairKeyFromEndpoints(edge.source, edge.target)
+}
+
 function getNodeCenter(node) {
   const position = node.positionAbsolute ?? node.position ?? { x: 0, y: 0 }
   const width = node.measured?.width ?? node.width ?? DEFAULT_NODE_WIDTH
@@ -161,12 +170,9 @@ function FloatingEdge({ id, source, target, markerEnd, style, selected }) {
     targetNode,
   )
 
-  const siblingKey = [source, target].sort().join('__')
+  const siblingKey = getEdgePairKeyFromEndpoints(source, target)
   const siblings = getEdges()
-    .filter(edge => {
-      const edgeKey = [edge.source, edge.target].sort().join('__')
-      return edgeKey === siblingKey
-    })
+    .filter(edge => getEdgePairKey(edge) === siblingKey)
     .sort((a, b) => (a.id > b.id ? 1 : -1))
 
   if (siblings.length > 1) {
@@ -369,29 +375,54 @@ export default function FlowView() {
 
   const handleToggleEdgeArrow = useCallback(
     edgeId => {
-      setEdges(prev =>
-        prev.map(edge => {
-          if (edge.id !== edgeId) return edge
-          const hasArrow = !(edge.data?.hasArrow ?? false)
-          return {
-            ...edge,
-            data: {
-              ...edge.data,
-              hasArrow,
-            },
-            markerEnd: hasArrow ? { ...ARROW_MARKER } : undefined,
-          }
-        }),
-      )
+      setEdges(prev => {
+        const edgeIndex = prev.findIndex(edge => edge.id === edgeId)
+        if (edgeIndex === -1) return prev
+
+        const current = prev[edgeIndex]
+        const currentlyHasArrow = current.data?.hasArrow ?? true
+        if (!currentlyHasArrow) {
+          // Already a simple line; cannot revert to arrow without redrawing.
+          return prev
+        }
+
+        const nextEdge = {
+          ...current,
+          data: {
+            ...current.data,
+            hasArrow: false,
+          },
+          markerEnd: undefined,
+        }
+
+        const pairKey = getEdgePairKey(current)
+
+        const nextEdges = prev
+          .map((edge, index) => (index === edgeIndex ? nextEdge : edge))
+          .filter(edge => {
+            if (edge.id === nextEdge.id) return true
+            const hasArrow = edge.data?.hasArrow ?? true
+            if (!hasArrow && getEdgePairKey(edge) === pairKey) {
+              return false
+            }
+            return true
+          })
+
+        return nextEdges
+      })
     },
     [setEdges],
   )
 
   const handleToggleSelectedEdgeArrow = useCallback(() => {
     if (!edgeContextMenu?.edgeId) return
+    const edge = edges.find(candidate => candidate.id === edgeContextMenu.edgeId)
+    if (!edge || edge.data?.hasArrow === false) {
+      return
+    }
     handleToggleEdgeArrow(edgeContextMenu.edgeId)
     setEdgeContextMenu(null)
-  }, [edgeContextMenu, handleToggleEdgeArrow])
+  }, [edgeContextMenu, edges, handleToggleEdgeArrow])
 
   useEffect(() => {
     if (!edgeContextMenu) return
@@ -498,18 +529,18 @@ export default function FlowView() {
           onPointerDown={event => event.stopPropagation()}
           onContextMenu={event => event.preventDefault()}
         >
-          <button
-            type="button"
-            className="flow-view__context-menu-item"
-            onClick={event => {
-              event.stopPropagation()
-              handleToggleSelectedEdgeArrow()
-            }}
-          >
-            {contextEdge.data?.hasArrow
-              ? t('flowView.contextMenu.useSimpleLine', { defaultValue: 'Use simple line' })
-              : t('flowView.contextMenu.useArrow', { defaultValue: 'Use arrow line' })}
-          </button>
+          {contextEdge.data?.hasArrow !== false ? (
+            <button
+              type="button"
+              className="flow-view__context-menu-item"
+              onClick={event => {
+                event.stopPropagation()
+                handleToggleSelectedEdgeArrow()
+              }}
+            >
+              {t('flowView.contextMenu.useSimpleLine', { defaultValue: 'Use simple line' })}
+            </button>
+          ) : null}
           <button
             type="button"
             className="flow-view__context-menu-item"
