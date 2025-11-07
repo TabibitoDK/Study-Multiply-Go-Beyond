@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import ReactFlow, {
   Background,
+  BaseEdge,
   ConnectionMode,
   Controls,
   Handle,
@@ -10,8 +11,10 @@ import ReactFlow, {
   MiniMap,
   Position,
   addEdge,
+  getSmoothStepPath,
   useEdgesState,
   useNodesState,
+  useReactFlow,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { useTaskManager } from '../context/TaskManagerContext.jsx'
@@ -46,38 +49,24 @@ const EDGE_STYLE = {
   strokeLinecap: 'round',
 }
 const DEFAULT_EDGE_OPTIONS = {
-  type: 'smoothstep',
+  type: 'floating',
   style: EDGE_STYLE,
 }
-
-const NODE_HANDLES = [
-  { id: 'top-target', type: 'target', position: Position.Top, direction: 'top', offsetKey: 'left', offsetValue: '30%' },
-  { id: 'top-source', type: 'source', position: Position.Top, direction: 'top', offsetKey: 'left', offsetValue: '70%' },
-  { id: 'bottom-target', type: 'target', position: Position.Bottom, direction: 'bottom', offsetKey: 'left', offsetValue: '30%' },
-  { id: 'bottom-source', type: 'source', position: Position.Bottom, direction: 'bottom', offsetKey: 'left', offsetValue: '70%' },
-  { id: 'left-target', type: 'target', position: Position.Left, direction: 'left', offsetKey: 'top', offsetValue: '30%' },
-  { id: 'left-source', type: 'source', position: Position.Left, direction: 'left', offsetKey: 'top', offsetValue: '70%' },
-  { id: 'right-target', type: 'target', position: Position.Right, direction: 'right', offsetKey: 'top', offsetValue: '30%' },
-  { id: 'right-source', type: 'source', position: Position.Right, direction: 'right', offsetKey: 'top', offsetValue: '70%' },
-]
+const DEFAULT_NODE_HEIGHT = 160
 
 const FlowTaskNode = memo(function FlowTaskNode({ data }) {
   return (
     <div className={`flow-node flow-node--${data.status ?? 'not-started'}`}>
-      {NODE_HANDLES.map(handle => (
-        <Handle
-          key={handle.id}
-          id={handle.id}
-          type={handle.type}
-          position={handle.position}
-          className={`flow-node__handle flow-node__handle--${handle.direction}`}
-          style={
-            handle.offsetKey
-              ? { [handle.offsetKey]: handle.offsetValue }
-              : undefined
-          }
-        />
-      ))}
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="flow-node__handle flow-node__handle--left"
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="flow-node__handle flow-node__handle--right"
+      />
       <span className="flow-node__status">{data.statusLabel}</span>
       <h3 className="flow-node__title">{data.title}</h3>
       {data.description ? <p className="flow-node__description">{data.description}</p> : null}
@@ -85,8 +74,142 @@ const FlowTaskNode = memo(function FlowTaskNode({ data }) {
   )
 })
 
+function getNodeCenter(node) {
+  const position = node.positionAbsolute ?? node.position ?? { x: 0, y: 0 }
+  const width = node.measured?.width ?? node.width ?? DEFAULT_NODE_WIDTH
+  const height = node.measured?.height ?? node.height ?? DEFAULT_NODE_HEIGHT
+  return {
+    x: position.x + width / 2,
+    y: position.y + height / 2,
+    width,
+    height,
+  }
+}
+
+function getFloatingEdgeParams(sourceNode, targetNode) {
+  const sourceCenter = getNodeCenter(sourceNode)
+  const targetCenter = getNodeCenter(targetNode)
+  const horizontal = Math.abs(sourceCenter.x - targetCenter.x) >= Math.abs(sourceCenter.y - targetCenter.y)
+
+  const sourcePosition = horizontal
+    ? sourceCenter.x < targetCenter.x
+      ? Position.Right
+      : Position.Left
+    : sourceCenter.y < targetCenter.y
+      ? Position.Bottom
+      : Position.Top
+
+  const targetPosition = horizontal
+    ? sourceCenter.x < targetCenter.x
+      ? Position.Left
+      : Position.Right
+    : sourceCenter.y < targetCenter.y
+      ? Position.Top
+      : Position.Bottom
+
+  const sourceX =
+    sourceCenter.x +
+    (sourcePosition === Position.Right
+      ? sourceCenter.width / 2
+      : sourcePosition === Position.Left
+        ? -sourceCenter.width / 2
+        : 0)
+  const sourceY =
+    sourceCenter.y +
+    (sourcePosition === Position.Bottom
+      ? sourceCenter.height / 2
+      : sourcePosition === Position.Top
+        ? -sourceCenter.height / 2
+        : 0)
+
+  const targetX =
+    targetCenter.x +
+    (targetPosition === Position.Right
+      ? targetCenter.width / 2
+      : targetPosition === Position.Left
+        ? -targetCenter.width / 2
+        : 0)
+  const targetY =
+    targetCenter.y +
+    (targetPosition === Position.Bottom
+      ? targetCenter.height / 2
+      : targetPosition === Position.Top
+        ? -targetCenter.height / 2
+        : 0)
+
+  return {
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    sourcePosition,
+    targetPosition,
+  }
+}
+
+function FloatingEdge({ id, source, target, markerEnd, style, selected }) {
+  const { getNode, getEdges } = useReactFlow()
+  const sourceNode = getNode(source)
+  const targetNode = getNode(target)
+
+  if (!sourceNode || !targetNode) {
+    return null
+  }
+
+  let { sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition } = getFloatingEdgeParams(
+    sourceNode,
+    targetNode,
+  )
+
+  const siblingKey = [source, target].sort().join('__')
+  const siblings = getEdges()
+    .filter(edge => {
+      const edgeKey = [edge.source, edge.target].sort().join('__')
+      return edgeKey === siblingKey
+    })
+    .sort((a, b) => (a.id > b.id ? 1 : -1))
+
+  if (siblings.length > 1) {
+    const index = siblings.findIndex(edge => edge.id === id)
+    if (index !== -1) {
+      const offsetAmount = 16
+      const offset = (index - (siblings.length - 1) / 2) * offsetAmount
+      const isHorizontal = sourcePosition === Position.Left || sourcePosition === Position.Right
+      if (isHorizontal) {
+        sourceY += offset
+        targetY += offset
+      } else {
+        sourceX += offset
+        targetX += offset
+      }
+    }
+  }
+
+  const [edgePath] = getSmoothStepPath({
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    sourcePosition,
+    targetPosition,
+  })
+
+  return (
+    <BaseEdge
+      id={id}
+      path={edgePath}
+      markerEnd={markerEnd}
+      style={{ ...EDGE_STYLE, ...(style ?? {}) }}
+      selected={selected}
+    />
+  )
+}
+
 const nodeTypes = {
   task: FlowTaskNode,
+}
+const edgeTypes = {
+  floating: FloatingEdge,
 }
 
 function sanitizeEdgesForStorage(edges) {
@@ -98,6 +221,7 @@ function hydrateEdgesFromStorage(edges) {
     const hasArrow = edge?.data?.hasArrow ?? false
     return {
       ...edge,
+      type: 'floating',
       style: { ...EDGE_STYLE, ...(edge.style ?? {}) },
       markerEnd: hasArrow ? { ...ARROW_MARKER } : undefined,
     }
@@ -205,7 +329,7 @@ export default function FlowView() {
           {
             ...connection,
             id: `edge-${connection.source}-${connection.target}-${Date.now()}`,
-            type: 'smoothstep',
+            type: 'floating',
             data: { hasArrow: true },
             markerEnd: { ...ARROW_MARKER },
             style: { ...EDGE_STYLE },
@@ -351,7 +475,9 @@ export default function FlowView() {
             onEdgeClick={handleDismissContextMenu}
             onEdgeContextMenu={handleEdgeContextMenu}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
+            connectionLineStyle={EDGE_STYLE}
             fitView
             connectionMode={ConnectionMode.Loose}
             snapToGrid

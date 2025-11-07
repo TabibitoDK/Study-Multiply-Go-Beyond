@@ -6321,14 +6321,6 @@ body {
   border-radius: 999px;
 }
 
-.flow-node__handle--top {
-  top: -8px !important;
-}
-
-.flow-node__handle--bottom {
-  bottom: -8px !important;
-}
-
 .flow-node__handle--left {
   left: -8px !important;
 }
