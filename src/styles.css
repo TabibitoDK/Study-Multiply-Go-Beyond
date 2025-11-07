@@ -6236,7 +6236,7 @@ body {
 .flow-view__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 16px;
   flex-wrap: wrap;
 }
@@ -6257,34 +6257,9 @@ body {
   text-wrap: balance;
 }
 
-.flow-view__subtitle {
-  margin: 0;
-  color: var(--main-muted);
-  font-size: 0.95rem;
-}
-
-.flow-view__header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.flow-view__toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
-  color: var(--main-muted);
-  cursor: pointer;
-}
-
 .flow-view__layout {
   flex: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 24px;
+  display: block;
   min-height: 520px;
 }
 
@@ -6299,100 +6274,6 @@ body {
 
 .flow-view__canvas .react-flow {
   min-height: inherit;
-}
-
-.flow-view__sidebar {
-  background: #ffffff;
-  border-radius: 24px;
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.06);
-}
-
-.flow-view__sidebar-title {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.flow-view__sidebar-empty {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--main-muted);
-}
-
-.flow-view__edge-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.flow-view__edge-item {
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 16px;
-  padding: 12px 14px;
-  background: rgba(249, 250, 251, 0.9);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.flow-view__edge-text {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: rgba(17, 17, 17, 0.82);
-}
-
-.flow-view__edge-source,
-.flow-view__edge-target {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.flow-view__edge-arrow {
-  color: rgba(45, 45, 45, 0.6);
-}
-
-.flow-view__edge-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.flow-view__edge-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
-  color: var(--main-muted);
-}
-
-.flow-view__edge-toggle input {
-  accent-color: rgba(17, 17, 17, 0.68);
-}
-
-.flow-view__edge-delete {
-  border: none;
-  background: transparent;
-  color: rgba(220, 38, 38, 0.82);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 4px 0;
 }
 
 .flow-node {
@@ -6432,6 +6313,30 @@ body {
   line-height: 1.4;
 }
 
+.flow-node__handle {
+  width: 14px !important;
+  height: 14px !important;
+  border: 2px solid rgba(17, 17, 17, 0.88);
+  background: #ffffff;
+  border-radius: 999px;
+}
+
+.flow-node__handle--top {
+  top: -8px !important;
+}
+
+.flow-node__handle--bottom {
+  bottom: -8px !important;
+}
+
+.flow-node__handle--left {
+  left: -8px !important;
+}
+
+.flow-node__handle--right {
+  right: -8px !important;
+}
+
 .flow-node--in-progress {
   border-color: rgba(59, 130, 246, 0.85);
 }
@@ -6442,6 +6347,37 @@ body {
 
 .flow-node--cancelled {
   border-color: rgba(248, 113, 113, 0.85);
+}
+
+.flow-view__context-menu {
+  position: fixed;
+  z-index: 1000;
+  background: #111111;
+  color: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);
+  padding: 6px;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.flow-view__context-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.flow-view__context-menu-item:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .flow-view--empty {
@@ -6476,11 +6412,7 @@ body {
 
 @media (max-width: 1200px) {
   .flow-view__layout {
-    grid-template-columns: 1fr;
-  }
-
-  .flow-view__sidebar {
-    order: -1;
+    min-height: 440px;
   }
 }
 
@@ -6492,11 +6424,6 @@ body {
   .flow-view__header {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .flow-view__header-actions {
-    width: 100%;
-    justify-content: flex-start;
   }
 
   .flow-view__canvas {

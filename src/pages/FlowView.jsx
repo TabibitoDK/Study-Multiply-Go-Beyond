@@ -5,8 +5,10 @@ import ReactFlow, {
   Background,
   ConnectionMode,
   Controls,
+  Handle,
   MarkerType,
   MiniMap,
+  Position,
   addEdge,
   useEdgesState,
   useNodesState,
@@ -38,10 +40,44 @@ const ARROW_MARKER = {
 const DEFAULT_NODE_WIDTH = 280
 const GRID_GAP_X = 320
 const GRID_GAP_Y = 200
+const EDGE_STYLE = {
+  strokeWidth: 3,
+  stroke: '#111111',
+  strokeLinecap: 'round',
+}
+const DEFAULT_EDGE_OPTIONS = {
+  type: 'smoothstep',
+  style: EDGE_STYLE,
+}
+
+const NODE_HANDLES = [
+  { id: 'top-target', type: 'target', position: Position.Top, direction: 'top', offsetKey: 'left', offsetValue: '30%' },
+  { id: 'top-source', type: 'source', position: Position.Top, direction: 'top', offsetKey: 'left', offsetValue: '70%' },
+  { id: 'bottom-target', type: 'target', position: Position.Bottom, direction: 'bottom', offsetKey: 'left', offsetValue: '30%' },
+  { id: 'bottom-source', type: 'source', position: Position.Bottom, direction: 'bottom', offsetKey: 'left', offsetValue: '70%' },
+  { id: 'left-target', type: 'target', position: Position.Left, direction: 'left', offsetKey: 'top', offsetValue: '30%' },
+  { id: 'left-source', type: 'source', position: Position.Left, direction: 'left', offsetKey: 'top', offsetValue: '70%' },
+  { id: 'right-target', type: 'target', position: Position.Right, direction: 'right', offsetKey: 'top', offsetValue: '30%' },
+  { id: 'right-source', type: 'source', position: Position.Right, direction: 'right', offsetKey: 'top', offsetValue: '70%' },
+]
 
 const FlowTaskNode = memo(function FlowTaskNode({ data }) {
   return (
     <div className={`flow-node flow-node--${data.status ?? 'not-started'}`}>
+      {NODE_HANDLES.map(handle => (
+        <Handle
+          key={handle.id}
+          id={handle.id}
+          type={handle.type}
+          position={handle.position}
+          className={`flow-node__handle flow-node__handle--${handle.direction}`}
+          style={
+            handle.offsetKey
+              ? { [handle.offsetKey]: handle.offsetValue }
+              : undefined
+          }
+        />
+      ))}
       <span className="flow-node__status">{data.statusLabel}</span>
       <h3 className="flow-node__title">{data.title}</h3>
       {data.description ? <p className="flow-node__description">{data.description}</p> : null}
@@ -62,6 +98,7 @@ function hydrateEdgesFromStorage(edges) {
     const hasArrow = edge?.data?.hasArrow ?? false
     return {
       ...edge,
+      style: { ...EDGE_STYLE, ...(edge.style ?? {}) },
       markerEnd: hasArrow ? { ...ARROW_MARKER } : undefined,
     }
   })
@@ -108,18 +145,12 @@ export default function FlowView() {
   const navigate = useNavigate()
   const { planId } = useParams()
   const { plans } = useTaskManager()
-
-  const [defaultArrow, setDefaultArrow] = useState(true)
+  const [edgeContextMenu, setEdgeContextMenu] = useState(null)
 
   const plan = useMemo(
     () => plans.find(candidate => candidate.id === planId) ?? null,
     [plans, planId],
   )
-
-  const taskLookup = useMemo(() => {
-    if (!plan) return new Map()
-    return new Map((plan.tasks ?? []).map(task => [task.id, task]))
-  }, [plan])
 
   const initialNodes = useMemo(() => buildInitialNodes(plan, t), [plan, t])
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
@@ -175,23 +206,48 @@ export default function FlowView() {
             ...connection,
             id: `edge-${connection.source}-${connection.target}-${Date.now()}`,
             type: 'smoothstep',
-            data: { hasArrow: defaultArrow },
-            markerEnd: defaultArrow ? { ...ARROW_MARKER } : undefined,
+            data: { hasArrow: true },
+            markerEnd: { ...ARROW_MARKER },
+            style: { ...EDGE_STYLE },
           },
           prev,
         ),
       )
     },
-    [defaultArrow, setEdges],
+    [setEdges],
   )
+
+  const handleDeleteEdge = useCallback(
+    edgeId => {
+      setEdges(prev => prev.filter(edge => edge.id !== edgeId))
+    },
+    [setEdges],
+  )
+
+  const handleEdgeContextMenu = useCallback((event, edge) => {
+    event.preventDefault()
+    setEdgeContextMenu({
+      edgeId: edge.id,
+      x: event.clientX,
+      y: event.clientY,
+    })
+  }, [])
+
+  const handleDismissContextMenu = useCallback(() => {
+    setEdgeContextMenu(null)
+  }, [])
+
+  const handleDeleteSelectedEdge = useCallback(() => {
+    if (!edgeContextMenu?.edgeId) return
+    handleDeleteEdge(edgeContextMenu.edgeId)
+    setEdgeContextMenu(null)
+  }, [edgeContextMenu, handleDeleteEdge])
 
   const handleToggleEdgeArrow = useCallback(
     edgeId => {
       setEdges(prev =>
         prev.map(edge => {
-          if (edge.id !== edgeId) {
-            return edge
-          }
+          if (edge.id !== edgeId) return edge
           const hasArrow = !(edge.data?.hasArrow ?? false)
           return {
             ...edge,
@@ -207,19 +263,37 @@ export default function FlowView() {
     [setEdges],
   )
 
-  const handleDeleteEdge = useCallback(
-    edgeId => {
-      setEdges(prev => prev.filter(edge => edge.id !== edgeId))
-    },
-    [setEdges],
-  )
+  const handleToggleSelectedEdgeArrow = useCallback(() => {
+    if (!edgeContextMenu?.edgeId) return
+    handleToggleEdgeArrow(edgeContextMenu.edgeId)
+    setEdgeContextMenu(null)
+  }, [edgeContextMenu, handleToggleEdgeArrow])
 
-  const handleClearEdges = useCallback(() => {
-    setEdges([])
-    if (storageKey) {
-      window.localStorage.removeItem(storageKey)
+  useEffect(() => {
+    if (!edgeContextMenu) return
+
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') {
+        setEdgeContextMenu(null)
+      }
     }
-  }, [setEdges, storageKey])
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [edgeContextMenu])
+
+  useEffect(() => {
+    if (!edgeContextMenu) return
+
+    const handlePointerDown = () => setEdgeContextMenu(null)
+
+    window.addEventListener('pointerdown', handlePointerDown)
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown)
+    }
+  }, [edgeContextMenu])
 
   const handleGoBack = useCallback(() => {
     if (window.history.length > 1) {
@@ -229,25 +303,10 @@ export default function FlowView() {
     }
   }, [navigate])
 
-  const edgeItems = useMemo(
-    () =>
-      edges.map(edge => {
-        const sourceTitle =
-          taskLookup.get(edge.source)?.title ??
-          t('flowView.edge.unknownTask', { defaultValue: 'Unknown task' })
-        const targetTitle =
-          taskLookup.get(edge.target)?.title ??
-          t('flowView.edge.unknownTask', { defaultValue: 'Unknown task' })
-
-        return {
-          id: edge.id,
-          sourceTitle,
-          targetTitle,
-          hasArrow: edge.data?.hasArrow ?? false,
-        }
-      }),
-    [edges, taskLookup, t],
-  )
+  const contextEdge = useMemo(() => {
+    if (!edgeContextMenu) return null
+    return edges.find(edge => edge.id === edgeContextMenu.edgeId) ?? null
+  }, [edgeContextMenu, edges])
 
   if (!plan) {
     return (
@@ -277,33 +336,6 @@ export default function FlowView() {
         </button>
         <div className="flow-view__title-group">
           <h1 className="flow-view__title">{plan.title}</h1>
-          <p className="flow-view__subtitle">
-            {t('flowView.subtitle', {
-              defaultValue: 'Arrange tasks and connect relationships visually.',
-            })}
-          </p>
-        </div>
-        <div className="flow-view__header-actions">
-          <label className="flow-view__toggle">
-            <input
-              type="checkbox"
-              checked={defaultArrow}
-              onChange={event => setDefaultArrow(event.target.checked)}
-            />
-            <span>
-              {defaultArrow
-                ? t('flowView.toggle.arrowOn', { defaultValue: 'New connections use arrows' })
-                : t('flowView.toggle.arrowOff', { defaultValue: 'New connections use simple lines' })}
-            </span>
-          </label>
-          <button
-            type="button"
-            className="btn ghost"
-            disabled={edges.length === 0}
-            onClick={handleClearEdges}
-          >
-            {t('flowView.actions.clearConnections', { defaultValue: 'Clear connections' })}
-          </button>
         </div>
       </header>
 
@@ -315,7 +347,11 @@ export default function FlowView() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={handleConnect}
+            onPaneClick={handleDismissContextMenu}
+            onEdgeClick={handleDismissContextMenu}
+            onEdgeContextMenu={handleEdgeContextMenu}
             nodeTypes={nodeTypes}
+            defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
             fitView
             connectionMode={ConnectionMode.Loose}
             snapToGrid
@@ -327,53 +363,39 @@ export default function FlowView() {
             <Controls />
           </ReactFlow>
         </section>
-
-        <aside className="flow-view__sidebar">
-          <h2 className="flow-view__sidebar-title">
-            {t('flowView.sidebar.title', { defaultValue: 'Connections' })}
-          </h2>
-          {edgeItems.length === 0 ? (
-            <p className="flow-view__sidebar-empty">
-              {t('flowView.sidebar.empty', {
-                defaultValue: 'No connections yet. Drag from one node to another to link tasks.',
-              })}
-            </p>
-          ) : (
-            <ul className="flow-view__edge-list">
-              {edgeItems.map(item => (
-                <li key={item.id} className="flow-view__edge-item">
-                  <div className="flow-view__edge-text">
-                    <span className="flow-view__edge-source">{item.sourceTitle}</span>
-                    <span className="flow-view__edge-arrow">{'\u2192'}</span>
-                    <span className="flow-view__edge-target">{item.targetTitle}</span>
-                  </div>
-                  <div className="flow-view__edge-controls">
-                    <label className="flow-view__edge-toggle">
-                      <input
-                        type="checkbox"
-                        checked={item.hasArrow}
-                        onChange={() => handleToggleEdgeArrow(item.id)}
-                      />
-                      <span>
-                        {item.hasArrow
-                          ? t('flowView.edge.arrowEnabled', { defaultValue: 'Arrow enabled' })
-                          : t('flowView.edge.arrowDisabled', { defaultValue: 'Arrow disabled' })}
-                      </span>
-                    </label>
-                    <button
-                      type="button"
-                      className="flow-view__edge-delete"
-                      onClick={() => handleDeleteEdge(item.id)}
-                    >
-                      {t('flowView.edge.delete', { defaultValue: 'Remove' })}
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </aside>
       </div>
+      {edgeContextMenu && contextEdge ? (
+        <div
+          className="flow-view__context-menu"
+          style={{ top: edgeContextMenu.y, left: edgeContextMenu.x }}
+          onClick={event => event.stopPropagation()}
+          onPointerDown={event => event.stopPropagation()}
+          onContextMenu={event => event.preventDefault()}
+        >
+          <button
+            type="button"
+            className="flow-view__context-menu-item"
+            onClick={event => {
+              event.stopPropagation()
+              handleToggleSelectedEdgeArrow()
+            }}
+          >
+            {contextEdge.data?.hasArrow
+              ? t('flowView.contextMenu.useSimpleLine', { defaultValue: 'Use simple line' })
+              : t('flowView.contextMenu.useArrow', { defaultValue: 'Use arrow line' })}
+          </button>
+          <button
+            type="button"
+            className="flow-view__context-menu-item"
+            onClick={event => {
+              event.stopPropagation()
+              handleDeleteSelectedEdge()
+            }}
+          >
+            {t('flowView.contextMenu.deleteConnection', { defaultValue: 'Delete connection' })}
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }
