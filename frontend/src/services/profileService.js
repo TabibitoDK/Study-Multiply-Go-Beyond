@@ -1,12 +1,73 @@
 import api from '../lib/api.js'
 
+const normalizeId = value => {
+  if (!value) return null
+  if (typeof value === 'string') return value
+  if (typeof value === 'object') {
+    if (value._id) return value._id.toString()
+    if (value.id) return value.id.toString()
+    if (typeof value.toString === 'function') return value.toString()
+  }
+  return null
+}
+
+const normalizeProfile = profile => {
+  if (!profile) return null
+
+  const userRef = profile.userId
+  const userId = normalizeId(userRef) || normalizeId(profile._id) || normalizeId(profile.id)
+  const followerIds = Array.isArray(profile.followers)
+    ? profile.followers.map(normalizeId).filter(Boolean)
+    : []
+  const followersCount = Array.isArray(profile.followers)
+    ? followerIds.length
+    : typeof profile.followers === 'number'
+      ? profile.followers
+      : followerIds.length
+
+  const followingIds = Array.isArray(profile.following)
+    ? profile.following.map(normalizeId).filter(Boolean)
+    : []
+  const followingCount = Array.isArray(profile.following)
+    ? followingIds.length
+    : typeof profile.following === 'number'
+      ? profile.following
+      : followingIds.length
+
+  return {
+    ...profile,
+    profileId: normalizeId(profile._id) || normalizeId(profile.id),
+    id: userId,
+    userId,
+    username: profile.username || userRef?.username || profile.name || '',
+    name: profile.name || userRef?.username || profile.username || '',
+    bio: profile.bio || '',
+    profileImage: profile.profileImage || '',
+    backgroundImage: profile.backgroundImage || '',
+    location: profile.location || '',
+    joined: profile.joined || new Date().toISOString(),
+    posts: typeof profile.posts === 'number' ? profile.posts : 0,
+    tags: Array.isArray(profile.tags) ? profile.tags : [],
+    stats: profile.stats || { booksRead: 0, studyStreak: 0, totalStudyHours: 0 },
+    followers: followersCount,
+    following: followingCount,
+    followerIds,
+    followingIds,
+  }
+}
+
+const normalizeProfileList = list => {
+  if (!Array.isArray(list)) return []
+  return list.map(normalizeProfile).filter(Boolean)
+}
+
 // Profile service for handling all profile-related API calls
 export const profileService = {
   // Get all profiles
   getAllProfiles: async () => {
     try {
       const response = await api.get('/profiles')
-      return response
+      return normalizeProfileList(response?.profiles ?? response)
     } catch (error) {
       console.error('Error fetching profiles:', error)
       throw error
@@ -16,9 +77,13 @@ export const profileService = {
   // Get a profile by ID
   getProfileById: async (id) => {
     try {
-      const response = await api.get(`/profiles/${id}`)
-      return response
+      if (!id) return null
+      const response = await api.get(`/profiles/user/${id}`)
+      return normalizeProfile(response)
     } catch (error) {
+      if (error.status === 404) {
+        return null
+      }
       console.error('Error fetching profile:', error)
       throw error
     }
@@ -28,8 +93,11 @@ export const profileService = {
   getCurrentUserProfile: async () => {
     try {
       const response = await api.get('/profiles/me')
-      return response
+      return normalizeProfile(response)
     } catch (error) {
+      if (error.status === 404) {
+        return null
+      }
       console.error('Error fetching current user profile:', error)
       throw error
     }
@@ -61,7 +129,7 @@ export const profileService = {
   getProfilesExcept: async (currentUserId) => {
     try {
       const response = await api.get(`/profiles/exclude/${currentUserId}`)
-      return response
+      return normalizeProfileList(response?.profiles ?? response)
     } catch (error) {
       console.error('Error fetching other profiles:', error)
       throw error
@@ -174,7 +242,7 @@ export const profileService = {
   searchProfiles: async (query) => {
     try {
       const response = await api.get(`/profiles/search?q=${encodeURIComponent(query)}`)
-      return response
+      return normalizeProfileList(response?.profiles ?? response)
     } catch (error) {
       console.error('Error searching profiles:', error)
       throw error

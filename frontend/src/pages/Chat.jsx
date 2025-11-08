@@ -13,8 +13,8 @@ export default function Chat({ currentUserId, friends, groups }) {
 
   // Get chat recipient info
   const chatInfo = type === 'friend'
-    ? friends.find(f => f.id === Number(id))
-    : groups.find(g => g.id === id)
+    ? friends.find(f => String(f.id) === String(id))
+    : groups.find(g => String(g.id) === String(id))
 
   const [currentUser, setCurrentUser] = useState(null)
 
@@ -45,14 +45,14 @@ export default function Chat({ currentUserId, friends, groups }) {
       setMessages([
         {
           id: 1,
-          senderId: chatInfo.id,
+          senderId: String(chatInfo.id),
           senderName: chatInfo.name,
           text: 'Hey! How are you doing?',
           timestamp: new Date(Date.now() - 3600000).toISOString(),
         },
         {
           id: 2,
-          senderId: currentUserId,
+          senderId: String(currentUserId),
           senderName: currentUser.name,
           text: "I'm good! Working on some projects. How about you?",
           timestamp: new Date(Date.now() - 3000000).toISOString(),
@@ -62,7 +62,7 @@ export default function Chat({ currentUserId, friends, groups }) {
       setMessages([
         {
           id: 1,
-          senderId: 2,
+          senderId: '2',
           senderName: 'Jane Smith',
           text: 'Welcome to the group!',
           timestamp: new Date(Date.now() - 7200000).toISOString(),
@@ -150,7 +150,7 @@ export default function Chat({ currentUserId, friends, groups }) {
       {/* Messages Area */}
       <div className="chat-messages">
         {messages.map(message => {
-          const isOwn = message.senderId === currentUserId
+          const isOwn = String(message.senderId) === String(currentUserId)
           return (
             <div key={message.id} className={`chat-message ${isOwn ? 'own' : 'other'}`}>
               {!isOwn && type === 'group' && (

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+Ôªøimport { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookOpen } from 'lucide-react'
 import PostCard from './PostCard.jsx'
@@ -17,87 +17,107 @@ export default function SocialPage({ currentUser, posts, onCreatePost, onSelectP
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Fetch posts and profiles on component mount
-  useEffect(() => {
-    const fetchFeedData = async () => {
-      try {
-        setLoading(true)
-        const postsData = Array.isArray(posts) && posts.length > 0
-          ? posts
-          : await postService.getAllPosts()
-        
-        // Enrich posts with author profiles
-        const enrichedPosts = await Promise.all(
-          postsData.map(async (post) => {
-            try {
-              const author = await profileService.getProfileById(post.userId)
-              return {
-                ...post,
-                author: author
-              }
-            } catch (err) {
-              console.error(`Error fetching author for post ${post.id}:`, err)
-              return {
-                ...post,
-                author: null
-              }
-            }
-          })
-        )
-        
-        setFeed(enrichedPosts)
-        setError(null)
-      } catch (err) {
-        console.error('Error fetching feed data:', err)
-        setError('Failed to load social feed. Please try again later.')
-      } finally {
-        setLoading(false)
-      }
+  const fetchFeedFromServer = useCallback(async (withSpinner = true) => {
+    if (withSpinner) {
+      setLoading(true)
     }
 
-    fetchFeedData()
-  }, [posts])
-
-  // Refresh feed after creating a new post
-  const refreshFeed = async () => {
     try {
-      const postsData = await postService.getAllPosts()
-      
-      // Enrich posts with author profiles
+      const [postsData, profilesData] = await Promise.all([
+        postService.getAllPosts(),
+        profileService.getAllProfiles(),
+      ])
+
+      const profilesByUserId = new Map((profilesData || []).map(profile => [profile.userId, profile]))
+
       const enrichedPosts = await Promise.all(
-        postsData.map(async (post) => {
+        postsData.map(async post => {
+          if (post.author) {
+            return post
+          }
+
           try {
-            const author = await profileService.getProfileById(post.userId)
+            const authorProfile =
+              profilesByUserId.get(post.userId) || (await profileService.getProfileById(post.userId))
+
             return {
               ...post,
-              author: author
+              author: authorProfile ?? null,
             }
           } catch (err) {
             console.error(`Error fetching author for post ${post.id}:`, err)
             return {
               ...post,
-              author: null
+              author: null,
             }
           }
-        })
+        }),
       )
-      
+
       setFeed(enrichedPosts)
+      setError(null)
     } catch (err) {
-      console.error('Error refreshing feed:', err)
-      setError('Failed to refresh feed. Please try again later.')
+      console.error('Error fetching feed data:', err)
+      setError('Failed to load social feed. Please try again later.')
+    } finally {
+      if (withSpinner) {
+        setLoading(false)
+      }
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (Array.isArray(posts) && posts.length > 0) {
+      setFeed(posts)
+      setError(null)
+      setLoading(false)
+      return
+    }
+
+    fetchFeedFromServer(true)
+  }, [posts, fetchFeedFromServer])
+
+  const refreshFeed = useCallback(async () => {
+    await fetchFeedFromServer(false)
+  }, [fetchFeedFromServer])
 
   async function handleSubmit(draft) {
     try {
       if (typeof onCreatePost === 'function') {
         onCreatePost(draft)
       } else {
-        // Create post via API if no handler provided
-        await postService.createPost(draft)
-        await refreshFeed()
+        const segments = []
+        if (draft.text?.trim()) segments.push(draft.text.trim())
+        if (draft.book?.trim()) segments.push(`Book: ${draft.book.trim()}`)
+        if (draft.duration?.trim()) segments.push(`Duration: ${draft.duration.trim()}`)
+
+        const tags = draft.subject?.trim() ? [draft.subject.trim()] : []
+        const payload = {
+          content: segments.join('\n\n') || 'Shared a new update.',
+          tags,
+          books: [],
+          visibility: 'public',
+        }
+
+        const createdPost = await postService.createPost(payload)
+        const authorProfile = currentUser
+          ? {
+              id: currentUser.id,
+              name: currentUser.name || currentUser.username || currentUser.email,
+              username: currentUser.username || currentUser.name || '',
+              profileImage: currentUser.profileImage || '',
+            }
+          : null
+
+        setFeed(prev => [
+          {
+            ...createdPost,
+            author: authorProfile ?? createdPost.author ?? null,
+          },
+          ...prev,
+        ])
       }
+
       setIsModalOpen(false)
     } catch (err) {
       console.error('Error creating post:', err)
@@ -105,12 +125,11 @@ export default function SocialPage({ currentUser, posts, onCreatePost, onSelectP
     }
   }
 
-  // Handle loading and error states
   if (loading) {
     return (
       <div className="social-wrap">
         <div className="loading-container">
-          <div className="spinner"></div>
+          <div className="spinner" />
           <p>Loading social feed...</p>
         </div>
       </div>
@@ -137,13 +156,9 @@ export default function SocialPage({ currentUser, posts, onCreatePost, onSelectP
 
       <div className="feed">
         <div className="feed-header">
-          <button
-            type="button"
-            className="btn library-access-btn"
-            onClick={() => navigate('/library')}
-          >
+          <button type="button" className="btn library-access-btn" onClick={() => navigate('/library')}>
             <BookOpen size={18} />
-            éQçlèë
+            Library
           </button>
         </div>
         {feed.length === 0 ? (
@@ -173,11 +188,7 @@ export default function SocialPage({ currentUser, posts, onCreatePost, onSelectP
         +
       </button>
 
-      <PostModal
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSubmit}
-      />
+      <PostModal open={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleSubmit} />
     </div>
   )
 }

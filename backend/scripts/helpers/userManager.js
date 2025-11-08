@@ -17,9 +17,13 @@ export class UserManager {
    * @param {string} password - Plain text password
    * @returns {Promise<string>} Hashed password
    */
-  async generatePasswordHash(password = 'Migration123!') {
+  async generatePasswordHash(password = 'pwd') {
     const saltRounds = 10;
     return await bcrypt.hash(password, saltRounds);
+  }
+
+  buildSampleEmail(username) {
+    return `${username.toLowerCase()}@nyacademy.dev`;
   }
 
   /**
@@ -36,23 +40,41 @@ export class UserManager {
         const existingUser = await User.findOne({ 
           $or: [
             { username: profile.username },
-            { email: `${profile.username.toLowerCase()}@example.com` }
+            { email: this.buildSampleEmail(profile.username) }
           ]
         });
 
         if (existingUser) {
-          console.log(`User ${profile.username} already exists, using existing user`);
+          const desiredEmail = this.buildSampleEmail(profile.username);
+          const updates = {};
+
+          if (existingUser.email !== desiredEmail) {
+            updates.email = desiredEmail;
+          }
+
+          const alreadyPwd = await bcrypt.compare('pwd', existingUser.passwordHash);
+          if (!alreadyPwd) {
+            updates.passwordHash = await this.generatePasswordHash('pwd');
+          }
+
+          if (Object.keys(updates).length > 0) {
+            await User.findByIdAndUpdate(existingUser._id, updates);
+            console.log(`Updated existing user ${profile.username} with sample credentials`);
+          } else {
+            console.log(`User ${profile.username} already up to date, using existing credentials`);
+          }
+
           this.userMap.set(profile.id.toString(), existingUser._id.toString());
           continue;
         }
 
         // Generate password hash
-        const passwordHash = await this.generatePasswordHash();
+        const passwordHash = await this.generatePasswordHash('pwd');
 
         // Create user data
         const userData = {
           username: profile.username,
-          email: `${profile.username.toLowerCase()}@example.com`,
+          email: this.buildSampleEmail(profile.username),
           passwordHash: passwordHash,
           preferences: {
             language: 'ja', // Default to Japanese based on profile data

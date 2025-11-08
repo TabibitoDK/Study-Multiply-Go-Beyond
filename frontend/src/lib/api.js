@@ -7,6 +7,30 @@ const getAuthToken = () => {
   return localStorage.getItem('auth_token')
 }
 
+async function handleResponse(response) {
+  let data = null
+
+  try {
+    if (response.status !== 204) {
+      data = await response.json()
+    }
+  } catch (error) {
+    if (response.status !== 204) {
+      console.error('Failed to parse API response', error)
+    }
+  }
+
+  if (!response.ok) {
+    const message = data?.message || data?.error || `Request failed with status ${response.status}`
+    const err = new Error(message)
+    err.status = response.status
+    err.data = data
+    throw err
+  }
+
+  return data ?? {}
+}
+
 // Generic request function with authentication headers
 async function apiRequest(endpoint, options = {}) {
   const token = getAuthToken()
@@ -49,7 +73,7 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     })
-    return response.json()
+    return handleResponse(response)
   },
 
   register: async (username, email, password) => {
@@ -57,13 +81,13 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ username, email, password }),
     })
-    return response.json()
+    return handleResponse(response)
   },
 
   // User endpoints
   getUser: async (userId) => {
     const response = await apiRequest(`/users/${userId}`)
-    return response.json()
+    return handleResponse(response)
   },
 
   updateUser: async (userId, data) => {
@@ -71,13 +95,13 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(data),
     })
-    return response.json()
+    return handleResponse(response)
   },
 
   // Generic CRUD operations
   get: async (endpoint) => {
     const response = await apiRequest(endpoint)
-    return response.json()
+    return handleResponse(response)
   },
 
   post: async (endpoint, data) => {
@@ -85,7 +109,7 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     })
-    return response.json()
+    return handleResponse(response)
   },
 
   put: async (endpoint, data) => {
@@ -93,14 +117,14 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(data),
     })
-    return response.json()
+    return handleResponse(response)
   },
 
   delete: async (endpoint) => {
     const response = await apiRequest(endpoint, {
       method: 'DELETE',
     })
-    return response.json()
+    return handleResponse(response)
   },
 }
 

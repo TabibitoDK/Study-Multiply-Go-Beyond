@@ -35,20 +35,36 @@ export function AuthProvider({ children }) {
   }, [])
 
   const login = useCallback(async (email, password) => {
+    const trimmedEmail = (email || '').trim().toLowerCase()
+    const trimmedPassword = password || ''
+
+    if (!trimmedEmail || !trimmedPassword) {
+      const message = 'Email and password are required'
+      setError(message)
+      return { success: false, error: message }
+    }
+
     try {
       setLoading(true)
       setError(null)
 
-      const data = await api.login(email, password)
+      const data = await api.login(trimmedEmail, trimmedPassword)
+      const safeUser = {
+        ...data.user,
+        id: data.user?._id || data.user?.id,
+      }
 
-      // Store user data and token
-      localStorage.setItem('auth_user', JSON.stringify(data.user))
-      localStorage.setItem('auth_token', data.user._id) // Using user ID as simple token for now
+      if (!safeUser.id) {
+        throw new Error('Login response missing user id')
+      }
+
+      localStorage.setItem('auth_user', JSON.stringify(safeUser))
+      localStorage.setItem('auth_token', safeUser.id)
       
-      setUser(data.user)
+      setUser(safeUser)
       setIsAuthenticated(true)
       
-      return { success: true, user: data.user }
+      return { success: true, user: safeUser }
     } catch (error) {
       const errorMessage = error.message || 'Login failed'
       setError(errorMessage)
@@ -59,14 +75,38 @@ export function AuthProvider({ children }) {
   }, [])
 
   const register = useCallback(async (username, email, password) => {
+    const trimmedUsername = (username || '').trim()
+    const trimmedEmail = (email || '').trim().toLowerCase()
+    const trimmedPassword = password || ''
+
+    const normalizedUsername = trimmedUsername.replace(/\s+/g, '_').toLowerCase()
+    const usernamePattern = /^[a-z0-9_]{3,30}$/i
+
+    if (!usernamePattern.test(normalizedUsername)) {
+      const message = 'Username must be 3-30 characters and only use letters, numbers, or underscores'
+      setError(message)
+      return { success: false, error: message }
+    }
+
+    if (!trimmedEmail) {
+      const message = 'A valid email is required'
+      setError(message)
+      return { success: false, error: message }
+    }
+
+    if (trimmedPassword.length < 8) {
+      const message = 'Password must be at least 8 characters long'
+      setError(message)
+      return { success: false, error: message }
+    }
+
     try {
       setLoading(true)
       setError(null)
 
-      const data = await api.register(username, email, password)
+      await api.register(normalizedUsername, trimmedEmail, trimmedPassword)
 
-      // Auto-login after successful registration
-      return await login(email, password)
+      return await login(trimmedEmail, trimmedPassword)
     } catch (error) {
       const errorMessage = error.message || 'Registration failed'
       setError(errorMessage)

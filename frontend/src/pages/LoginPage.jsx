@@ -12,7 +12,7 @@ const INITIAL_LOGIN_FORM = {
 }
 
 const INITIAL_SIGNUP_FORM = {
-  name: '',
+  username: '',
   email: '',
   password: '',
   confirmPassword: '',
@@ -20,9 +20,9 @@ const INITIAL_SIGNUP_FORM = {
 }
 
 const AUTH_TABS = [
-  { key: 'email', label: 'メール' },
+  { key: 'email', label: 'Email' },
   { key: 'google', label: 'Google' },
-  { key: 'anonymous', label: 'ゲスト' },
+  { key: 'anonymous', label: 'Guest' },
 ]
 
 const randomGuestId = () => `guest_${Math.random().toString(36).slice(2, 9)}`
@@ -73,24 +73,32 @@ export default function LoginPage() {
 
   const handleLoginSubmit = async event => {
     event.preventDefault()
-    
+
     if (isSubmitting) return
-    
+
+    const email = loginForm.email.trim()
+    const password = loginForm.password
+
+    if (!email || !password) {
+      showNotification('Enter both email and password.', 'error', 'login')
+      return
+    }
+
     setIsSubmitting(true)
-    
+
     try {
-      const result = await login(loginForm.email, loginForm.password)
-      
+      const result = await login(email, password)
+
       if (result.success) {
-        showNotification('ログインしました。ダッシュボードに移動します。', 'success', 'login')
+        showNotification('Login successful. Redirecting to your dashboard...', 'success', 'login')
         setTimeout(() => {
           navigate('/')
         }, 1000)
       } else {
-        showNotification(result.error, 'error', 'login')
+        showNotification(result.error || 'Login failed.', 'error', 'login')
       }
     } catch (error) {
-      showNotification('ログインに失敗しました。もう一度お試しください。', 'error', 'login')
+      showNotification(error.message || 'Login failed. Please try again.', 'error', 'login')
     } finally {
       setIsSubmitting(false)
     }
@@ -98,33 +106,60 @@ export default function LoginPage() {
 
   const handleSignupSubmit = async event => {
     event.preventDefault()
-    
+
     if (isSubmitting) return
-    
-    if (signupForm.password !== signupForm.confirmPassword) {
-      showNotification('パスワードが一致しません。', 'error', 'signup')
+
+    const username = signupForm.username.trim()
+    const email = signupForm.email.trim()
+    const password = signupForm.password
+    const confirmPassword = signupForm.confirmPassword
+    const normalizedUsername = username.replace(/\s+/g, '_').toLowerCase()
+
+    if (!username) {
+      showNotification('Choose a username to continue.', 'error', 'signup')
       return
     }
+
+    if (!/^[a-zA-Z0-9_]{3,30}$/.test(normalizedUsername)) {
+      showNotification('Usernames must be 3-30 characters and only use letters, numbers, or underscores.', 'error', 'signup')
+      return
+    }
+
+    if (!email) {
+      showNotification('Enter a valid email address.', 'error', 'signup')
+      return
+    }
+
+    if (password.length < 8) {
+      showNotification('Passwords must be at least 8 characters long.', 'error', 'signup')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      showNotification('Passwords do not match.', 'error', 'signup')
+      return
+    }
+
     if (!signupForm.terms) {
-      showNotification('利用規約への同意が必要です。', 'error', 'signup')
+      showNotification('Please agree to the terms to continue.', 'error', 'signup')
       return
     }
-    
+
     setIsSubmitting(true)
-    
+
     try {
-      const result = await register(signupForm.name, signupForm.email, signupForm.password)
-      
+      const result = await register(normalizedUsername, email, password)
+
       if (result.success) {
-        showNotification('アカウントを作成しました。ようこそ Nyacademy へ。', 'success', 'signup')
+        showNotification('Account created. Redirecting to your dashboard...', 'success', 'signup')
         setTimeout(() => {
           navigate('/')
         }, 1000)
       } else {
-        showNotification(result.error, 'error', 'signup')
+        showNotification(result.error || 'Sign up failed.', 'error', 'signup')
       }
     } catch (error) {
-      showNotification('アカウント作成に失敗しました。もう一度お試しください。', 'error', 'signup')
+      showNotification(error.message || 'Sign up failed. Please try again later.', 'error', 'signup')
     } finally {
       setIsSubmitting(false)
     }
@@ -274,16 +309,16 @@ export default function LoginPage() {
       <form onSubmit={handleSignupSubmit} className="method-card stack-gap">
         <h3 className="method-title">メールでサインアップ</h3>
         <div className="form-group">
-          <label className="form-label" htmlFor="signup-name">
-            表示名
+          <label className="form-label" htmlFor="signup-username">
+            Username
           </label>
           <input
-            id="signup-name"
+            id="signup-username"
             type="text"
             className="form-input"
-            placeholder="How should we call you?"
-            value={signupForm.name}
-            onChange={handleSignupChange('name')}
+            placeholder="Use letters, numbers, or underscores"
+            value={signupForm.username}
+            onChange={handleSignupChange('username')}
             required
           />
         </div>

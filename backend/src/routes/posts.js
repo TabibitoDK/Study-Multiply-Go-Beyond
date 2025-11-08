@@ -98,6 +98,33 @@ router.get('/public', validatePagination, async (req, res, next) => {
   }
 });
 
+// GET /api/posts/user/:userId - Get posts for a specific user (public unless owner)
+router.get('/user/:userId', validateObjectId('userId'), async (req, res, next) => {
+  try {
+    const targetUserId = req.params.userId;
+    const requesterId = req.headers['x-user-id'];
+    const isOwner = requesterId && requesterId === targetUserId;
+
+    const filter = {
+      userId: new mongoose.Types.ObjectId(targetUserId)
+    };
+
+    if (!isOwner) {
+      filter.visibility = 'public';
+    }
+
+    const posts = await Post.find(filter)
+      .populate('userId', 'username')
+      .populate('books', 'title author cover')
+      .populate('comments.userId', 'username')
+      .sort({ createdAt: -1 });
+
+    res.json({ posts });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/posts/:id - Get post by ID
 router.get('/:id', authenticate, validateObjectId('id'), async (req, res, next) => {
   try {

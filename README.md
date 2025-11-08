@@ -57,4 +57,25 @@ This repository now groups the existing Vite React application together with a b
 1. Run both servers (`npm run dev` in `backend/` and `frontend/`).
 2. Visit `http://localhost:5173` and call `/api/test` from the browser (or run `curl http://localhost:5173/api/test`). The request travels through the Vite proxy to the Express server and should return `{ "message": "Backend working" }`.
 
+## Sample Accounts
+
+Run the migration helper to seed demo content plus ready-to-use accounts:
+
+```
+cd backend
+node scripts/migrate-data.js
+```
+
+All seeded demo users share the password `pwd`. Their login emails are:
+
+| Username        | Email                            | Password |
+| --------------- | -------------------------------- | -------- |
+| `aiko_hennyu`   | `aiko_hennyu@nyacademy.dev`      | `pwd`    |
+| `haruto_study`  | `haruto_study@nyacademy.dev`     | `pwd`    |
+| `miyu_gakushu`  | `miyu_gakushu@nyacademy.dev`     | `pwd`    |
+| `ren_math`      | `ren_math@nyacademy.dev`         | `pwd`    |
+| `sora_english`  | `sora_english@nyacademy.dev`     | `pwd`    |
+
+Sign in with any of these accounts to explore the social feed and other authenticated areas quickly.
+
 That’s it—both halves of the application are now separated but co-located for easier development, deployment, and scaling.

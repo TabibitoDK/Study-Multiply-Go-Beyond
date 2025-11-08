@@ -27,25 +27,10 @@ import postService from './services/postService.js'
 import LoginPage from './pages/LoginPage.jsx'
 
 
-const presenceByUserId = {
-  2: { status: 'online', activity: 'Pair programming' },
-  3: { status: 'offline', activity: 'Sketching ideas' },
-  4: { status: 'online', activity: 'Soldering PCB' },
-  5: { status: 'offline', activity: 'Language review' },
-}
-
-// We'll initialize these as empty arrays and fetch them dynamically
-let derivedFriends = []
-
-const groups = [
-  { id: 'g1', name: 'Study Group - Math', memberCount: 5, image: null },
-  { id: 'g2', name: 'Project Team Alpha', memberCount: 8, image: null },
-  { id: 'g3', name: 'Language Exchange', memberCount: 12, image: null },
-]
 
 function ProfileWrapper({ currentUserId, posts, onCreatePost, onSelectProfile }) {
   const { id } = useParams()
-  const profileId = id ? Number(id) : currentUserId
+  const profileId = id ?? currentUserId
   return (
     <Profile
       profileId={profileId}
@@ -63,82 +48,100 @@ function AppContent() {
   const location = useLocation()
   const [posts, setPosts] = useState([])
   const [profiles, setProfiles] = useState([])
+  const [userProfile, setUserProfile] = useState(null)
+  const [friends, setFriends] = useState([])
   const [loading, setLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
   const [currentTask, setCurrentTask] = useState(null)
   const [lastCompletedTask, setLastCompletedTask] = useState(null)
+  const groups = []
 
   // Fetch initial data
   useEffect(() => {
     const fetchInitialData = async () => {
+      if (!user) {
+        setPosts([])
+        setProfiles([])
+        setUserProfile(null)
+        setFriends([])
+        setLoading(false)
+        return
+      }
+
       try {
         setLoading(true)
-        
-        // Fetch posts and profiles
-        const [postsData, profilesData] = await Promise.all([
+        const authUserId = user._id || user.id
+
+        const [publicPosts, profileList, currentProfile] = await Promise.all([
           postService.getAllPosts(),
-          profileService.getAllProfiles()
+          profileService.getAllProfiles(),
+          profileService.getProfileById(authUserId).catch(() => null),
         ])
-        
-        // Enrich posts with author profiles
-        const enrichedPosts = await Promise.all(
-          postsData.map(async (post) => {
-            try {
-              const author = profilesData.find(p => p.id === post.userId) ||
-                             await profileService.getProfileById(post.userId)
-              return {
-                ...post,
-                author
-              }
-            } catch (err) {
-              console.error(`Error fetching author for post ${post.id}:`, err)
-              return {
-                ...post,
-                author: null
-              }
-            }
-          })
-        )
-        
-        setPosts(enrichedPosts)
-        setProfiles(profilesData)
-        
-        // Create derived friends list (excluding current user)
-        const currentUserId = user?._id || user?.id || 1
-        derivedFriends = profilesData
-          .filter(profile => profile.id !== currentUserId)
-          .map(profile => {
-            const presence = presenceByUserId[profile.id] ?? { status: 'offline', activity: 'Offline' }
-            return {
+
+        const profileMap = new Map((profileList || []).map(profile => [profile.userId, profile]))
+
+        if (currentProfile) {
+          profileMap.set(currentProfile.userId, currentProfile)
+        }
+
+        const postsWithAuthors = publicPosts.map(post => {
+          if (post.author) {
+            return post
+          }
+
+          const authorProfile = profileMap.get(post.userId)
+          return {
+            ...post,
+            author: authorProfile ?? post.author ?? null,
+          }
+        })
+
+        setPosts(postsWithAuthors)
+        setProfiles(Array.from(profileMap.values()))
+        setUserProfile(currentProfile)
+
+        if (currentProfile?.followingIds?.length) {
+          const friendProfiles = currentProfile.followingIds
+            .map(id => profileMap.get(id))
+            .filter(Boolean)
+            .map(profile => ({
               ...profile,
-              status: presence.status,
-              activity: presence.activity,
-            }
-          })
-        
-        setLoading(false)
+              status: 'offline',
+              activity: 'Offline',
+            }))
+
+          setFriends(friendProfiles)
+        } else {
+          setFriends([])
+        }
       } catch (err) {
         console.error('Error fetching initial data:', err)
+      } finally {
         setLoading(false)
       }
     }
 
-    if (user) {
-      fetchInitialData()
-    } else {
-      setLoading(false)
-    }
+    fetchInitialData()
   }, [user])
 
-  // Use authenticated user or fallback to first profile for demo
-  const currentUser = user ? {
-    ...user,
-    id: user._id || user.id,
-    name: user.username || user.name,
-    profileImage: user.profileImage || profiles[0]?.profileImage
-  } : profiles[0] || { id: 1, name: 'Demo User' }
-  
-  const friends = derivedFriends
+  const authUserId = user?._id || user?.id || null
+  const resolvedProfile =
+    (authUserId && profiles.find(profile => profile.userId === authUserId)) ||
+    userProfile ||
+    null
+
+  const currentUser = resolvedProfile
+    ? { ...resolvedProfile, id: resolvedProfile.userId }
+    : user
+      ? {
+          ...user,
+          id: authUserId,
+          name: user.username || user.name || user.email,
+          username: user.username || user.name || '',
+          profileImage: user.profileImage || '',
+        }
+      : { id: null, name: '', username: '', profileImage: '' }
+
   const isLoginPage = location.pathname.startsWith('/login')
   const showRightPanel = !isLoginPage && (location.pathname === '/' || location.pathname.startsWith('/tools') || location.pathname.startsWith('/social') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/chat') || location.pathname.startsWith('/library'))
   const isCalendarApp = location.pathname.startsWith('/calendar')
@@ -155,6 +158,7 @@ function AppContent() {
   const mainClassName = isLoginPage ? 'login-main' : 'canvas-wrap'
 
   function openProfile(profileId) {
+    if (!profileId) return
     navigate(`/profile/${profileId}`)
   }
 
@@ -168,60 +172,65 @@ function AppContent() {
 
   async function handleCreatePost(draft) {
     if (!draft) return
-    const author = currentUser
-    
+
     try {
-      const contentParts = []
-      if (draft.text && draft.text.trim()) contentParts.push(draft.text.trim())
-      if (draft.book && draft.book.trim()) contentParts.push(`Book: ${draft.book.trim()}`)
-      if (draft.duration && draft.duration.trim()) contentParts.push(`Duration: ${draft.duration.trim()}`)
-      const content = contentParts.join('\n\n') || 'Shared a new update.'
-      const tags = []
-      if (draft.subject && draft.subject.trim()) tags.push(draft.subject.trim())
+      const segments = []
+      if (draft.text?.trim()) segments.push(draft.text.trim())
+      if (draft.book?.trim()) segments.push('Book: ' + draft.book.trim())
+      if (draft.duration?.trim()) segments.push('Duration: ' + draft.duration.trim())
+      const tags = draft.subject?.trim() ? [draft.subject.trim()] : []
 
-      const postData = {
-        userId: author.id,
-        content,
-        image: draft.image ?? null,
-        likes: draft.likes ?? 0,
-        comments: draft.comments ?? 0,
-        timestamp: new Date().toISOString(),
+      const payload = {
+        content: segments.join('\n\n') || 'Shared a new update.',
         tags,
+        books: [],
+        visibility: 'public',
       }
 
-      // Create post via API
-      const newPost = await postService.createPost(postData)
-      
-      // Add author info to the new post
-      const enrichedPost = {
-        ...newPost,
-        author
-      }
-      
-      setPosts(prev => [enrichedPost, ...prev])
-    } catch (err) {
-      console.error('Error creating post:', err)
-      // Fallback to local state if API fails
-      const id = `local-${Date.now()}`
-      const contentParts = []
-      if (draft.text && draft.text.trim()) contentParts.push(draft.text.trim())
-      if (draft.book && draft.book.trim()) contentParts.push(`Book: ${draft.book.trim()}`)
-      if (draft.duration && draft.duration.trim()) contentParts.push(`Duration: ${draft.duration.trim()}`)
-      const content = contentParts.join('\n\n') || 'Shared a new update.'
-      const tags = []
-      if (draft.subject && draft.subject.trim()) tags.push(draft.subject.trim())
+      const createdPost = await postService.createPost(payload)
+      const authorProfile = currentUser
+        ? {
+            id: currentUser.id,
+            name: currentUser.name || currentUser.username || currentUser.email,
+            username: currentUser.username || currentUser.name || '',
+            profileImage: currentUser.profileImage || '',
+          }
+        : null
 
       setPosts(prev => [
         {
-          id,
-          userId: author.id,
-          author,
-          content,
-          image: draft.image ?? null,
-          likes: draft.likes ?? 0,
-          comments: draft.comments ?? 0,
-          timestamp: new Date().toISOString(),
+          ...createdPost,
+          author: authorProfile ?? createdPost.author ?? null,
+        },
+        ...prev,
+      ])
+    } catch (error) {
+      console.error('Error creating post:', error)
+      const fallbackId = 'local-' + Date.now()
+      const segments = []
+      if (draft.text?.trim()) segments.push(draft.text.trim())
+      if (draft.book?.trim()) segments.push('Book: ' + draft.book.trim())
+      if (draft.duration?.trim()) segments.push('Duration: ' + draft.duration.trim())
+      const tags = draft.subject?.trim() ? [draft.subject.trim()] : []
+
+      setPosts(prev => [
+        {
+          id: fallbackId,
+          userId: currentUser?.id,
+          content: segments.join('\n\n') || 'Shared a new update.',
           tags,
+          books: [],
+          likes: 0,
+          comments: 0,
+          timestamp: new Date().toISOString(),
+          author: currentUser
+            ? {
+                id: currentUser.id,
+                name: currentUser.name || currentUser.username || currentUser.email,
+                username: currentUser.username || currentUser.name || '',
+                profileImage: currentUser.profileImage || '',
+              }
+            : null,
         },
         ...prev,
       ])

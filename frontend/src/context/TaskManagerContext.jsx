@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useState } from 'react
 import dayjs from 'dayjs'
 
 const TaskManagerContext = createContext(null)
+const ENABLE_SAMPLE_PLANS = false
 
 function createId(prefix) {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -191,7 +192,7 @@ function buildDefaultPlans() {
 }
 
 export function TaskManagerProvider({ children }) {
-  const [plans, setPlans] = useState(() => buildDefaultPlans())
+  const [plans, setPlans] = useState(() => (ENABLE_SAMPLE_PLANS ? buildDefaultPlans() : []))
 
   const addPlan = useCallback(({ title, description, dueDate }) => {
     const plan = {

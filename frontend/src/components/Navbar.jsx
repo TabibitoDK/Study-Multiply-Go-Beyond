@@ -9,8 +9,6 @@ const TABS = [
   { key: 'home', labelKey: 'nav.home', path: '/' },
   { key: 'social', labelKey: 'nav.social', path: '/social' },
   { key: 'tools', labelKey: 'nav.tools', path: '/tools' },
-  { key: 'library', labelKey: 'nav.library', path: '/library' },
-  { key: 'calendar', labelKey: 'nav.calendar', path: '/calendar' },
 ]
 
 export default function Navbar({ currentTask, lastCompletedTask }) {
