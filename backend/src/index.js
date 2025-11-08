@@ -1,33 +1,91 @@
 import 'dotenv/config'
 import express from 'express'
-import mongoose from 'mongoose'
 import cors from 'cors'
+import session from 'express-session'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import connectDB from './config/database.js'
+import { authenticate, requestLogger, errorHandler } from './middleware/auth.js'
+import {
+  usersRouter,
+  booksRouter,
+  postsRouter,
+  profilesRouter,
+  goalsRouter,
+  calendarEventsRouter,
+  flashcardGroupsRouter,
+  flashcardAISettingsRouter,
+  taskPlansRouter,
+  flowEdgesRouter,
+  tagsRouter
+} from './routes/index.js'
+import adminRouter from './routes/admin.js'
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const app = express()
 const PORT = process.env.PORT || 5000
-const MONGO_URI =
-  process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/study_multiply_go_beyond'
 
+// Middleware
 app.use(cors())
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+app.use(requestLogger)
 
-async function connectToDatabase() {
-  try {
-    await mongoose.connect(MONGO_URI, {
-      dbName: process.env.MONGO_DB_NAME || undefined,
-    })
-    console.log('✅ MongoDB connection established')
-  } catch (error) {
-    console.error('❌ MongoDB connection failed:', error.message)
-    process.exit(1)
+// Session middleware for admin authentication
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
-}
+}))
 
+// Set EJS as templating engine
+app.set('view engine', 'ejs')
+app.set('views', path.join(__dirname, 'views'))
+
+// Health check endpoint
 app.get('/api/test', (req, res) => {
-  res.json({ message: 'Backend working' })
+  res.json({ 
+    message: 'Backend working',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  })
+})
+
+// API Routes
+app.use('/api/users', usersRouter)
+app.use('/api/books', booksRouter)
+app.use('/api/posts', postsRouter)
+app.use('/api/profiles', profilesRouter)
+app.use('/api/goals', goalsRouter)
+app.use('/api/calendar-events', calendarEventsRouter)
+app.use('/api/flashcard-groups', flashcardGroupsRouter)
+app.use('/api/flashcard-ai-settings', flashcardAISettingsRouter)
+app.use('/api/task-plans', taskPlansRouter)
+app.use('/api/flow-edges', flowEdgesRouter)
+app.use('/api/tags', tagsRouter)
+
+// Admin routes
+app.use('/admin', adminRouter)
+
+// Error handling middleware (must be last)
+app.use(errorHandler)
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Route ${req.originalUrl} not found`
+  })
 })
 
 app.listen(PORT, async () => {
-  console.log(`🚀 API server listening on http://localhost:${PORT}`)
-  await connectToDatabase()
+  console.log(`? API server listening on http://localhost:${PORT}`)
+  await connectDB()
 })

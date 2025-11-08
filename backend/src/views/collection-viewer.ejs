@@ -1,0 +1,316 @@
+<%- include('layout') %>
+
+<!-- Filters and Search -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Filters & Search</h6>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="/admin/view-data/<%= collection %>" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">Search</label>
+                        <input type="text" class="form-control" id="search" name="search" value="<%= filters.search %>" placeholder="Search in <%= collection %>...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="userId" class="form-label">Filter by User</label>
+                        <select class="form-select" id="userId" name="userId">
+                            <option value="">All Users</option>
+                            <% users.forEach(user => { %>
+                                <option value="<%= user._id %>" <%= filters.userId === user._id.toString() ? 'selected' : '' %>>
+                                    <%= user.username %> (<%= user.email %>)
+                                </option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="limit" class="form-label">Items per page</label>
+                        <select class="form-select" id="limit" name="limit">
+                            <option value="10" <%= pagination.limit === 10 ? 'selected' : '' %>>10</option>
+                            <option value="20" <%= pagination.limit === 20 ? 'selected' : '' %>>20</option>
+                            <option value="50" <%= pagination.limit === 50 ? 'selected' : '' %>>50</option>
+                            <option value="100" <%= pagination.limit === 100 ? 'selected' : '' %>>100</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                        <a href="/admin/view-data/<%= collection %>" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Summary -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span class="text-muted">Showing <%= documents.length %> of <%= pagination.count %> items</span>
+                <% if (filters.search) { %>
+                    <span class="badge bg-info ms-2">Search: "<%= filters.search %>"</span>
+                <% } %>
+                <% if (filters.userId) { %>
+                    <span class="badge bg-warning ms-2">Filtered by user</span>
+                <% } %>
+            </div>
+            <div>
+                <button class="btn btn-outline-success btn-sm" onclick="exportCurrentView()">
+                    <i class="fas fa-download"></i> Export Current View
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <%= collection.charAt(0).toUpperCase() + collection.slice(1) %> Data
+                </h6>
+                <div>
+                    <button class="btn btn-outline-primary btn-sm" onclick="toggleTableView()">
+                        <i class="fas fa-table"></i> Table View
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="toggleJSONView()">
+                        <i class="fas fa-code"></i> JSON View
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Table View -->
+                <div id="tableView">
+                    <% if (documents.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-bordered data-table">
+                                <thead>
+                                    <tr>
+                                        <% const firstDoc = documents[0]; %>
+                                        <% Object.keys(firstDoc).forEach(key => { %>
+                                            <% if (key !== '__v') { %>
+                                                <th><%= key %></th>
+                                            <% } %>
+                                        <% }) %>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% documents.forEach((doc, index) => { %>
+                                        <tr>
+                                            <% Object.keys(doc).forEach(key => { %>
+                                                <% if (key !== '__v') { %>
+                                                    <td>
+                                                        <% if (key === 'userId' && doc[key] && doc[key].username) { %>
+                                                            <span class="badge bg-primary">
+                                                                <%= doc[key].username %>
+                                                            </span>
+                                                        <% } else if (key === '_id') { %>
+                                                            <code class="text-muted"><%= doc[key] %></code>
+                                                        <% } else if (typeof doc[key] === 'object' && doc[key] !== null) { %>
+                                                            <button class="btn btn-sm btn-outline-info" onclick="showObjectModal('<%= index %>', '<%= key %>')">
+                                                                <i class="fas fa-eye"></i> View Object
+                                                            </button>
+                                                        <% } else if (typeof doc[key] === 'string' && doc[key].length > 50) { %>
+                                                            <%= doc[key].substring(0, 50) %>...
+                                                        <% } else { %>
+                                                            <%= doc[key] %>
+                                                        <% } %>
+                                                    </td>
+                                                <% } %>
+                                            <% }) %>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-sm btn-outline-primary" onclick="viewDocumentJSON('<%= index %>')">
+                                                        <i class="fas fa-code"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-secondary" onclick="copyDocumentId('<%= index %>')">
+                                                        <i class="fas fa-copy"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-gray-300 mb-3"></i>
+                            <h5 class="text-gray-500">No documents found</h5>
+                            <p class="text-gray-400">Try adjusting your search filters</p>
+                        </div>
+                    <% } %>
+                </div>
+
+                <!-- JSON View -->
+                <div id="jsonView" style="display: none;">
+                    <div class="json-viewer">
+                        <pre><%= JSON.stringify(documents, null, 2) %></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+<% if (pagination.total > 1) { %>
+    <div class="row mt-4">
+        <div class="col-12">
+            <nav aria-label="Collection pagination">
+                <ul class="pagination pagination-container">
+                    <% if (pagination.current > 1) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<%= pagination.current - 1 %>&limit=<%= pagination.limit %>&search=<%= filters.search %>&userId=<%= filters.userId %>">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </a>
+                        </li>
+                    <% } %>
+                    
+                    <% for (let i = 1; i <= pagination.total; i++) { %>
+                        <% if (i === pagination.current) { %>
+                            <li class="page-item active">
+                                <span class="page-link"><%= i %></span>
+                            </li>
+                        <% } else if (i === 1 || i === pagination.total || (i >= pagination.current - 2 && i <= pagination.current + 2)) { %>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<%= i %>&limit=<%= pagination.limit %>&search=<%= filters.search %>&userId=<%= filters.userId %>">
+                                    <%= i %>
+                                </a>
+                            </li>
+                        <% } else if (i === pagination.current - 3 || i === pagination.current + 3) { %>
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        <% } %>
+                    <% } %>
+                    
+                    <% if (pagination.current < pagination.total) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<%= pagination.current + 1 %>&limit=<%= pagination.limit %>&search=<%= filters.search %>&userId=<%= filters.userId %>">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    <% } %>
+                </ul>
+            </nav>
+        </div>
+    </div>
+<% } %>
+
+<!-- Document JSON Modal -->
+<div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="documentModalLabel">Document Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="documentJSON" class="json-viewer"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="copyJSONToClipboard()">Copy JSON</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Object Viewer Modal -->
+<div class="modal fade" id="objectModal" tabindex="-1" aria-labelledby="objectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="objectModalLabel">Object Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="objectJSON" class="json-viewer"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const documents = <%- JSON.stringify(documents) %>;
+
+    function toggleTableView() {
+        document.getElementById('tableView').style.display = 'block';
+        document.getElementById('jsonView').style.display = 'none';
+    }
+
+    function toggleJSONView() {
+        document.getElementById('tableView').style.display = 'none';
+        document.getElementById('jsonView').style.display = 'block';
+    }
+
+    function viewDocumentJSON(index) {
+        const doc = documents[index];
+        document.getElementById('documentJSON').textContent = JSON.stringify(doc, null, 2);
+        new bootstrap.Modal(document.getElementById('documentModal')).show();
+    }
+
+    function showObjectModal(index, key) {
+        const doc = documents[index];
+        const obj = doc[key];
+        document.getElementById('objectJSON').textContent = JSON.stringify(obj, null, 2);
+        new bootstrap.Modal(document.getElementById('objectModal')).show();
+    }
+
+    function copyDocumentId(index) {
+        const doc = documents[index];
+        copyToClipboard(doc._id);
+    }
+
+    function copyJSONToClipboard() {
+        const jsonText = document.getElementById('documentJSON').textContent;
+        copyToClipboard(jsonText);
+    }
+
+    function exportCurrentView() {
+        const csv = convertToCSV(documents);
+        downloadCSV(csv, `<%= collection %>-export.csv`);
+    }
+
+    function convertToCSV(data) {
+        if (data.length === 0) return '';
+        
+        const headers = Object.keys(data[0]).filter(key => key !== '__v');
+        const csvHeaders = headers.join(',');
+        
+        const csvRows = data.map(row => {
+            return headers.map(header => {
+                const value = row[header];
+                if (typeof value === 'object' && value !== null) {
+                    return JSON.stringify(value);
+                }
+                return `"${value}"`;
+            }).join(',');
+        });
+        
+        return [csvHeaders, ...csvRows].join('\n');
+    }
+
+    function downloadCSV(csv, filename) {
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+</script>
