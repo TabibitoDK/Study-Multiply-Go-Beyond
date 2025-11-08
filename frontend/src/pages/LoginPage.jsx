@@ -20,9 +20,9 @@ const INITIAL_SIGNUP_FORM = {
 }
 
 const AUTH_TABS = [
-  { key: 'email', label: 'ƒ[ƒ‹' },
+  { key: 'email', label: 'ãƒ¡ãƒ¼ãƒ«' },
   { key: 'google', label: 'Google' },
-  { key: 'anonymous', label: 'ƒQƒXƒg' },
+  { key: 'anonymous', label: 'ã‚²ã‚¹ãƒˆ' },
 ]
 
 const randomGuestId = () => `guest_${Math.random().toString(36).slice(2, 9)}`
@@ -82,7 +82,7 @@ export default function LoginPage() {
       const result = await login(loginForm.email, loginForm.password)
       
       if (result.success) {
-        showNotification('ƒƒOƒCƒ“‚µ‚Ü‚µ‚½Bƒ_ƒbƒVƒ…ƒ{[ƒh‚ÉˆÚ“®‚µ‚Ü‚·B', 'success', 'login')
+        showNotification('ãƒ­ã‚°ã‚¤ãƒ³ã—ã¾ã—ãŸã€‚ãƒ€ãƒƒã‚·ãƒ¥ãƒœãƒ¼ãƒ‰ã«ç§»å‹•ã—ã¾ã™ã€‚', 'success', 'login')
         setTimeout(() => {
           navigate('/')
         }, 1000)
@@ -90,7 +90,7 @@ export default function LoginPage() {
         showNotification(result.error, 'error', 'login')
       }
     } catch (error) {
-      showNotification('ƒƒOƒCƒ“‚ÉŽ¸”s‚µ‚Ü‚µ‚½B‚à‚¤ˆê“x‚¨ŽŽ‚µ‚­‚¾‚³‚¢B', 'error', 'login')
+      showNotification('ãƒ­ã‚°ã‚¤ãƒ³ã«å¤±æ•—ã—ã¾ã—ãŸã€‚ã‚‚ã†ä¸€åº¦ãŠè©¦ã—ãã ã•ã„ã€‚', 'error', 'login')
     } finally {
       setIsSubmitting(false)
     }
@@ -102,11 +102,11 @@ export default function LoginPage() {
     if (isSubmitting) return
     
     if (signupForm.password !== signupForm.confirmPassword) {
-      showNotification('ƒpƒXƒ[ƒh‚ªˆê’v‚µ‚Ü‚¹‚ñB', 'error', 'signup')
+      showNotification('ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ãŒä¸€è‡´ã—ã¾ã›ã‚“ã€‚', 'error', 'signup')
       return
     }
     if (!signupForm.terms) {
-      showNotification('—˜—p‹K–ñ‚Ö‚Ì“¯ˆÓ‚ª•K—v‚Å‚·B', 'error', 'signup')
+      showNotification('åˆ©ç”¨è¦ç´„ã¸ã®åŒæ„ãŒå¿…è¦ã§ã™ã€‚', 'error', 'signup')
       return
     }
     
@@ -116,7 +116,7 @@ export default function LoginPage() {
       const result = await register(signupForm.name, signupForm.email, signupForm.password)
       
       if (result.success) {
-        showNotification('ƒAƒJƒEƒ“ƒg‚ðì¬‚µ‚Ü‚µ‚½B‚æ‚¤‚±‚» Nyacademy ‚ÖB', 'success', 'signup')
+        showNotification('ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã‚’ä½œæˆã—ã¾ã—ãŸã€‚ã‚ˆã†ã“ã Nyacademy ã¸ã€‚', 'success', 'signup')
         setTimeout(() => {
           navigate('/')
         }, 1000)
@@ -124,7 +124,7 @@ export default function LoginPage() {
         showNotification(result.error, 'error', 'signup')
       }
     } catch (error) {
-      showNotification('ƒAƒJƒEƒ“ƒgì¬‚ÉŽ¸”s‚µ‚Ü‚µ‚½B‚à‚¤ˆê“x‚¨ŽŽ‚µ‚­‚¾‚³‚¢B', 'error', 'signup')
+      showNotification('ã‚¢ã‚«ã‚¦ãƒ³ãƒˆä½œæˆã«å¤±æ•—ã—ã¾ã—ãŸã€‚ã‚‚ã†ä¸€åº¦ãŠè©¦ã—ãã ã•ã„ã€‚', 'error', 'signup')
     } finally {
       setIsSubmitting(false)
     }
@@ -132,18 +132,18 @@ export default function LoginPage() {
 
   const handleForgotPassword = event => {
     event.preventDefault()
-    showNotification('ƒpƒXƒ[ƒhÄÝ’èƒŠƒ“ƒN‚ðƒ[ƒ‹‚Å‘—M‚µ‚Ü‚µ‚½B', 'info', 'login')
+    showNotification('ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰å†è¨­å®šãƒªãƒ³ã‚¯ã‚’ãƒ¡ãƒ¼ãƒ«ã§é€ä¿¡ã—ã¾ã—ãŸã€‚', 'info', 'login')
   }
 
   const handleGoogleAuth = mode => {
-    const action = mode === 'login' ? 'ƒƒOƒCƒ“' : 'ƒTƒCƒ“ƒAƒbƒv'
-    showNotification(`Google ‚Å${action}‚ð€”õ‚µ‚Ä‚¢‚Ü‚·c`, 'info', mode)
+    const action = mode === 'login' ? 'ãƒ­ã‚°ã‚¤ãƒ³' : 'ã‚µã‚¤ãƒ³ã‚¢ãƒƒãƒ—'
+    showNotification(`Google ã§${action}ã‚’æº–å‚™ã—ã¦ã„ã¾ã™â€¦`, 'info', mode)
   }
 
   const handleAnonymousAuth = mode => {
     const result = guestLogin()
-    const action = mode === 'login' ? 'ƒƒOƒCƒ“' : 'ƒTƒCƒ“ƒAƒbƒv'
-    showNotification(`ƒQƒXƒg‚Æ‚µ‚Ä${action}‚µ‚Ü‚µ‚½B`, 'success', mode)
+    const action = mode === 'login' ? 'ãƒ­ã‚°ã‚¤ãƒ³' : 'ã‚µã‚¤ãƒ³ã‚¢ãƒƒãƒ—'
+    showNotification(`ã‚²ã‚¹ãƒˆã¨ã—ã¦${action}ã—ã¾ã—ãŸã€‚`, 'success', mode)
     setTimeout(() => {
       navigate('/')
     }, 1000)
@@ -171,10 +171,10 @@ export default function LoginPage() {
     if (loginActiveTab === 'google') {
       return (
         <div className="method-card">
-          <h3 className="method-title">Google ‚ÅƒƒOƒCƒ“</h3>
+          <h3 className="method-title">Google ã§ãƒ­ã‚°ã‚¤ãƒ³</h3>
           <div className="method-actions">
             <button type="button" className="btn btn-primary" onClick={() => handleGoogleAuth('login')}>
-              Google ‚Å‘±s
+              Google ã§ç¶šè¡Œ
             </button>
           </div>
         </div>
@@ -184,10 +184,10 @@ export default function LoginPage() {
     if (loginActiveTab === 'anonymous') {
       return (
         <div className="method-card">
-          <h3 className="method-title">ƒQƒXƒg‚ÅƒƒOƒCƒ“</h3>
+          <h3 className="method-title">ã‚²ã‚¹ãƒˆã§ãƒ­ã‚°ã‚¤ãƒ³</h3>
           <div className="method-actions">
             <button type="button" className="btn btn-secondary" onClick={() => handleAnonymousAuth('login')}>
-              ƒQƒXƒg‚Æ‚µ‚Ä“ü‚é
+              ã‚²ã‚¹ãƒˆã¨ã—ã¦å…¥ã‚‹
             </button>
           </div>
         </div>
@@ -196,10 +196,10 @@ export default function LoginPage() {
 
     return (
       <form onSubmit={handleLoginSubmit} className="method-card stack-gap">
-        <h3 className="method-title">ƒ[ƒ‹‚ÅƒƒOƒCƒ“</h3>
+        <h3 className="method-title">ãƒ¡ãƒ¼ãƒ«ã§ãƒ­ã‚°ã‚¤ãƒ³</h3>
         <div className="form-group">
           <label className="form-label" htmlFor="login-email">
-            ƒ[ƒ‹ƒAƒhƒŒƒX
+            ãƒ¡ãƒ¼ãƒ«ã‚¢ãƒ‰ãƒ¬ã‚¹
           </label>
           <input
             id="login-email"
@@ -213,7 +213,7 @@ export default function LoginPage() {
         </div>
         <div className="form-group">
           <label className="form-label" htmlFor="login-password">
-            ƒpƒXƒ[ƒh
+            ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰
           </label>
           <input
             id="login-password"
@@ -228,15 +228,15 @@ export default function LoginPage() {
         <div className="helper-row">
           <label className="remember-checkbox">
             <input type="checkbox" checked={loginForm.remember} onChange={handleLoginChange('remember')} />
-            <span>ƒƒOƒCƒ“î•ñ‚ð•ÛŽ</span>
+            <span>ãƒ­ã‚°ã‚¤ãƒ³æƒ…å ±ã‚’ä¿æŒ</span>
           </label>
           <a href="#" onClick={handleForgotPassword}>
-            ƒpƒXƒ[ƒh‚ð‚¨–Y‚ê‚Å‚·‚©H
+            ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’ãŠå¿˜ã‚Œã§ã™ã‹ï¼Ÿ
           </a>
         </div>
         <div className="method-actions">
           <button type="submit" className="btn btn-primary" disabled={isSubmitting || loading}>
-            {isSubmitting || loading ? 'ƒƒOƒCƒ“’†...' : 'ƒƒOƒCƒ“'}
+            {isSubmitting || loading ? 'ãƒ­ã‚°ã‚¤ãƒ³ä¸­...' : 'ãƒ­ã‚°ã‚¤ãƒ³'}
           </button>
         </div>
       </form>
@@ -247,10 +247,10 @@ export default function LoginPage() {
     if (signupActiveTab === 'google') {
       return (
         <div className="method-card">
-          <h3 className="method-title">Google ‚ÅƒTƒCƒ“ƒAƒbƒv</h3>
+          <h3 className="method-title">Google ã§ã‚µã‚¤ãƒ³ã‚¢ãƒƒãƒ—</h3>
           <div className="method-actions">
             <button type="button" className="btn btn-primary" onClick={() => handleGoogleAuth('signup')}>
-              Google ‚Å“o˜^
+              Google ã§ç™»éŒ²
             </button>
           </div>
         </div>
@@ -260,10 +260,10 @@ export default function LoginPage() {
     if (signupActiveTab === 'anonymous') {
       return (
         <div className="method-card">
-          <h3 className="method-title">ƒQƒXƒg‚Å‚Í‚¶‚ß‚é</h3>
+          <h3 className="method-title">ã‚²ã‚¹ãƒˆã§ã¯ã˜ã‚ã‚‹</h3>
           <div className="method-actions">
             <button type="button" className="btn btn-secondary" onClick={() => handleAnonymousAuth('signup')}>
-              ƒQƒXƒgƒ‚[ƒh‚ÅŽŽ‚·
+              ã‚²ã‚¹ãƒˆãƒ¢ãƒ¼ãƒ‰ã§è©¦ã™
             </button>
           </div>
         </div>
@@ -272,10 +272,10 @@ export default function LoginPage() {
 
     return (
       <form onSubmit={handleSignupSubmit} className="method-card stack-gap">
-        <h3 className="method-title">ƒ[ƒ‹‚ÅƒTƒCƒ“ƒAƒbƒv</h3>
+        <h3 className="method-title">ãƒ¡ãƒ¼ãƒ«ã§ã‚µã‚¤ãƒ³ã‚¢ãƒƒãƒ—</h3>
         <div className="form-group">
           <label className="form-label" htmlFor="signup-name">
-            •\Ž¦–¼
+            è¡¨ç¤ºå
           </label>
           <input
             id="signup-name"
@@ -289,7 +289,7 @@ export default function LoginPage() {
         </div>
         <div className="form-group">
           <label className="form-label" htmlFor="signup-email">
-            ƒ[ƒ‹ƒAƒhƒŒƒX
+            ãƒ¡ãƒ¼ãƒ«ã‚¢ãƒ‰ãƒ¬ã‚¹
           </label>
           <input
             id="signup-email"
@@ -303,13 +303,13 @@ export default function LoginPage() {
         </div>
         <div className="form-group">
           <label className="form-label" htmlFor="signup-password">
-            ƒpƒXƒ[ƒh
+            ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰
           </label>
           <input
             id="signup-password"
             type="password"
             className="form-input"
-            placeholder="8•¶ŽšˆÈã‚Å“ü—Í"
+            placeholder="8æ–‡å­—ä»¥ä¸Šã§å…¥åŠ›"
             value={signupForm.password}
             onChange={handleSignupChange('password')}
             required
@@ -320,7 +320,7 @@ export default function LoginPage() {
         </div>
         <div className="form-group">
           <label className="form-label" htmlFor="signup-confirm">
-            ƒpƒXƒ[ƒh‚ðŠm”F
+            ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’ç¢ºèª
           </label>
           <input
             id="signup-confirm"
@@ -335,12 +335,12 @@ export default function LoginPage() {
         <label className="terms">
           <input type="checkbox" checked={signupForm.terms} onChange={handleSignupChange('terms')} />
           <span>
-            <a href="#">—˜—p‹K–ñ</a> ‚Æ <a href="#">ƒvƒ‰ƒCƒoƒV[ƒ|ƒŠƒV[</a> ‚É“¯ˆÓ‚µ‚Ü‚·B
+            <a href="#">åˆ©ç”¨è¦ç´„</a> ã¨ <a href="#">ãƒ—ãƒ©ã‚¤ãƒã‚·ãƒ¼ãƒãƒªã‚·ãƒ¼</a> ã«åŒæ„ã—ã¾ã™ã€‚
           </span>
         </label>
         <div className="method-actions">
           <button type="submit" className="btn btn-primary" disabled={isSubmitting || loading}>
-            {isSubmitting || loading ? 'ƒTƒCƒ“ƒAƒbƒv’†...' : 'ƒTƒCƒ“ƒAƒbƒv'}
+            {isSubmitting || loading ? 'ã‚µã‚¤ãƒ³ã‚¢ãƒƒãƒ—ä¸­...' : 'ã‚µã‚¤ãƒ³ã‚¢ãƒƒãƒ—'}
           </button>
         </div>
       </form>
@@ -360,7 +360,7 @@ export default function LoginPage() {
               </div>
             </div>
             <p className="tagline">
-              ‚ ‚È‚½‚Ì“w—Í‚ð‚»‚Á‚ÆŒ©Žç‚éA”L‚ÆŠw‚Ô AI ŠwKƒRƒ~ƒ…ƒjƒeƒB‚ÅW’†ƒZƒbƒVƒ‡ƒ“‚ð‹L˜^‚µ‚Ü‚µ‚å‚¤B
+              ã‚ãªãŸã®åŠªåŠ›ã‚’ãã£ã¨è¦‹å®ˆã‚‹ã€çŒ«ã¨å­¦ã¶ AI å­¦ç¿’ã‚³ãƒŸãƒ¥ãƒ‹ãƒ†ã‚£ã§é›†ä¸­ã‚»ãƒƒã‚·ãƒ§ãƒ³ã‚’è¨˜éŒ²ã—ã¾ã—ã‚‡ã†ã€‚
             </p>
           </div>
         </section>
@@ -368,11 +368,11 @@ export default function LoginPage() {
         <section className="right-section">
           <div className="form-container">
             <div className="form-header">
-              <h2 className="form-title">{authMode === 'login' ? 'ƒƒOƒCƒ“' : 'ƒTƒCƒ“ƒAƒbƒv'}</h2>
+              <h2 className="form-title">{authMode === 'login' ? 'ãƒ­ã‚°ã‚¤ãƒ³' : 'ã‚µã‚¤ãƒ³ã‚¢ãƒƒãƒ—'}</h2>
               <p className="form-subtitle">
                 {authMode === 'login'
-                  ? '•Û‘¶‚³‚ê‚½ŠwKƒvƒ‰ƒ“‚âƒ`ƒƒƒbƒg‚Ö‚·‚®‚É–ß‚ê‚Ü‚·B'
-                  : 'ƒ^ƒXƒNA—F’BAƒc[ƒ‹‚ð“¯Šú‚µ‚ÄŠwK‚ð‰Á‘¬‚µ‚Ü‚µ‚å‚¤B'}
+                  ? 'ä¿å­˜ã•ã‚ŒãŸå­¦ç¿’ãƒ—ãƒ©ãƒ³ã‚„ãƒãƒ£ãƒƒãƒˆã¸ã™ãã«æˆ»ã‚Œã¾ã™ã€‚'
+                  : 'ã‚¿ã‚¹ã‚¯ã€å‹é”ã€ãƒ„ãƒ¼ãƒ«ã‚’åŒæœŸã—ã¦å­¦ç¿’ã‚’åŠ é€Ÿã—ã¾ã—ã‚‡ã†ã€‚'}
               </p>
             </div>
 
@@ -410,16 +410,16 @@ export default function LoginPage() {
             <div className="auth-toggle">
               {authMode === 'login' ? (
                 <>
-                  Nyacademy ‚ð‰‚ß‚Ä—˜—p‚µ‚Ü‚·‚©H{' '}
+                  Nyacademy ã‚’åˆã‚ã¦åˆ©ç”¨ã—ã¾ã™ã‹ï¼Ÿ{' '}
                   <button type="button" className="link-button" onClick={() => setAuthMode('signup')}>
-                    ¡‚·‚®“o˜^
+                    ä»Šã™ãç™»éŒ²
                   </button>
                 </>
               ) : (
                 <>
-                  ‚·‚Å‚ÉƒAƒJƒEƒ“ƒg‚ð‚¨Ž‚¿‚Å‚·‚©H{' '}
+                  ã™ã§ã«ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã‚’ãŠæŒã¡ã§ã™ã‹ï¼Ÿ{' '}
                   <button type="button" className="link-button" onClick={() => setAuthMode('login')}>
-                    ƒƒOƒCƒ“
+                    ãƒ­ã‚°ã‚¤ãƒ³
                   </button>
                 </>
               )}
