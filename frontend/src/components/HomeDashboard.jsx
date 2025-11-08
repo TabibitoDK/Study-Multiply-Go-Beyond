@@ -760,31 +760,49 @@ export default function HomeDashboard({
         </div>
 
         {typeof onOpenProfile === 'function' && (
-          <button type="button" className="btn ghost main-dashboard__profile-btn" onClick={onOpenProfile}>
-            {t('home.dashboard.profile.view', { defaultValue: 'View profile' })}
-          </button>
+          <div className="main-dashboard__profile-action">
+            <span className="main-dashboard__profile-hint">
+              {t('home.dashboard.profile.tagline', { defaultValue: 'See your full study story' })}
+            </span>
+            <button
+              type="button"
+              className="btn ghost main-dashboard__profile-btn"
+              onClick={onOpenProfile}
+            >
+              {t('home.dashboard.profile.view', { defaultValue: 'View profile' })}
+            </button>
+          </div>
         )}
       </div>
 
       <section className="main-dashboard__panels">
         {activeTab === 'tasks' ? (
           <div className="task-panel">
-            <div className="task-panel__column">
-              <div className="task-panel__header">
-                <div>
-                  <h2 className="task-panel__title">
-                    {t('home.dashboard.longTerm.title', { defaultValue: 'Long-term focus' })}
-                  </h2>
-                  <p className="task-panel__meta">{formatPlanCount(longTermCount)}</p>
+            <div className="task-panel__column task-panel__column--overview">
+              <div className="task-panel__header long-term-panel__header">
+                <div className="long-term-panel__summary">
+                  <div className="long-term-panel__title-row">
+                    <h2 className="task-panel__title">
+                      {t('home.dashboard.longTerm.title', { defaultValue: 'Long-term focus' })}
+                    </h2>
+                    <span className="task-panel__meta task-panel__meta--inline">
+                      {formatPlanCount(longTermCount)}
+                    </span>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  className="btn cat-primary"
-                  onClick={handleOpenAddLongTerm}
-                >
-                  {t('home.dashboard.longTerm.add', { defaultValue: 'Add plan' })}
-                </button>
               </div>
+              <button
+                type="button"
+                className="btn cat-primary task-panel__add-plan-btn long-term-panel__cta"
+                onClick={handleOpenAddLongTerm}
+              >
+                {t('home.dashboard.longTerm.add', { defaultValue: 'Add plan' })}
+              </button>
+              <p className="long-term-panel__hint">
+                {t('home.dashboard.longTerm.subtitle', {
+                  defaultValue: 'Map the ambitions that matter most and return here to adjust your path.',
+                })}
+              </p>
 
               <ul className="long-term-list">
                 {plans.map(group => {
@@ -853,7 +871,7 @@ export default function HomeDashboard({
                   </button>
                   <button
                     type="button"
-                    className="btn"
+                    className="btn task-panel__add-task-btn"
                     disabled={!selectedLongTerm}
                     onClick={handleOpenAddShortTask}
                   >

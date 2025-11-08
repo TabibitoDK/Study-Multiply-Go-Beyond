@@ -4775,6 +4775,7 @@ body {
   gap: 20px;
   padding: 12px 24px 24px;
   color: var(--main-text);
+  width: 100%;
 }
 
 .visually-hidden {
@@ -4793,18 +4794,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
   padding-bottom: 12px;
 }
 
 .main-dashboard__tabs {
   display: inline-flex;
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 220px;
   gap: 12px;
   flex-wrap: wrap;
   border-bottom: 1px solid var(--main-border);
   padding-bottom: 6px;
+  min-width: 0;
 }
 
 .main-dashboard__tab {
@@ -4829,15 +4832,49 @@ body {
   background: var(--main-accent);
 }
 
-.main-dashboard__profile-btn {
-  flex-shrink: 0;
-  margin-left: 16px;
+.main-dashboard__profile-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px 6px 0;
+  background: transparent;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
-@media (max-width: 640px) {
-  .main-dashboard__profile-btn {
-    margin-left: 0;
-  }
+.main-dashboard__profile-hint {
+  font-size: 0.85rem;
+  color: var(--main-muted);
+  white-space: nowrap;
+}
+
+.main-dashboard .btn {
+  font-size: 0.92rem;
+  padding: 8px 14px;
+  min-height: 36px;
+  font-weight: 600;
+}
+
+.main-dashboard .btn.cat-primary,
+.main-dashboard .btn.cat-secondary {
+  padding-inline: 16px;
+  box-shadow: 0 6px 14px rgba(var(--accent-rgb), 0.18);
+}
+
+.main-dashboard .btn.ghost {
+  background: rgba(17, 17, 17, 0.06);
+}
+
+.main-dashboard__profile-btn {
+  flex-shrink: 0;
+  margin-left: 0;
+  padding: 6px 16px;
+  font-size: 0.9rem;
+  align-self: flex-end;
+  white-space: nowrap;
+  border: 1px solid rgba(17, 17, 17, 0.18);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+  background: #fff;
 }
 
 .main-dashboard__panels {
@@ -4864,6 +4901,12 @@ body {
   box-shadow: 0 18px 36px -28px rgba(15, 23, 42, 0.45);
 }
 
+.task-panel__column--overview {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, #faf9f6 100%);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 24px 40px -32px rgba(15, 23, 42, 0.4);
+}
+
 .task-panel__column--primary {
   min-height: 320px;
 }
@@ -4873,17 +4916,88 @@ body {
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
+  flex-wrap: wrap;
+}
+
+.long-term-panel__header {
+  align-items: center;
+  flex-wrap: nowrap;
 }
 
 .task-panel__actions {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .task-panel__flow-button {
   white-space: nowrap;
+}
+
+.task-panel__flow-button,
+.task-panel__add-task-btn {
+  font-size: 0.85rem;
+  padding: 6px 12px;
+}
+
+.task-panel__add-plan-btn {
+  padding: 6px 14px;
+  font-size: 0.9rem;
+  align-self: flex-start;
+  white-space: nowrap;
+  box-shadow: 0 10px 20px rgba(var(--accent-rgb), 0.18);
+}
+
+.long-term-panel__hint {
+  margin: -4px 0 4px;
+  font-size: 0.85rem;
+  color: rgba(17, 17, 17, 0.65);
+}
+
+.long-term-panel__summary {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.long-term-panel__title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.task-panel__meta--inline {
+  margin: 0;
+  color: rgba(17, 17, 17, 0.6);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.long-term-panel__title-row .task-panel__title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 12px;
+}
+
+.long-term-panel__cta {
+  margin-top: 6px;
+}
+
+@media (max-width: 640px) {
+  .task-panel__actions {
+    flex-wrap: wrap;
+  }
+
+  .task-panel__flow-button,
+  .task-panel__add-task-btn {
+    flex: 1 1 160px;
+    justify-content: center;
+  }
 }
 
 .task-panel__title {
@@ -6434,5 +6548,33 @@ body {
 
   .flow-view__canvas {
     min-height: 420px;
+  }
+}
+@media (max-width: 640px) {
+  .main-dashboard__topbar {
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .main-dashboard__tabs {
+    flex-wrap: wrap;
+  }
+
+  .main-dashboard__profile-btn {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+    align-self: auto;
+  }
+
+  .main-dashboard__profile-action {
+    width: 100%;
+    padding: 12px 0 0;
+    justify-content: space-between;
+  }
+
+  .main-dashboard__profile-hint {
+    white-space: normal;
+    text-align: left;
   }
 }

@@ -9,6 +9,7 @@ import ProfileEditModal from '../components/ProfileEditModal.jsx'
 import profileService from '../services/profileService.js'
 import postService from '../services/postService.js'
 import { useI18nFormats } from '../lib/i18n-format.js'
+import { useAuth } from '../context/AuthContext.jsx'
 
 const GOALS_STORAGE_KEY = 'smgb-user-goals-v1'
 
@@ -66,6 +67,36 @@ export default function Profile({
       return defaultGoals
     }
   })
+  const { user: authUser } = useAuth()
+
+  const buildFallbackProfile = () => {
+    const fallbackId = profileId || currentUserId || authUser?._id || authUser?.id || null
+    const fallbackName =
+      authUser?.username ||
+      authUser?.name ||
+      (authUser?.email ? authUser.email.split('@')[0] : null) ||
+      'New Student'
+
+    return {
+      id: fallbackId,
+      userId: fallbackId,
+      username: fallbackName,
+      name: fallbackName,
+      bio: '',
+      bioPrivacy: true,
+      profileImage: authUser?.profileImage || '',
+      backgroundImage: authUser?.backgroundImage || '',
+      location: authUser?.location || '',
+      joined: authUser?.createdAt || new Date().toISOString(),
+      tags: [],
+      stats: { booksRead: 0, studyStreak: 0, totalStudyHours: 0 },
+      followers: 0,
+      following: 0,
+      followerIds: [],
+      followingIds: [],
+      posts: 0,
+    }
+  }
 
   // Fetch profile and posts data
   useEffect(() => {
@@ -73,6 +104,7 @@ export default function Profile({
       try {
         setLoading(true)
         
+        const viewingOwnProfile = !profileId || profileId === currentUserId
         // Determine which profile to fetch
         let profileData
         if (profileId) {
@@ -82,6 +114,17 @@ export default function Profile({
         } else {
           // Fallback to current user's profile
           profileData = await profileService.getCurrentUserProfile()
+        }
+
+        if (!profileData) {
+          if (viewingOwnProfile) {
+            profileData = buildFallbackProfile()
+          } else {
+            setResolvedProfile(null)
+            setPosts([])
+            setError('Profile not found. Please check the link and try again.')
+            return
+          }
         }
         
         setResolvedProfile(profileData)
@@ -98,7 +141,9 @@ export default function Profile({
         // Fetch posts for this profile
         const postsData = Array.isArray(postsProp)
           ? postsProp
-          : await postService.getPostsByUser(profileData.id)
+          : profileData?.id
+            ? await postService.getPostsByUser(profileData.id)
+            : []
         
         setPosts(postsData)
         setError(null)
@@ -111,11 +156,11 @@ export default function Profile({
     }
 
     fetchProfileData()
-  }, [profileId, currentUserId, postsProp])
+  }, [profileId, currentUserId, postsProp, authUser])
 
   // Refresh posts after creating a new post
   const refreshPosts = async () => {
-    if (!resolvedProfile) return
+    if (!resolvedProfile?.id) return
     
     try {
       const postsData = await postService.getPostsByUser(resolvedProfile.id)

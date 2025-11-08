@@ -27,7 +27,7 @@ const normalizeBookList = books => {
   return books.map(normalizeBook).filter(Boolean)
 }
 
-const PUBLIC_LIMIT = 200
+const PUBLIC_LIMIT = 100
 
 const fetchPublicBooks = async (queryString = '') => {
   const response = await api.get(`/books/public?limit=${PUBLIC_LIMIT}${queryString}`)
