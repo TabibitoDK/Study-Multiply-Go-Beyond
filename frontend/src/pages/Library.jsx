@@ -1,13 +1,18 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Plus,
-  Trash2,
-  Edit2,
-} from 'lucide-react'
+import { Plus } from 'lucide-react'
 import BookCard from '../components/library/BookCard.jsx'
 import BookModal from '../components/library/BookModal.jsx'
 import bookService from '../services/bookService.js'
+
+const collectTags = books =>
+  Array.from(
+    new Set(
+      books.flatMap(book => (Array.isArray(book.tags) ? book.tags : [])),
+    ),
+  )
+    .filter(Boolean)
+    .sort()
 
 export default function Library() {
   const navigate = useNavigate()
@@ -21,21 +26,18 @@ export default function Library() {
   const [editingBook, setEditingBook] = useState(null)
   const [allTags, setAllTags] = useState([])
 
-  // Fetch books and tags on component mount
+  // Fetch shared books on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const [booksData, tagsData] = await Promise.all([
-          bookService.getAllBooks(),
-          bookService.getAllTags()
-        ])
+        const booksData = await bookService.getAllBooks()
         setBooks(booksData)
-        setAllTags(tagsData)
+        setAllTags(collectTags(booksData))
         setError(null)
       } catch (err) {
         console.error('Error fetching library data:', err)
-        setError('Failed to load library data. Please try again later.')
+        setError('Failed to load the shared library. Please try again later.')
       } finally {
         setLoading(false)
       }
@@ -49,6 +51,7 @@ export default function Library() {
     try {
       const booksData = await bookService.getAllBooks()
       setBooks(booksData)
+      setAllTags(collectTags(booksData))
     } catch (err) {
       console.error('Error refreshing books:', err)
       setError('Failed to refresh books. Please try again later.')
@@ -170,7 +173,7 @@ export default function Library() {
       <header className="library-header">
         <div className="library-header-top">
           <h1 className="library-title">Library</h1>
-          <p className="library-subtitle">Your personal learning library</p>
+          <p className="library-subtitle">Explore the shared community library</p>
         </div>
 
         <div className="library-controls">

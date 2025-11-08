@@ -141,7 +141,8 @@ router.post('/',
     try {
       const bookData = {
         ...req.body,
-        userId: req.user.id // Ensure userId is set to authenticated user
+        userId: req.user.id, // Ensure userId is set to authenticated user
+        visibility: 'public'
       };
       
       const newBook = new Book(bookData);
