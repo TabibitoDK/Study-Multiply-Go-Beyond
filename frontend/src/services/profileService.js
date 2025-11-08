@@ -1,0 +1,185 @@
+import api from '../lib/api.js'
+
+// Profile service for handling all profile-related API calls
+export const profileService = {
+  // Get all profiles
+  getAllProfiles: async () => {
+    try {
+      const response = await api.get('/profiles')
+      return response
+    } catch (error) {
+      console.error('Error fetching profiles:', error)
+      throw error
+    }
+  },
+
+  // Get a profile by ID
+  getProfileById: async (id) => {
+    try {
+      const response = await api.get(`/profiles/${id}`)
+      return response
+    } catch (error) {
+      console.error('Error fetching profile:', error)
+      throw error
+    }
+  },
+
+  // Get current user's profile
+  getCurrentUserProfile: async () => {
+    try {
+      const response = await api.get('/profiles/me')
+      return response
+    } catch (error) {
+      console.error('Error fetching current user profile:', error)
+      throw error
+    }
+  },
+
+  // Create or update a profile
+  upsertProfile: async (profileData) => {
+    try {
+      const response = await api.post('/profiles', profileData)
+      return response
+    } catch (error) {
+      console.error('Error creating/updating profile:', error)
+      throw error
+    }
+  },
+
+  // Update an existing profile
+  updateProfile: async (id, profileData) => {
+    try {
+      const response = await api.put(`/profiles/${id}`, profileData)
+      return response
+    } catch (error) {
+      console.error('Error updating profile:', error)
+      throw error
+    }
+  },
+
+  // Get profiles except the current user
+  getProfilesExcept: async (currentUserId) => {
+    try {
+      const response = await api.get(`/profiles/exclude/${currentUserId}`)
+      return response
+    } catch (error) {
+      console.error('Error fetching other profiles:', error)
+      throw error
+    }
+  },
+
+  // Follow a user
+  followUser: async (userId) => {
+    try {
+      const response = await api.post(`/profiles/${userId}/follow`)
+      return response
+    } catch (error) {
+      console.error('Error following user:', error)
+      throw error
+    }
+  },
+
+  // Unfollow a user
+  unfollowUser: async (userId) => {
+    try {
+      const response = await api.delete(`/profiles/${userId}/follow`)
+      return response
+    } catch (error) {
+      console.error('Error unfollowing user:', error)
+      throw error
+    }
+  },
+
+  // Get followers of a user
+  getFollowers: async (userId) => {
+    try {
+      const response = await api.get(`/profiles/${userId}/followers`)
+      return response
+    } catch (error) {
+      console.error('Error fetching followers:', error)
+      throw error
+    }
+  },
+
+  // Get users that a user is following
+  getFollowing: async (userId) => {
+    try {
+      const response = await api.get(`/profiles/${userId}/following`)
+      return response
+    } catch (error) {
+      console.error('Error fetching following:', error)
+      throw error
+    }
+  },
+
+  // Update profile bio
+  updateBio: async (bioData) => {
+    try {
+      const response = await api.put('/profiles/bio', bioData)
+      return response
+    } catch (error) {
+      console.error('Error updating bio:', error)
+      throw error
+    }
+  },
+
+  // Update profile interests/tags
+  updateInterests: async (interestsData) => {
+    try {
+      const response = await api.put('/profiles/interests', interestsData)
+      return response
+    } catch (error) {
+      console.error('Error updating interests:', error)
+      throw error
+    }
+  },
+
+  // Update profile goals
+  updateGoals: async (goalsData) => {
+    try {
+      const response = await api.put('/profiles/goals', goalsData)
+      return response
+    } catch (error) {
+      console.error('Error updating goals:', error)
+      throw error
+    }
+  },
+
+  // Upload profile image
+  uploadProfileImage: async (imageFile) => {
+    try {
+      const formData = new FormData()
+      formData.append('image', imageFile)
+      
+      const response = await fetch('/api/profiles/image', {
+        method: 'POST',
+        headers: {
+          'x-user-id': localStorage.getItem('auth_token')
+        },
+        body: formData
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload image')
+      }
+      
+      return response.json()
+    } catch (error) {
+      console.error('Error uploading profile image:', error)
+      throw error
+    }
+  },
+
+  // Search profiles by query
+  searchProfiles: async (query) => {
+    try {
+      const response = await api.get(`/profiles/search?q=${encodeURIComponent(query)}`)
+      return response
+    } catch (error) {
+      console.error('Error searching profiles:', error)
+      throw error
+    }
+  }
+}
+
+export default profileService

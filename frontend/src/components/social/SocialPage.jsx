@@ -1,32 +1,131 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookOpen } from 'lucide-react'
 import PostCard from './PostCard.jsx'
 import PostModal from './PostModal.jsx'
 import ProfileSidebar from './ProfileSidebar.jsx'
 import TrendingSidebar from './TrendingSidebar.jsx'
-import { getPosts } from '../../lib/posts.js'
-import { getProfileById } from '../../lib/profiles.js'
+import postService from '../../services/postService.js'
+import profileService from '../../services/profileService.js'
 import CatPeekAnimation from '../CatPeekAnimation.jsx'
 import './SocialPage.css'
 
 export default function SocialPage({ currentUser, posts, onCreatePost, onSelectProfile }) {
   const navigate = useNavigate()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [feed, setFeed] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const feed = useMemo(() => {
-    const source = Array.isArray(posts) && posts.length > 0 ? posts : getPosts()
-    return source.map(post => ({
-      ...post,
-      author: post.author ?? getProfileById(post.userId),
-    }))
+  // Fetch posts and profiles on component mount
+  useEffect(() => {
+    const fetchFeedData = async () => {
+      try {
+        setLoading(true)
+        const postsData = Array.isArray(posts) && posts.length > 0
+          ? posts
+          : await postService.getAllPosts()
+        
+        // Enrich posts with author profiles
+        const enrichedPosts = await Promise.all(
+          postsData.map(async (post) => {
+            try {
+              const author = await profileService.getProfileById(post.userId)
+              return {
+                ...post,
+                author: author
+              }
+            } catch (err) {
+              console.error(`Error fetching author for post ${post.id}:`, err)
+              return {
+                ...post,
+                author: null
+              }
+            }
+          })
+        )
+        
+        setFeed(enrichedPosts)
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching feed data:', err)
+        setError('Failed to load social feed. Please try again later.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchFeedData()
   }, [posts])
 
-  function handleSubmit(draft) {
-    if (typeof onCreatePost === 'function') {
-      onCreatePost(draft)
+  // Refresh feed after creating a new post
+  const refreshFeed = async () => {
+    try {
+      const postsData = await postService.getAllPosts()
+      
+      // Enrich posts with author profiles
+      const enrichedPosts = await Promise.all(
+        postsData.map(async (post) => {
+          try {
+            const author = await profileService.getProfileById(post.userId)
+            return {
+              ...post,
+              author: author
+            }
+          } catch (err) {
+            console.error(`Error fetching author for post ${post.id}:`, err)
+            return {
+              ...post,
+              author: null
+            }
+          }
+        })
+      )
+      
+      setFeed(enrichedPosts)
+    } catch (err) {
+      console.error('Error refreshing feed:', err)
+      setError('Failed to refresh feed. Please try again later.')
     }
-    setIsModalOpen(false)
+  }
+
+  async function handleSubmit(draft) {
+    try {
+      if (typeof onCreatePost === 'function') {
+        onCreatePost(draft)
+      } else {
+        // Create post via API if no handler provided
+        await postService.createPost(draft)
+        await refreshFeed()
+      }
+      setIsModalOpen(false)
+    } catch (err) {
+      console.error('Error creating post:', err)
+      setError('Failed to create post. Please try again.')
+    }
+  }
+
+  // Handle loading and error states
+  if (loading) {
+    return (
+      <div className="social-wrap">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Loading social feed...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="social-wrap">
+        <div className="error-container">
+          <p>{error}</p>
+          <button onClick={refreshFeed} className="btn">Retry</button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -44,12 +143,19 @@ export default function SocialPage({ currentUser, posts, onCreatePost, onSelectP
             onClick={() => navigate('/library')}
           >
             <BookOpen size={18} />
-            ÂèÇËÄÉÊõ∏
+            éQçlèë
           </button>
         </div>
-        {feed.map(post => (
-          <PostCard key={post.id} post={post} onSelectProfile={onSelectProfile} />
-        ))}
+        {feed.length === 0 ? (
+          <div className="feed-empty">
+            <h2>No posts yet</h2>
+            <p>Be the first to share something with the community!</p>
+          </div>
+        ) : (
+          feed.map(post => (
+            <PostCard key={post.id} post={post} onSelectProfile={onSelectProfile} />
+          ))
+        )}
       </div>
 
       <TrendingSidebar />

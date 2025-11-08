@@ -12,12 +12,7 @@ import {
   User,
   MoreVertical,
 } from 'lucide-react'
-import {
-  getBookById,
-  deleteBook,
-  updateBook,
-  getAllBooks,
-} from '../lib/books.js'
+import bookService from '../services/bookService.js'
 import BookModal from '../components/library/BookModal.jsx'
 
 const statusLabels = {
@@ -36,41 +31,111 @@ export default function BookDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const [book, setBook] = useState(() => getBookById(id))
+  const [book, setBook] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+  const [otherBooks, setOtherBooks] = useState([])
 
   // Determine back navigation based on where user came from
   const fromSocial = location.state?.from === 'social'
   const backPath = fromSocial ? '/social' : '/library'
   const backText = fromSocial ? 'Back to Social' : 'Back to Library'
 
+  // Fetch book data
   useEffect(() => {
-    if (!book) {
+    const fetchBookData = async () => {
+      try {
+        setLoading(true)
+        const bookData = await bookService.getBookById(id)
+        setBook(bookData)
+        
+        // Fetch other books by the same author
+        const allBooks = await bookService.getAllBooks()
+        const relatedBooks = allBooks
+          .filter(b => b.author === bookData.author && b.id !== id)
+          .slice(0, 3)
+        setOtherBooks(relatedBooks)
+        
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching book details:', err)
+        setError('Failed to load book details. Please try again later.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (id) {
+      fetchBookData()
+    }
+  }, [id])
+
+  useEffect(() => {
+    if (!loading && !book) {
       navigate(backPath)
     }
-  }, [book, navigate, backPath])
+  }, [book, loading, navigate, backPath])
+
+  // Handle loading and error states
+  if (loading) {
+    return (
+      <div className="book-details">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Loading book details...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="book-details">
+        <div className="error-container">
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()} className="btn">Retry</button>
+        </div>
+      </div>
+    )
+  }
 
   if (!book) {
     return null
   }
 
-  const handleSaveBook = (formData) => {
-    updateBook(book.id, formData)
-    setBook(getBookById(id))
-    setShowModal(false)
+  const handleSaveBook = async (formData) => {
+    try {
+      const updatedBook = await bookService.updateBook(book.id, formData)
+      setBook(updatedBook)
+      setShowModal(false)
+    } catch (err) {
+      console.error('Error saving book:', err)
+      setError('Failed to save book. Please try again.')
+    }
   }
 
-  const handleDeleteBook = () => {
-    deleteBook(book.id)
-    navigate(backPath)
+  const handleDeleteBook = async () => {
+    try {
+      await bookService.deleteBook(book.id)
+      navigate(backPath)
+    } catch (err) {
+      console.error('Error deleting book:', err)
+      setError('Failed to delete book. Please try again.')
+    }
   }
 
-  const handleToggleVisibility = () => {
-    const newVisibility = book.visibility === 'public' ? 'private' : 'public'
-    updateBook(book.id, { visibility: newVisibility })
-    setBook(getBookById(id))
+  const handleToggleVisibility = async () => {
+    try {
+      const newVisibility = book.visibility === 'public' ? 'private' : 'public'
+      const updatedBook = await bookService.updateBook(book.id, { visibility: newVisibility })
+      setBook(updatedBook)
+    } catch (err) {
+      console.error('Error toggling visibility:', err)
+      setError('Failed to update visibility. Please try again.')
+    }
   }
 
   const renderStars = (rating) => {
@@ -84,9 +149,6 @@ export default function BookDetails() {
     ))
   }
 
-  const otherBooks = getAllBooks()
-    .filter(b => b.author === book.author && b.id !== book.id)
-    .slice(0, 3)
 
   return (
     <div className="book-details">

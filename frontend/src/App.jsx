@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import CalendarTopbar from './components/CalendarTopbar.jsx'
@@ -19,12 +19,13 @@ import { StudinyChat } from './tools/studiny-chat/index.js'
 import { StudyStreamRoutes } from './tools/studystream/index.js'
 import './tools/studiny-chat/StudinyChat.css'
 import { TaskManagerProvider } from './context/TaskManagerContext.jsx'
+import { AuthProvider, useAuth } from './context/AuthContext.jsx'
+import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute.jsx'
 import TaskDetails from './pages/TaskDetails.jsx'
-import { profiles, getProfileById, getProfilesExcept } from './lib/profiles.js'
-import { getPosts } from './lib/posts.js'
+import profileService from './services/profileService.js'
+import postService from './services/postService.js'
 import LoginPage from './pages/LoginPage.jsx'
 
-const CURRENT_USER_ID = 1
 
 const presenceByUserId = {
   2: { status: 'online', activity: 'Pair programming' },
@@ -33,14 +34,8 @@ const presenceByUserId = {
   5: { status: 'offline', activity: 'Language review' },
 }
 
-const derivedFriends = getProfilesExcept(CURRENT_USER_ID).map(profile => {
-  const presence = presenceByUserId[profile.id] ?? { status: 'offline', activity: 'Offline' }
-  return {
-    ...profile,
-    status: presence.status,
-    activity: presence.activity,
-  }
-})
+// We'll initialize these as empty arrays and fetch them dynamically
+let derivedFriends = []
 
 const groups = [
   { id: 'g1', name: 'Study Group - Math', memberCount: 5, image: null },
@@ -62,20 +57,87 @@ function ProfileWrapper({ currentUserId, posts, onCreatePost, onSelectProfile })
   )
 }
 
-export default function App() {
+function AppContent() {
+  const { user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [posts, setPosts] = useState(() =>
-    getPosts().map(post => ({
-      ...post,
-      author: getProfileById(post.userId),
-    }))
-  )
+  const [posts, setPosts] = useState([])
+  const [profiles, setProfiles] = useState([])
+  const [loading, setLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
   const [currentTask, setCurrentTask] = useState(null)
   const [lastCompletedTask, setLastCompletedTask] = useState(null)
 
-  const currentUser = getProfileById(CURRENT_USER_ID) ?? profiles[0]
+  // Fetch initial data
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true)
+        
+        // Fetch posts and profiles
+        const [postsData, profilesData] = await Promise.all([
+          postService.getAllPosts(),
+          profileService.getAllProfiles()
+        ])
+        
+        // Enrich posts with author profiles
+        const enrichedPosts = await Promise.all(
+          postsData.map(async (post) => {
+            try {
+              const author = profilesData.find(p => p.id === post.userId) ||
+                             await profileService.getProfileById(post.userId)
+              return {
+                ...post,
+                author
+              }
+            } catch (err) {
+              console.error(`Error fetching author for post ${post.id}:`, err)
+              return {
+                ...post,
+                author: null
+              }
+            }
+          })
+        )
+        
+        setPosts(enrichedPosts)
+        setProfiles(profilesData)
+        
+        // Create derived friends list (excluding current user)
+        const currentUserId = user?._id || user?.id || 1
+        derivedFriends = profilesData
+          .filter(profile => profile.id !== currentUserId)
+          .map(profile => {
+            const presence = presenceByUserId[profile.id] ?? { status: 'offline', activity: 'Offline' }
+            return {
+              ...profile,
+              status: presence.status,
+              activity: presence.activity,
+            }
+          })
+        
+        setLoading(false)
+      } catch (err) {
+        console.error('Error fetching initial data:', err)
+        setLoading(false)
+      }
+    }
+
+    if (user) {
+      fetchInitialData()
+    } else {
+      setLoading(false)
+    }
+  }, [user])
+
+  // Use authenticated user or fallback to first profile for demo
+  const currentUser = user ? {
+    ...user,
+    id: user._id || user.id,
+    name: user.username || user.name,
+    profileImage: user.profileImage || profiles[0]?.profileImage
+  } : profiles[0] || { id: 1, name: 'Demo User' }
+  
   const friends = derivedFriends
   const isLoginPage = location.pathname.startsWith('/login')
   const showRightPanel = !isLoginPage && (location.pathname === '/' || location.pathname.startsWith('/tools') || location.pathname.startsWith('/social') || location.pathname.startsWith('/profile') || location.pathname.startsWith('/chat') || location.pathname.startsWith('/library'))
@@ -104,32 +166,66 @@ export default function App() {
     navigate(-1)
   }
 
-  function handleCreatePost(draft) {
+  async function handleCreatePost(draft) {
     if (!draft) return
-    const author = getProfileById(CURRENT_USER_ID) ?? currentUser ?? profiles[0]
-    const id = typeof draft.id === 'string' && draft.id ? draft.id : `local-${Date.now()}`
-    const contentParts = []
-    if (draft.text && draft.text.trim()) contentParts.push(draft.text.trim())
-    if (draft.book && draft.book.trim()) contentParts.push(`Book: ${draft.book.trim()}`)
-    if (draft.duration && draft.duration.trim()) contentParts.push(`Duration: ${draft.duration.trim()}`)
-    const content = contentParts.join('\n\n') || 'Shared a new update.'
-    const tags = []
-    if (draft.subject && draft.subject.trim()) tags.push(draft.subject.trim())
+    const author = currentUser
+    
+    try {
+      const contentParts = []
+      if (draft.text && draft.text.trim()) contentParts.push(draft.text.trim())
+      if (draft.book && draft.book.trim()) contentParts.push(`Book: ${draft.book.trim()}`)
+      if (draft.duration && draft.duration.trim()) contentParts.push(`Duration: ${draft.duration.trim()}`)
+      const content = contentParts.join('\n\n') || 'Shared a new update.'
+      const tags = []
+      if (draft.subject && draft.subject.trim()) tags.push(draft.subject.trim())
 
-    setPosts(prev => [
-      {
-        id,
+      const postData = {
         userId: author.id,
-        author,
         content,
         image: draft.image ?? null,
         likes: draft.likes ?? 0,
         comments: draft.comments ?? 0,
         timestamp: new Date().toISOString(),
         tags,
-      },
-      ...prev,
-    ])
+      }
+
+      // Create post via API
+      const newPost = await postService.createPost(postData)
+      
+      // Add author info to the new post
+      const enrichedPost = {
+        ...newPost,
+        author
+      }
+      
+      setPosts(prev => [enrichedPost, ...prev])
+    } catch (err) {
+      console.error('Error creating post:', err)
+      // Fallback to local state if API fails
+      const id = `local-${Date.now()}`
+      const contentParts = []
+      if (draft.text && draft.text.trim()) contentParts.push(draft.text.trim())
+      if (draft.book && draft.book.trim()) contentParts.push(`Book: ${draft.book.trim()}`)
+      if (draft.duration && draft.duration.trim()) contentParts.push(`Duration: ${draft.duration.trim()}`)
+      const content = contentParts.join('\n\n') || 'Shared a new update.'
+      const tags = []
+      if (draft.subject && draft.subject.trim()) tags.push(draft.subject.trim())
+
+      setPosts(prev => [
+        {
+          id,
+          userId: author.id,
+          author,
+          content,
+          image: draft.image ?? null,
+          likes: draft.likes ?? 0,
+          comments: draft.comments ?? 0,
+          timestamp: new Date().toISOString(),
+          tags,
+        },
+        ...prev,
+      ])
+    }
   }
 
   function handleSetCurrentTask(taskTitle) {
@@ -170,64 +266,153 @@ export default function App() {
             <Route
               path="/"
               element={
-                <HomeDashboard
-                  user={currentUser}
-                  onOpenProfile={() => openProfile(CURRENT_USER_ID)}
-                  currentTask={currentTask}
-                  onSetCurrentTask={handleSetCurrentTask}
-                  onCompleteTask={handleCompleteTask}
-                />
+                <ProtectedRoute>
+                  <HomeDashboard
+                    user={currentUser}
+                    onOpenProfile={() => openProfile(currentUser.id)}
+                    currentTask={currentTask}
+                    onSetCurrentTask={handleSetCurrentTask}
+                    onCompleteTask={handleCompleteTask}
+                  />
+                </ProtectedRoute>
               }
             />
             <Route
               path="/social"
               element={
-                <SocialPage
-                  currentUser={currentUser}
-                  posts={posts}
-                  onCreatePost={handleCreatePost}
-                  onSelectProfile={openProfile}
-                />
+                <ProtectedRoute>
+                  <SocialPage
+                    currentUser={currentUser}
+                    posts={posts}
+                    onCreatePost={handleCreatePost}
+                    onSelectProfile={openProfile}
+                  />
+                </ProtectedRoute>
               }
             />
             <Route
               path="/profile"
               element={
-                <Profile
-                  profileId={CURRENT_USER_ID}
-                  currentUserId={CURRENT_USER_ID}
-                  posts={posts}
-                  onCreatePost={handleCreatePost}
-                  onSelectProfile={openProfile}
-                />
+                <ProtectedRoute>
+                  <Profile
+                    profileId={currentUser.id}
+                    currentUserId={currentUser.id}
+                    posts={posts}
+                    onCreatePost={handleCreatePost}
+                    onSelectProfile={openProfile}
+                  />
+                </ProtectedRoute>
               }
             />
             <Route
               path="/profile/:id"
               element={
-                <ProfileWrapper
-                  currentUserId={CURRENT_USER_ID}
-                  posts={posts}
-                  onCreatePost={handleCreatePost}
-                  onSelectProfile={openProfile}
-                />
+                <ProtectedRoute>
+                  <ProfileWrapper
+                    currentUserId={currentUser.id}
+                    posts={posts}
+                    onCreatePost={handleCreatePost}
+                    onSelectProfile={openProfile}
+                  />
+                </ProtectedRoute>
               }
             />
             <Route
               path="/chat/:type/:id"
-              element={<Chat currentUserId={CURRENT_USER_ID} friends={friends} groups={groups} />}
+              element={
+                <ProtectedRoute>
+                  <Chat currentUserId={currentUser.id} friends={friends} groups={groups} />
+                </ProtectedRoute>
+              }
             />
-            <Route path="/library" element={<Library />} />
-            <Route path="/library/:id" element={<BookDetails />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/tools" element={<Tools />} />
-            <Route path="/tools/flashcards" element={<FlashcardsPage />} />
-            <Route path="/tools/chat" element={<StudinyChat title="Studiny Chat" />} />
-            <Route path="/tools/stream/*" element={<StudyStreamRoutes />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/immerse" element={<ImmerseMode onClose={handleCloseImmerse} />} />
-            <Route path="/tasks/:taskId" element={<TaskDetails />} />
-            <Route path="/plans/:planId/flow" element={<FlowView />} />
+            <Route
+              path="/library"
+              element={
+                <ProtectedRoute>
+                  <Library />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/library/:id"
+              element={
+                <ProtectedRoute>
+                  <BookDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <LoginPage />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/tools"
+              element={
+                <ProtectedRoute>
+                  <Tools />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tools/flashcards"
+              element={
+                <ProtectedRoute>
+                  <FlashcardsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tools/chat"
+              element={
+                <ProtectedRoute>
+                  <StudinyChat title="Studiny Chat" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tools/stream/*"
+              element={
+                <ProtectedRoute>
+                  <StudyStreamRoutes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/calendar"
+              element={
+                <ProtectedRoute>
+                  <CalendarPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/immerse"
+              element={
+                <ProtectedRoute>
+                  <ImmerseMode onClose={handleCloseImmerse} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tasks/:taskId"
+              element={
+                <ProtectedRoute>
+                  <TaskDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/plans/:planId/flow"
+              element={
+                <ProtectedRoute>
+                  <FlowView />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </main>
 
@@ -242,5 +427,13 @@ export default function App() {
         )}
       </div>
     </TaskManagerProvider>
+  )
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }

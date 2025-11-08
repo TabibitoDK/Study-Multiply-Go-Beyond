@@ -1,0 +1,63 @@
+{
+  "timestamp": "2025-11-08T01:52:27.593Z",
+  "status": "issues_found",
+  "summary": {
+    "totalIssues": 10,
+    "orphanedRecords": 0,
+    "duplicateGroups": 0,
+    "consistencyIssues": 0,
+    "indexIssues": 0
+  },
+  "issues": [
+    {
+      "type": "check_error",
+      "collection": "books",
+      "error": "Operation `books.find()` buffering timed out after 10000ms"
+    },
+    {
+      "type": "check_error",
+      "collection": "posts",
+      "error": "Operation `posts.find()` buffering timed out after 10000ms"
+    },
+    {
+      "type": "check_error",
+      "collection": "profiles",
+      "error": "Operation `profiles.find()` buffering timed out after 10000ms"
+    },
+    {
+      "type": "check_error",
+      "collection": "goals",
+      "error": "Operation `goals.find()` buffering timed out after 10000ms"
+    },
+    {
+      "type": "check_error",
+      "collection": "calendarEvents",
+      "error": "Operation `calendarevents.find()` buffering timed out after 10000ms"
+    },
+    {
+      "type": "check_error",
+      "collection": "flashcardGroups",
+      "error": "Operation `flashcardgroups.find()` buffering timed out after 10000ms"
+    },
+    {
+      "type": "check_error",
+      "collection": "flashcardAISettings",
+      "error": "Operation `flashcardaisettings.find()` buffering timed out after 10000ms"
+    },
+    {
+      "type": "check_error",
+      "collection": "taskPlans",
+      "error": "Operation `taskplans.find()` buffering timed out after 10000ms"
+    },
+    {
+      "type": "check_error",
+      "collection": "flowEdges",
+      "error": "Operation `flowedges.find()` buffering timed out after 10000ms"
+    },
+    {
+      "type": "check_error",
+      "collection": "tags",
+      "error": "Operation `tags.find()` buffering timed out after 10000ms"
+    }
+  ]
+}

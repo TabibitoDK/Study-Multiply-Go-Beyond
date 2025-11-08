@@ -45,9 +45,7 @@ router.get('/', authenticate, validatePagination, async (req, res, next) => {
 router.get('/:id', authenticate, validateObjectId('id'), async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id)
-      .select('-passwordHash')
-      .populate('followers', 'username')
-      .populate('following', 'username');
+      .select('-passwordHash');
     
     if (!user) {
       return res.status(404).json({

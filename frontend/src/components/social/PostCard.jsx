@@ -1,6 +1,7 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { getBookById } from '../../lib/books.js'
+import bookService from '../../services/bookService.js'
 import { useI18nFormats } from '../../lib/i18n-format.js'
 
 function isFunction(value) {
@@ -11,12 +12,35 @@ export default function PostCard({ post, onSelectProfile }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { formatDateTime, formatNumber } = useI18nFormats()
+  const [bookDetails, setBookDetails] = useState({})
 
   if (!post) {
     return null
   }
 
   const { author, content, books, likes, comments, timestamp, tags } = post
+
+  // Fetch book details when component mounts or books change
+  useEffect(() => {
+    const fetchBookDetails = async () => {
+      if (Array.isArray(books) && books.length > 0) {
+        const details = {}
+        
+        for (const bookId of books) {
+          try {
+            const book = await bookService.getBookById(bookId)
+            details[bookId] = book
+          } catch (err) {
+            console.error(`Error fetching book ${bookId}:`, err)
+          }
+        }
+        
+        setBookDetails(details)
+      }
+    }
+
+    fetchBookDetails()
+  }, [books])
 
   const authorId = author?.id
   const authorName = author?.name ?? t('profile.posts.anonymous', { defaultValue: 'Anonymous Student' })
@@ -98,7 +122,7 @@ export default function PostCard({ post, onSelectProfile }) {
         {Array.isArray(books) && books.length > 0 && (
           <div className="post-book-references">
             {books.map(bookId => {
-              const book = getBookById(bookId)
+              const book = bookDetails[bookId]
               if (!book) return null
 
               return (

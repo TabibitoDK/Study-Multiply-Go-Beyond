@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getProfileById } from '../lib/profiles.js'
+import profileService from '../services/profileService.js'
 
 export default function Chat({ currentUserId, friends, groups }) {
   const { type, id } = useParams()
@@ -16,7 +16,23 @@ export default function Chat({ currentUserId, friends, groups }) {
     ? friends.find(f => f.id === Number(id))
     : groups.find(g => g.id === id)
 
-  const currentUser = getProfileById(currentUserId)
+  const [currentUser, setCurrentUser] = useState(null)
+
+  // Fetch current user profile
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const userProfile = await profileService.getProfileById(currentUserId)
+        setCurrentUser(userProfile)
+      } catch (err) {
+        console.error('Error fetching current user profile:', err)
+      }
+    }
+
+    if (currentUserId) {
+      fetchCurrentUser()
+    }
+  }, [currentUserId])
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -121,8 +137,8 @@ export default function Chat({ currentUserId, friends, groups }) {
           <div className="chat-header-name">{chatInfo.name}</div>
           {type === 'friend' && (
             <div className="chat-header-status">
-              {chatInfo.status === 'online' ? '🟢 Online' : '⚫ Offline'}
-              {chatInfo.activity && ` • ${chatInfo.activity}`}
+              {chatInfo.status === 'online' ? '? Online' : '? Offline'}
+              {chatInfo.activity && ` ? ${chatInfo.activity}`}
             </div>
           )}
           {type === 'group' && (
@@ -161,7 +177,7 @@ export default function Chat({ currentUserId, friends, groups }) {
           <div className="chat-image-preview">
             <img src={selectedImage} alt="Preview" />
             <button type="button" className="chat-image-remove" onClick={handleRemoveImage}>
-              ✕
+              ?
             </button>
           </div>
         )}

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Plus,
@@ -7,24 +7,77 @@ import {
 } from 'lucide-react'
 import BookCard from '../components/library/BookCard.jsx'
 import BookModal from '../components/library/BookModal.jsx'
-import {
-  getAllBooks,
-  updateBook,
-  createBook,
-  sortBooks,
-  getAllTags,
-} from '../lib/books.js'
+import bookService from '../services/bookService.js'
 
 export default function Library() {
   const navigate = useNavigate()
-  const [books, setBooks] = useState(() => getAllBooks())
+  const [books, setBooks] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const sortBy = 'latest'
   const [selectedTags, setSelectedTags] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [editingBook, setEditingBook] = useState(null)
+  const [allTags, setAllTags] = useState([])
 
-  const allTags = useMemo(() => getAllTags(), [])
+  // Fetch books and tags on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        const [booksData, tagsData] = await Promise.all([
+          bookService.getAllBooks(),
+          bookService.getAllTags()
+        ])
+        setBooks(booksData)
+        setAllTags(tagsData)
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching library data:', err)
+        setError('Failed to load library data. Please try again later.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  // Refresh books after any CRUD operation
+  const refreshBooks = async () => {
+    try {
+      const booksData = await bookService.getAllBooks()
+      setBooks(booksData)
+    } catch (err) {
+      console.error('Error refreshing books:', err)
+      setError('Failed to refresh books. Please try again later.')
+    }
+  }
+
+  // Sort books locally (can be moved to backend if needed)
+  const sortBooks = (booksToSort, sortBy) => {
+    const sorted = [...booksToSort]
+    
+    switch (sortBy) {
+      case 'latest':
+        return sorted.sort((a, b) => {
+          const aDate = new Date(a.createdAt || 0)
+          const bDate = new Date(b.createdAt || 0)
+          return bDate - aDate
+        })
+      case 'oldest':
+        return sorted.sort((a, b) => {
+          const aDate = new Date(a.createdAt || 0)
+          const bDate = new Date(b.createdAt || 0)
+          return aDate - bDate
+        })
+      case 'popular':
+        return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      default:
+        return sorted
+    }
+  }
 
   const filteredAndSearchedBooks = useMemo(() => {
     let result = books
@@ -56,15 +109,20 @@ export default function Library() {
     setShowModal(true)
   }
 
-  const handleSaveBook = (formData) => {
-    if (editingBook) {
-      updateBook(editingBook.id, formData)
-    } else {
-      createBook(formData)
+  const handleSaveBook = async (formData) => {
+    try {
+      if (editingBook) {
+        await bookService.updateBook(editingBook.id, formData)
+      } else {
+        await bookService.createBook(formData)
+      }
+      await refreshBooks()
+      setShowModal(false)
+      setEditingBook(null)
+    } catch (err) {
+      console.error('Error saving book:', err)
+      setError('Failed to save book. Please try again.')
     }
-    setBooks(getAllBooks())
-    setShowModal(false)
-    setEditingBook(null)
   }
 
   const handleBookClick = (bookId) => {
@@ -84,12 +142,35 @@ export default function Library() {
 
   const hasActiveFilters = searchQuery || selectedTags.length > 0
 
+  // Handle loading and error states
+  if (loading) {
+    return (
+      <div className="library-page">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Loading library...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="library-page">
+        <div className="error-container">
+          <p>{error}</p>
+          <button onClick={refreshBooks} className="btn">Retry</button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="library-page">
       <header className="library-header">
         <div className="library-header-top">
           <h1 className="library-title">Library</h1>
-          <p className="library-subtitle">マイ・ライブラリー</p>
+          <p className="library-subtitle">Your personal learning library</p>
         </div>
 
         <div className="library-controls">

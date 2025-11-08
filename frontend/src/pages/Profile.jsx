@@ -6,26 +6,31 @@ import './Profile.css'
 import PostCard from '../components/social/PostCard.jsx'
 import PostModal from '../components/social/PostModal.jsx'
 import ProfileEditModal from '../components/ProfileEditModal.jsx'
-import { profiles, getProfileById } from '../lib/profiles.js'
-import { getPostsByUser } from '../lib/posts.js'
+import profileService from '../services/profileService.js'
+import postService from '../services/postService.js'
 import { useI18nFormats } from '../lib/i18n-format.js'
 
 const GOALS_STORAGE_KEY = 'smgb-user-goals-v1'
 
 export default function Profile({
-  profileId = 1,
-  currentUserId = 1,
+  profileId = null,
+  currentUserId = null,
   posts: postsProp,
   onCreatePost,
   onSelectProfile,
 }) {
   const { t } = useTranslation()
   const { formatDate, formatNumber } = useI18nFormats()
-  const resolvedProfile =
-    getProfileById(profileId) ?? getProfileById(currentUserId) ?? profiles[0]
-  const isCurrentUser = resolvedProfile.id === currentUserId
-  const joinedDate = dayjs(resolvedProfile.joined)
-  const tags = Array.isArray(resolvedProfile.tags) ? resolvedProfile.tags : []
+  
+  const [resolvedProfile, setResolvedProfile] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [posts, setPosts] = useState([])
+  
+  // Determine if this is the current user's profile
+  const isCurrentUser = resolvedProfile && currentUserId && resolvedProfile.id === currentUserId
+  const joinedDate = resolvedProfile ? dayjs(resolvedProfile.joined) : dayjs()
+  const tags = resolvedProfile && Array.isArray(resolvedProfile.tags) ? resolvedProfile.tags : []
 
   const defaultGoals = useMemo(
     () => [
@@ -44,11 +49,9 @@ export default function Profile({
   const [editModalType, setEditModalType] = useState(null)
   const [editModalValue, setEditModalValue] = useState(null)
 
-  const [bio, setBio] = useState(resolvedProfile.bio || '')
+  const [bio, setBio] = useState('')
   const [bioPrivacy, setBioPrivacy] = useState(true)
-  const [interests, setInterests] = useState(
-    tags.map(tag => ({ text: tag, isPublic: true }))
-  )
+  const [interests, setInterests] = useState([])
   const [goals, setGoals] = useState(() => {
     if (typeof window === 'undefined') return []
     try {
@@ -64,17 +67,64 @@ export default function Profile({
     }
   })
 
-  const posts = useMemo(() => {
-    const base = Array.isArray(postsProp)
-      ? postsProp
-      : getPostsByUser(resolvedProfile.id)
-    return base
-      .filter(post => post.userId === resolvedProfile.id)
-      .map(post => ({
-        ...post,
-        author: post.author ?? resolvedProfile,
-      }))
-  }, [postsProp, resolvedProfile])
+  // Fetch profile and posts data
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        setLoading(true)
+        
+        // Determine which profile to fetch
+        let profileData
+        if (profileId) {
+          profileData = await profileService.getProfileById(profileId)
+        } else if (currentUserId) {
+          profileData = await profileService.getProfileById(currentUserId)
+        } else {
+          // Fallback to current user's profile
+          profileData = await profileService.getCurrentUserProfile()
+        }
+        
+        setResolvedProfile(profileData)
+        
+        // Initialize state with profile data
+        setBio(profileData.bio || '')
+        setBioPrivacy(profileData.bioPrivacy !== false) // Default to true
+        setInterests(
+          Array.isArray(profileData.tags)
+            ? profileData.tags.map(tag => ({ text: tag, isPublic: true }))
+            : []
+        )
+        
+        // Fetch posts for this profile
+        const postsData = Array.isArray(postsProp)
+          ? postsProp
+          : await postService.getPostsByUser(profileData.id)
+        
+        setPosts(postsData)
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching profile data:', err)
+        setError('Failed to load profile. Please try again later.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfileData()
+  }, [profileId, currentUserId, postsProp])
+
+  // Refresh posts after creating a new post
+  const refreshPosts = async () => {
+    if (!resolvedProfile) return
+    
+    try {
+      const postsData = await postService.getPostsByUser(resolvedProfile.id)
+      setPosts(postsData)
+    } catch (err) {
+      console.error('Error refreshing posts:', err)
+      setError('Failed to refresh posts. Please try again later.')
+    }
+  }
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -83,11 +133,20 @@ export default function Profile({
     } catch {}
   }, [goals])
 
-  function handleSubmit(draft) {
-    if (typeof onCreatePost === "function") {
-      onCreatePost(draft)
+  async function handleSubmit(draft) {
+    try {
+      if (typeof onCreatePost === "function") {
+        onCreatePost(draft)
+      } else {
+        // Create post via API if no handler provided
+        await postService.createPost(draft)
+        await refreshPosts()
+      }
+      setIsModalOpen(false)
+    } catch (err) {
+      console.error('Error creating post:', err)
+      setError('Failed to create post. Please try again.')
     }
-    setIsModalOpen(false)
   }
 
   function openEditModal(type, value) {
@@ -96,15 +155,59 @@ export default function Profile({
     setEditModalOpen(true)
   }
 
-  function handleEditSave(data) {
-    if (editModalType === 'bio') {
-      setBio(data.text)
-      setBioPrivacy(data.isPublic)
-    } else if (editModalType === 'interests') {
-      setInterests(data)
-    } else if (editModalType === 'goals') {
-      setGoals(data)
+  async function handleEditSave(data) {
+    try {
+      if (editModalType === 'bio') {
+        setBio(data.text)
+        setBioPrivacy(data.isPublic)
+        await profileService.updateBio({
+          text: data.text,
+          isPublic: data.isPublic
+        })
+      } else if (editModalType === 'interests') {
+        setInterests(data)
+        await profileService.updateInterests(data)
+      } else if (editModalType === 'goals') {
+        setGoals(data)
+        await profileService.updateGoals(data)
+      }
+    } catch (err) {
+      console.error('Error updating profile:', err)
+      setError('Failed to update profile. Please try again.')
     }
+  }
+
+  // Handle loading and error states
+  if (loading) {
+    return (
+      <div className="profile-container">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Loading profile...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="profile-container">
+        <div className="error-container">
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()} className="btn">Retry</button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!resolvedProfile) {
+    return (
+      <div className="profile-container">
+        <div className="error-container">
+          <p>Profile not found</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -156,7 +259,7 @@ export default function Profile({
           </div>
           <div className="stat-item">
             <span className="profile-stat-value">
-              {formatNumber(resolvedProfile.posts ?? 0)}
+              {formatNumber(resolvedProfile.posts ?? posts.length)}
             </span>
             <span className="profile-stat-label">
               {t('profile.header.stats.posts', { defaultValue: 'Posts' })}
