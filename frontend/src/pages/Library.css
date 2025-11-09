@@ -1049,71 +1049,87 @@
 }
 
 .book-related-page {
-  max-width: 1100px;
+  max-width: 1500px;
+  width: min(1500px, 100%);
   margin: 0 auto;
-  padding: 40px 24px 80px;
+  padding: 56px clamp(20px, 6vw, 64px) 110px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 40px;
+  min-width: 0;
 }
 
 .book-related-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
+  gap: clamp(16px, 4vw, 40px);
+  flex-wrap: wrap;
 }
 
 .book-related-header h1 {
-  margin: 4px 0 0;
-  font-size: 2rem;
+  margin: 6px 0 0;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
   color: var(--text);
+  line-height: 1.2;
 }
 
 .book-related-eyebrow {
   text-transform: uppercase;
-  letter-spacing: 0.3em;
-  font-size: 0.75rem;
+  letter-spacing: 0.35em;
+  font-size: 0.78rem;
   color: var(--subtext);
   margin: 0;
 }
 
 .book-related-summary {
   display: grid;
-  grid-template-columns: 240px 1fr;
-  gap: 32px;
-  padding: 32px;
-  border-radius: 32px;
-  background: var(--panel);
-  border: 1px solid var(--ring);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: clamp(24px, 4vw, 48px);
+  padding: clamp(28px, 4vw, 40px);
+  border-radius: 36px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(59, 130, 246, 0.15));
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.2);
+  grid-area: summary;
+  min-width: 0;
+}
+
+.book-related-summary__media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
 }
 
 .book-related-summary__media img {
   width: 100%;
   border-radius: 24px;
-  border: 1px solid var(--ring);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   object-fit: cover;
-  box-shadow: 0 15px 30px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 25px 40px rgba(15, 23, 42, 0.35);
 }
 
 .book-related-summary__body h2 {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: clamp(1.8rem, 2.5vw, 2.2rem);
   color: var(--text);
 }
 
 .book-related-author {
-  margin: 6px 0 16px;
+  margin: 6px 0 18px;
   color: var(--subtext);
   font-weight: 600;
+  font-size: 1.05rem;
 }
 
 .book-related-meta {
   display: flex;
-  gap: 16px;
+  gap: 18px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   color: var(--subtext);
   font-weight: 600;
 }
@@ -1122,18 +1138,44 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text);
 }
 
 .book-related-description {
   margin: 0;
   color: var(--text);
-  line-height: 1.6;
+  line-height: 1.75;
+  font-size: 1.05rem;
+}
+
+.book-related-grid {
+  display: grid;
+  grid-template-columns: minmax(230px, 320px) minmax(420px, 1fr) minmax(230px, 320px);
+  grid-template-areas: 'summary feed details';
+  gap: clamp(20px, 4vw, 48px);
+  align-items: start;
+  width: 100%;
+}
+
+.book-related-grid > * {
+  min-width: 0;
 }
 
 .book-related-feed {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
+  padding: clamp(24px, 4vw, 36px);
+  border-radius: 32px;
+  background: var(--panel);
+  border: 1px solid var(--ring);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  min-height: 100%;
+  min-width: 0;
+  grid-area: feed;
 }
 
 .book-related-feed__header {
@@ -1141,6 +1183,84 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.book-related-feed__header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text);
+}
+
+.book-related-details {
+  padding: clamp(20px, 3vw, 32px);
+  border-radius: 32px;
+  background: var(--panel);
+  border: 1px solid var(--ring);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  grid-area: details;
+}
+
+.book-related-details h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+.book-related-info {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.book-related-info div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.book-related-info dt {
+  font-size: 0.85rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--subtext);
+  margin: 0;
+}
+
+.book-related-info dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.book-related-tags-title {
+  margin: 12px 0 0;
+  font-size: 0.95rem;
+  color: var(--subtext);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.book-related-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.book-related-tags span {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--ring);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .book-related-posts__header {
@@ -1164,9 +1284,24 @@
 }
 
 .book-related-posts__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 28px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.book-related-posts__item {
+  display: flex;
+  min-width: 0;
+}
+
+.book-related-posts__list .post {
+  margin: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 24px;
 }
 
 .book-related-posts__state {
@@ -1206,6 +1341,20 @@
   .book-details-main {
     grid-template-columns: minmax(380px, 1fr) minmax(450px, 2fr);
     gap: 80px;
+  }
+}
+
+@media (max-width: 1400px) {
+  .book-related-page {
+    padding-left: clamp(16px, 5vw, 48px);
+    padding-right: clamp(16px, 5vw, 48px);
+  }
+
+  .book-related-grid {
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    grid-template-areas:
+      'summary feed'
+      'details details';
   }
 }
 
@@ -1258,6 +1407,15 @@
   .library-grid {
     grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
     gap: 18px;
+  }
+
+  .book-related-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'summary'
+      'feed'
+      'details';
+    gap: 28px;
   }
 }
 
@@ -1367,6 +1525,11 @@
 
   .book-related-posts__list {
     gap: 16px;
+    grid-template-columns: 1fr;
+  }
+
+  .book-related-feed {
+    padding: 20px;
   }
 
   .book-related-page {
@@ -1383,6 +1546,7 @@
     grid-template-columns: 1fr;
     padding: 24px;
   }
+
 }
 
 @media (max-width: 480px) {

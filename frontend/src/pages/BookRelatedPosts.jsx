@@ -1,9 +1,15 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, BookOpen, Calendar } from 'lucide-react'
 import bookService from '../services/bookService.js'
 import postService from '../services/postService.js'
 import PostCard from '../components/social/PostCard.jsx'
+
+const statusLabels = {
+  'want-to-read': 'Want to Read',
+  reading: 'Currently Reading',
+  completed: 'Finished',
+}
 
 export default function BookRelatedPosts() {
   const { id } = useParams()
@@ -70,6 +76,14 @@ export default function BookRelatedPosts() {
     loadPosts()
   }, [bookId])
 
+  const handleSelectProfile = useCallback(
+    profileId => {
+      if (!profileId) return
+      navigate(`/profile/${profileId}`)
+    },
+    [navigate],
+  )
+
   if (bookLoading) {
     return (
       <div className="book-related-page">
@@ -94,6 +108,18 @@ export default function BookRelatedPosts() {
     )
   }
 
+  const safeTags = Array.isArray(book.tags) ? book.tags.filter(Boolean) : []
+  const metaStats = [
+    book.pages ? { icon: <BookOpen size={16} />, text: `${book.pages} pages` } : null,
+    book.year ? { icon: <Calendar size={16} />, text: `Published ${book.year}` } : null,
+  ].filter(Boolean)
+  const infoPairs = [
+    book.publisher ? { label: 'Publisher', value: book.publisher } : null,
+    book.language ? { label: 'Language', value: book.language } : null,
+    book.status ? { label: 'Status', value: statusLabels[book.status] ?? book.status } : null,
+    book.visibility ? { label: 'Visibility', value: book.visibility } : null,
+  ].filter(Boolean)
+
   return (
     <div className="book-related-page">
       <header className="book-related-header">
@@ -112,65 +138,92 @@ export default function BookRelatedPosts() {
         </div>
       </header>
 
-      <section className="book-related-summary">
-        <div className="book-related-summary__media">
-          <img src={book.cover} alt={book.title} />
-        </div>
-        <div className="book-related-summary__body">
-          <h2>{book.title}</h2>
-          <p className="book-related-author">by {book.author}</p>
-          <div className="book-related-meta">
-            {book.pages && (
-              <span>
-                <BookOpen size={16} />
-                {book.pages} pages
-              </span>
-            )}
-            {book.year && (
-              <span>
-                <Calendar size={16} />
-                Published {book.year}
+      <div className="book-related-grid">
+        <aside className="book-related-summary">
+          <div className="book-related-summary__media">
+            <img src={book.cover} alt={book.title} />
+          </div>
+          <div className="book-related-summary__body">
+            <p className="book-related-eyebrow">Featured book</p>
+            <h2>{book.title}</h2>
+            <p className="book-related-author">by {book.author}</p>
+            <div className="book-related-meta">
+              {metaStats.map(item => (
+                <span key={item.text}>
+                  {item.icon}
+                  {item.text}
+                </span>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        <section className="book-related-feed">
+          <div className="book-related-feed__header">
+            <h3>Related posts</h3>
+            {!postsLoading && !postsError && (
+              <span className="book-related-posts__count">
+                {relatedPosts.length} {relatedPosts.length === 1 ? 'post' : 'posts'}
               </span>
             )}
           </div>
-          {book.description && <p className="book-related-description">{book.description}</p>}
-        </div>
-      </section>
 
-      <section className="book-related-feed">
-        <div className="book-related-feed__header">
-          <h3>Related posts</h3>
-          {!postsLoading && !postsError && (
-            <span className="book-related-posts__count">
-              {relatedPosts.length} {relatedPosts.length === 1 ? 'post' : 'posts'}
-            </span>
+          {postsLoading ? (
+            <div className="book-related-posts__state">
+              <div className="spinner" />
+              <p>Loading related posts...</p>
+            </div>
+          ) : postsError ? (
+            <div className="book-related-posts__state is-error">
+              <p>{postsError}</p>
+              <button type="button" className="btn ghost" onClick={() => navigate(`/library/${bookId}`)}>
+                Back to Book
+              </button>
+            </div>
+          ) : relatedPosts.length === 0 ? (
+            <div className="book-related-posts__state">
+              <p>No posts mention this book yet. Share one from the social page!</p>
+            </div>
+          ) : (
+            <ul className="book-related-posts__list" role="list">
+              {relatedPosts.map(post => (
+                <li
+                  key={post.id ?? post._id ?? post.timestamp}
+                  className="book-related-posts__item"
+                >
+                  <PostCard post={post} onSelectProfile={handleSelectProfile} />
+                </li>
+              ))}
+            </ul>
           )}
-        </div>
+        </section>
 
-        {postsLoading ? (
-          <div className="book-related-posts__state">
-            <div className="spinner" />
-            <p>Loading related posts...</p>
-          </div>
-        ) : postsError ? (
-          <div className="book-related-posts__state is-error">
-            <p>{postsError}</p>
-            <button type="button" className="btn ghost" onClick={() => navigate(`/library/${bookId}`)}>
-              Back to Book
-            </button>
-          </div>
-        ) : relatedPosts.length === 0 ? (
-          <div className="book-related-posts__state">
-            <p>No posts mention this book yet. Share one from the social page!</p>
-          </div>
-        ) : (
-          <div className="book-related-posts__list">
-            {relatedPosts.map(post => (
-              <PostCard key={post.id} post={post} />
-            ))}
-          </div>
-        )}
-      </section>
+        <aside className="book-related-details">
+          <h3>Book details</h3>
+          {book.description && <p className="book-related-description">{book.description}</p>}
+          {infoPairs.length > 0 && (
+            <dl className="book-related-info">
+              {infoPairs.map(pair => (
+                <div key={pair.label}>
+                  <dt>{pair.label}</dt>
+                  <dd>{pair.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          {safeTags.length > 0 && (
+            <>
+              <h4 className="book-related-tags-title">Tags</h4>
+              <div className="book-related-tags">
+                {safeTags.map(tag => (
+                  <span key={tag}>{tag}</span>
+                ))}
+              </div>
+            </>
+          )}
+        </aside>
+      </div>
     </div>
   )
 }
