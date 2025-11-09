@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import CalendarTopbar from './components/CalendarTopbar.jsx'
@@ -25,7 +25,15 @@ import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute.jsx'
 import TaskDetails from './pages/TaskDetails.jsx'
 import profileService from './services/profileService.js'
 import postService from './services/postService.js'
+import groupService from './services/groupService.js'
 import LoginPage from './pages/LoginPage.jsx'
+
+const FRIEND_STATUS_PRESETS = {
+  haruto_study: { status: 'online', activity: 'Slide rewrites' },
+  sora_english: { status: 'online', activity: 'Timing intro' },
+  miyu_gakushu: { status: 'offline', activity: 'Drafting feedback' },
+  ren_math: { status: 'offline', activity: 'Mock Q&A later' },
+}
 
 
 
@@ -51,11 +59,70 @@ function AppContent() {
   const [profiles, setProfiles] = useState([])
   const [userProfile, setUserProfile] = useState(null)
   const [friends, setFriends] = useState([])
+  const [groups, setGroups] = useState([])
   const [loading, setLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
   const [currentTask, setCurrentTask] = useState(null)
   const [lastCompletedTask, setLastCompletedTask] = useState(null)
-  const groups = []
+
+  const buildFriendProfiles = useCallback((currentProfile, profileMap) => {
+    if (!currentProfile?.followingIds?.length) {
+      return []
+    }
+
+    return currentProfile.followingIds
+      .map(id => profileMap.get(id))
+      .filter(Boolean)
+      .map(profile => {
+        const key = profile.username || profile.name || ''
+        const preset = FRIEND_STATUS_PRESETS[key] || {}
+        return {
+          ...profile,
+          status: preset.status || 'offline',
+          activity: preset.activity || 'Offline',
+        }
+      })
+  }, [])
+
+  const refreshFriends = useCallback(async () => {
+    if (!user) {
+      setFriends([])
+      return
+    }
+
+    try {
+      const authUserId = user._id || user.id
+      const [profileList, currentProfileData] = await Promise.all([
+        profileService.getAllProfiles(),
+        profileService.getProfileById(authUserId).catch(() => null),
+      ])
+
+      const profileMap = new Map((profileList || []).map(profile => [profile.userId, profile]))
+      if (currentProfileData) {
+        profileMap.set(currentProfileData.userId, currentProfileData)
+        setUserProfile(currentProfileData)
+      }
+
+      setProfiles(Array.from(profileMap.values()))
+      setFriends(buildFriendProfiles(currentProfileData, profileMap))
+    } catch (err) {
+      console.error('Error refreshing friend list:', err)
+    }
+  }, [user, buildFriendProfiles])
+
+  const refreshGroups = useCallback(async () => {
+    if (!user) {
+      setGroups([])
+      return
+    }
+
+    try {
+      const groupList = await groupService.getMyGroups()
+      setGroups(groupList)
+    } catch (err) {
+      console.error('Error refreshing study groups:', err)
+    }
+  }, [user])
 
   // Fetch initial data
   useEffect(() => {
@@ -65,6 +132,7 @@ function AppContent() {
         setProfiles([])
         setUserProfile(null)
         setFriends([])
+        setGroups([])
         setLoading(false)
         return
       }
@@ -101,20 +169,8 @@ function AppContent() {
         setProfiles(Array.from(profileMap.values()))
         setUserProfile(currentProfile)
 
-        if (currentProfile?.followingIds?.length) {
-          const friendProfiles = currentProfile.followingIds
-            .map(id => profileMap.get(id))
-            .filter(Boolean)
-            .map(profile => ({
-              ...profile,
-              status: 'offline',
-              activity: 'Offline',
-            }))
-
-          setFriends(friendProfiles)
-        } else {
-          setFriends([])
-        }
+        const friendProfiles = buildFriendProfiles(currentProfile, profileMap)
+        setFriends(friendProfiles)
       } catch (err) {
         console.error('Error fetching initial data:', err)
       } finally {
@@ -123,7 +179,32 @@ function AppContent() {
     }
 
     fetchInitialData()
-  }, [user])
+  }, [user, buildFriendProfiles])
+
+  useEffect(() => {
+    refreshGroups()
+  }, [refreshGroups])
+
+  useEffect(() => {
+    if (sidebarCollapsed || !user) {
+      return
+    }
+
+    let cancelled = false
+
+    const syncConnections = async () => {
+      if (cancelled) return
+      await Promise.all([refreshFriends(), refreshGroups()])
+    }
+
+    syncConnections()
+    const intervalId = setInterval(syncConnections, 30000)
+
+    return () => {
+      cancelled = true
+      clearInterval(intervalId)
+    }
+  }, [sidebarCollapsed, user, refreshFriends, refreshGroups])
 
   const authUserId = user?._id || user?.id || null
   const resolvedProfile =

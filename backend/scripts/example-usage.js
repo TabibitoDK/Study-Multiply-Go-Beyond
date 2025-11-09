@@ -90,7 +90,7 @@ console.log('');
 console.log('User Statistics:');
 console.log(`  Total Users: 5`);
 console.log(`  User Mappings: 5`);
-console.log(`  Usernames: aiko_hennyu, haruto_study, miyu_gakushu, ren_math, sora_english`);
+console.log(`  Usernames: aiko_hennyuu, haruto_study, miyu_gakushu, ren_math, sora_english`);
 console.log('');
 console.log('Rollback Information:');
 console.log(`  Timestamp: 2025-11-07T16:57:00.000Z`);

@@ -17,11 +17,14 @@ import {
   flashcardAISettingsRouter,
   taskPlansRouter,
   flowEdgesRouter,
-  tagsRouter
+  tagsRouter,
+  studyGroupsRouter,
+  chatsRouter
 } from './routes/index.js'
 import adminRouter from './routes/admin.js'
 import { ensureSampleAccounts } from './utils/sampleAccounts.js'
 import { seedFrontendData } from './utils/frontendDataSeeder.js'
+import { ensureCommunityShowcase } from './utils/sampleCommunity.js'
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url)
@@ -72,6 +75,8 @@ app.use('/api/flashcard-ai-settings', flashcardAISettingsRouter)
 app.use('/api/task-plans', taskPlansRouter)
 app.use('/api/flow-edges', flowEdgesRouter)
 app.use('/api/tags', tagsRouter)
+app.use('/api/study-groups', studyGroupsRouter)
+app.use('/api/chats', chatsRouter)
 
 // Admin routes
 app.use('/admin', adminRouter)
@@ -92,6 +97,7 @@ async function startServer() {
     await connectDB()
     await ensureSampleAccounts()
     await seedFrontendData()
+    await ensureCommunityShowcase()
     app.listen(PORT, () => {
       console.log(`? API server listening on http://localhost:${PORT}`)
     })

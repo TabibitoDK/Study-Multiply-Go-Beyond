@@ -70,13 +70,23 @@ All seeded demo users share the password `pwd`. Their login emails are:
 
 | Username        | Email                            | Password |
 | --------------- | -------------------------------- | -------- |
-| `aiko_hennyu`   | `aiko_hennyu@nyacademy.dev`      | `pwd`    |
+| `aiko_hennyuu`  | `aiko_hennyuu@nyacademy.dev`     | `pwd`    |
 | `haruto_study`  | `haruto_study@nyacademy.dev`     | `pwd`    |
 | `miyu_gakushu`  | `miyu_gakushu@nyacademy.dev`     | `pwd`    |
 | `ren_math`      | `ren_math@nyacademy.dev`         | `pwd`    |
 | `sora_english`  | `sora_english@nyacademy.dev`     | `pwd`    |
 
-> ℹ️ The backend automatically ensures these accounts exist (and get the correct password) every time it boots, so you can log in immediately without running extra scripts.
+> ℹ️ The backend automatically ensures these accounts exist (and get the correct password) every time it boots, so you can log in immediately without running extra scripts.
+
+### English Presentation Showcase
+
+- `aiko_hennyuu` now automatically follows Haruto, Miyu, Ren, and Sora so you can open real friend chats without any manual setup.
+- The **English Presentation Circle** group appears in the right sidebar; it is a focused pod where members trade tips on how they rehearse, calm nerves, and get feedback for English presentations.
+- The group chat is preloaded with a short conversation in which Aiko admits she is nervous, and the others walk her through breathing cues, slide transitions, and friendly check-ins to calm her down.
+- All chat traffic is persisted through the new endpoints:
+  - `GET /api/study-groups` and `GET/POST /api/study-groups/:id/messages` for group threads.
+  - `GET/POST /api/chats/direct/:friendId/messages` for direct messages between connected profiles.
+- The frontend `Chat` page and sidebar now call these endpoints, so every message you send from the UI is saved to MongoDB and immediately reflected for everyone else in the thread.
 
 Sign in with any of these accounts to explore the social feed and other authenticated areas quickly.
 

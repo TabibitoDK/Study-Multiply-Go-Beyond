@@ -150,7 +150,7 @@ Extracted 15 tags
 ----------------------------------------
 STEP 2: CREATING USERS
 ----------------------------------------
-Created user: aiko_hennyu (507f1f77bcf86cd799439011)
+Created user: aiko_hennyuu (507f1f77bcf86cd799439011)
 Created user: haruto_study (507f1f77bcf86cd799439012)
 ? User creation completed
   Created 5 users

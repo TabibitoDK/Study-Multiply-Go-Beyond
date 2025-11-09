@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import profileService from '../services/profileService.js'
+import chatService from '../services/chatService.js'
 
 export default function Chat({ currentUserId, friends, groups }) {
   const { type, id } = useParams()
@@ -8,89 +8,81 @@ export default function Chat({ currentUserId, friends, groups }) {
   const [messages, setMessages] = useState([])
   const [messageText, setMessageText] = useState('')
   const [selectedImage, setSelectedImage] = useState(null)
+  const [loadingMessages, setLoadingMessages] = useState(true)
+  const [error, setError] = useState(null)
+  const [isSending, setIsSending] = useState(false)
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
 
-  // Get chat recipient info
-  const chatInfo = type === 'friend'
-    ? friends.find(f => String(f.id) === String(id))
-    : groups.find(g => String(g.id) === String(id))
+  const chatInfo =
+    type === 'friend'
+      ? friends.find(friend => String(friend.id) === String(id))
+      : groups.find(group => String(group.id) === String(id))
 
-  const [currentUser, setCurrentUser] = useState(null)
+  const loadMessages = useCallback(async () => {
+    if (!chatInfo || !currentUserId) {
+      return
+    }
 
-  // Fetch current user profile
+    setLoadingMessages(true)
+    setMessages([])
+
+    try {
+      const response =
+        type === 'friend'
+          ? await chatService.getDirectThread(chatInfo.id)
+          : await chatService.getGroupMessages(chatInfo.id)
+
+      setMessages(response?.messages || [])
+      setError(null)
+    } catch (err) {
+      console.error('Error loading chat messages:', err)
+      setError('Failed to load chat history. Please try again.')
+    } finally {
+      setLoadingMessages(false)
+    }
+  }, [chatInfo, currentUserId, type])
+
   useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const userProfile = await profileService.getProfileById(currentUserId)
-        setCurrentUser(userProfile)
-      } catch (err) {
-        console.error('Error fetching current user profile:', err)
-      }
-    }
+    loadMessages()
+  }, [loadMessages])
 
-    if (currentUserId) {
-      fetchCurrentUser()
-    }
-  }, [currentUserId])
-
-  // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Load sample messages (in real app, this would be from a database)
-  useEffect(() => {
-    if (type === 'friend' && chatInfo) {
-      setMessages([
-        {
-          id: 1,
-          senderId: String(chatInfo.id),
-          senderName: chatInfo.name,
-          text: 'Hey! How are you doing?',
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-        },
-        {
-          id: 2,
-          senderId: String(currentUserId),
-          senderName: currentUser.name,
-          text: "I'm good! Working on some projects. How about you?",
-          timestamp: new Date(Date.now() - 3000000).toISOString(),
-        },
-      ])
-    } else if (type === 'group' && chatInfo) {
-      setMessages([
-        {
-          id: 1,
-          senderId: '2',
-          senderName: 'Jane Smith',
-          text: 'Welcome to the group!',
-          timestamp: new Date(Date.now() - 7200000).toISOString(),
-        },
-      ])
+  const handleSendMessage = async event => {
+    event.preventDefault()
+    if ((!messageText.trim() && !selectedImage) || !chatInfo) {
+      return
     }
-  }, [type, id, chatInfo, currentUserId, currentUser])
 
-  const handleSendMessage = (e) => {
-    e.preventDefault()
-    if (!messageText.trim() && !selectedImage) return
-
-    const newMessage = {
-      id: Date.now(),
-      senderId: currentUserId,
-      senderName: currentUser.name,
+    const payload = {
       text: messageText.trim(),
-      image: selectedImage,
-      timestamp: new Date().toISOString(),
+      ...(selectedImage ? { image: selectedImage } : {}),
     }
 
-    setMessages([...messages, newMessage])
-    setMessageText('')
-    setSelectedImage(null)
+    try {
+      setIsSending(true)
+      const sentMessage =
+        type === 'friend'
+          ? await chatService.sendDirectMessage(chatInfo.id, payload)
+          : await chatService.sendGroupMessage(chatInfo.id, payload)
+
+      setMessages(prev => [...prev, sentMessage])
+      setMessageText('')
+      setError(null)
+      handleRemoveImage()
+    } catch (err) {
+      console.error('Error sending chat message:', err)
+      setError('Could not send message. Please try again.')
+    } finally {
+      setIsSending(false)
+    }
   }
 
-  const handleImageSelect = (e) => {
-    const file = e.target.files?.[0]
+  const handleImageSelect = event => {
+    const file = event.target.files?.[0]
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader()
       reader.onloadend = () => {
@@ -122,7 +114,6 @@ export default function Chat({ currentUserId, friends, groups }) {
 
   return (
     <div className="chat-page">
-      {/* Chat Header */}
       <div className="chat-header">
         <button className="icon-btn" onClick={() => navigate(-1)} title="Go back">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -131,53 +122,63 @@ export default function Chat({ currentUserId, friends, groups }) {
         </button>
         <div
           className="chat-header-avatar"
-          style={chatInfo.profileImage || chatInfo.image ? { backgroundImage: `url(${chatInfo.profileImage || chatInfo.image})` } : undefined}
+          style={
+            chatInfo.profileImage || chatInfo.image
+              ? { backgroundImage: `url(${chatInfo.profileImage || chatInfo.image})` }
+              : undefined
+          }
         />
         <div className="chat-header-info">
           <div className="chat-header-name">{chatInfo.name}</div>
           {type === 'friend' && (
             <div className="chat-header-status">
-              {chatInfo.status === 'online' ? '? Online' : '? Offline'}
-              {chatInfo.activity && ` ? ${chatInfo.activity}`}
+              {chatInfo.status === 'online' ? 'Online' : 'Offline'}
+              {chatInfo.activity && ` - ${chatInfo.activity}`}
             </div>
           )}
-          {type === 'group' && (
-            <div className="chat-header-status">{chatInfo.memberCount} members</div>
-          )}
+          {type === 'group' && <div className="chat-header-status">{chatInfo.memberCount} members</div>}
         </div>
       </div>
 
-      {/* Messages Area */}
+      {error && (
+        <div className="chat-alert" role="alert">
+          {error}
+        </div>
+      )}
+
       <div className="chat-messages">
-        {messages.map(message => {
-          const isOwn = String(message.senderId) === String(currentUserId)
-          return (
-            <div key={message.id} className={`chat-message ${isOwn ? 'own' : 'other'}`}>
-              {!isOwn && type === 'group' && (
-                <div className="chat-message-sender">{message.senderName}</div>
-              )}
-              <div className="chat-message-bubble">
-                {message.text && <div className="chat-message-text">{message.text}</div>}
-                {message.image && (
-                  <img src={message.image} alt="Shared" className="chat-message-image" />
+        {loadingMessages ? (
+          <div className="chat-placeholder">Loading conversation...</div>
+        ) : messages.length === 0 ? (
+          <div className="chat-placeholder">No messages yet. Say hi!</div>
+        ) : (
+          messages.map(message => {
+            const isOwn = String(message.senderId) === String(currentUserId)
+            return (
+              <div key={message.id} className={`chat-message ${isOwn ? 'own' : 'other'}`}>
+                {!isOwn && type === 'group' && (
+                  <div className="chat-message-sender">{message.senderName}</div>
                 )}
-                <div className="chat-message-time">
-                  {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                <div className="chat-message-bubble">
+                  {message.text && <div className="chat-message-text">{message.text}</div>}
+                  {message.image && <img src={message.image} alt="Shared" className="chat-message-image" />}
+                  <div className="chat-message-time">
+                    {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
                 </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })
+        )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input */}
       <form className="chat-input-form" onSubmit={handleSendMessage}>
         {selectedImage && (
           <div className="chat-image-preview">
             <img src={selectedImage} alt="Preview" />
             <button type="button" className="chat-image-remove" onClick={handleRemoveImage}>
-              ?
+              x
             </button>
           </div>
         )}
@@ -189,12 +190,7 @@ export default function Chat({ currentUserId, friends, groups }) {
             onChange={handleImageSelect}
             style={{ display: 'none' }}
           />
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={() => fileInputRef.current?.click()}
-            title="Attach image"
-          >
+          <button type="button" className="icon-btn" onClick={() => fileInputRef.current?.click()} title="Attach image">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
               <circle cx="8.5" cy="8.5" r="1.5" />
@@ -206,9 +202,9 @@ export default function Chat({ currentUserId, friends, groups }) {
             className="chat-input"
             placeholder="Type a message..."
             value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
+            onChange={event => setMessageText(event.target.value)}
           />
-          <button type="submit" className="btn" disabled={!messageText.trim() && !selectedImage}>
+          <button type="submit" className="btn" disabled={isSending || (!messageText.trim() && !selectedImage)}>
             Send
           </button>
         </div>

@@ -9,6 +9,8 @@ import flashcardAISettingsRouter from './flashcardAISettings.js';
 import taskPlansRouter from './taskPlans.js';
 import flowEdgesRouter from './flowEdges.js';
 import tagsRouter from './tags.js';
+import studyGroupsRouter from './studyGroups.js';
+import chatsRouter from './chats.js';
 
 export {
   usersRouter,
@@ -21,7 +23,9 @@ export {
   flashcardAISettingsRouter,
   taskPlansRouter,
   flowEdgesRouter,
-  tagsRouter
+  tagsRouter,
+  studyGroupsRouter,
+  chatsRouter
 };
 
 export default {
@@ -35,5 +39,7 @@ export default {
   flashcardAISettingsRouter,
   taskPlansRouter,
   flowEdgesRouter,
-  tagsRouter
+  tagsRouter,
+  studyGroupsRouter,
+  chatsRouter
 };

@@ -4,8 +4,8 @@ import { User, Profile } from '../models/index.js';
 const SAMPLE_PASSWORD = 'pwd';
 const SAMPLE_USERS = [
   {
-    username: 'aiko_hennyu',
-    email: 'aiko_hennyu@nyacademy.dev',
+    username: 'aiko_hennyuu',
+    email: 'aiko_hennyuu@nyacademy.dev',
     name: 'Aiko Hennyu',
     location: 'Hyogo, Japan',
     bio: 'Mechatronics student focused on math + physics for university transfer.',
@@ -58,7 +58,40 @@ const SAMPLE_USERS = [
 async function ensureProfile(userDoc, sample) {
   const existingProfile = await Profile.findOne({ userId: userDoc._id });
   if (existingProfile) {
-    return existingProfile;
+    const updates = {};
+
+    if (existingProfile.username !== sample.username) {
+      updates.username = sample.username;
+    }
+    if (existingProfile.name !== sample.name) {
+      updates.name = sample.name;
+    }
+    if (existingProfile.bio !== sample.bio) {
+      updates.bio = sample.bio;
+    }
+    if (existingProfile.profileImage !== sample.profileImage) {
+      updates.profileImage = sample.profileImage;
+    }
+    if (existingProfile.backgroundImage !== sample.backgroundImage) {
+      updates.backgroundImage = sample.backgroundImage;
+    }
+    if (existingProfile.location !== sample.location) {
+      updates.location = sample.location;
+    }
+    const sampleTags = Array.isArray(sample.tags) ? sample.tags : [];
+    const existingTags = Array.isArray(existingProfile.tags) ? existingProfile.tags : [];
+    const tagsChanged =
+      existingTags.length !== sampleTags.length ||
+      existingTags.some((tag, index) => tag !== sampleTags[index]);
+    if (tagsChanged) {
+      updates.tags = sample.tags;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return existingProfile;
+    }
+
+    return Profile.findByIdAndUpdate(existingProfile._id, updates, { new: true });
   }
 
   const profile = new Profile({
@@ -108,6 +141,9 @@ export async function ensureSampleAccounts() {
         const updates = {};
         if (user.email !== sample.email) {
           updates.email = sample.email;
+        }
+        if (user.username !== sample.username) {
+          updates.username = sample.username;
         }
         const hasSamplePassword = await bcrypt.compare(SAMPLE_PASSWORD, user.passwordHash);
         if (!hasSamplePassword) {

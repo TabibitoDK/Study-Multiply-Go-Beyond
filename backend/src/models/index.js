@@ -9,6 +9,8 @@ import FlashcardAISettings from './FlashcardAISettings.js';
 import TaskPlan from './TaskPlan.js';
 import FlowEdge from './FlowEdge.js';
 import Tag from './Tag.js';
+import StudyGroup from './StudyGroup.js';
+import ChatMessage from './ChatMessage.js';
 
 export {
   User,
@@ -21,7 +23,9 @@ export {
   FlashcardAISettings,
   TaskPlan,
   FlowEdge,
-  Tag
+  Tag,
+  StudyGroup,
+  ChatMessage
 };
 
 export default {
@@ -35,5 +39,7 @@ export default {
   FlashcardAISettings,
   TaskPlan,
   FlowEdge,
-  Tag
+  Tag,
+  StudyGroup,
+  ChatMessage
 };

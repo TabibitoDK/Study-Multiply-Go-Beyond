@@ -4,7 +4,7 @@ import { useAuth } from './AuthContext.jsx'
 
 const TaskManagerContext = createContext(null)
 const ENABLE_SAMPLE_PLANS = false
-const SHOWCASE_USERNAME = 'aiko_hennyu'
+const SHOWCASE_USERNAME = 'aiko_hennyuu'
 
 function createId(prefix) {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
