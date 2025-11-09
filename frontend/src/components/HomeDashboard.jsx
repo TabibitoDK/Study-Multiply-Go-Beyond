@@ -175,6 +175,21 @@ function formatMonthLabel(key) {
   return ref.format('MMM YYYY')
 }
 
+function getWeekWindow(anchor = dayjs()) {
+  const dayStart = anchor.startOf('day')
+  const weekStart = dayStart.subtract(dayStart.day(), 'day')
+  const weekEnd = weekStart.add(7, 'day')
+  return { weekStart, weekEnd }
+}
+
+function isWithinRange(candidate, rangeStart, rangeEnd) {
+  if (!candidate?.isValid() || !rangeStart?.isValid() || !rangeEnd?.isValid()) {
+    return false
+  }
+  const value = candidate.valueOf()
+  return value >= rangeStart.valueOf() && value < rangeEnd.valueOf()
+}
+
 function buildLinePath(values, width, height, maxValue, singlePointOffset = 0) {
   if (!Array.isArray(values) || values.length === 0) return ''
   if (maxValue <= 0) return ''
@@ -494,6 +509,7 @@ export default function HomeDashboard({
     }
 
     const now = dayjs()
+    const { weekStart, weekEnd } = getWeekWindow(now)
     const matchesRange = reference => {
       if (!reference) return false
       const moment = dayjs(reference)
@@ -501,7 +517,7 @@ export default function HomeDashboard({
       if (progressSummaryRange === 'today') {
         return moment.isSame(now, 'day')
       }
-      return moment.isSame(now, 'week')
+      return isWithinRange(moment, weekStart, weekEnd)
     }
 
     const grouped = new Map()
@@ -642,7 +658,9 @@ export default function HomeDashboard({
 
   const summaryMinutes = useMemo(() => {
     const now = dayjs()
-    const lastWeekAnchor = now.startOf('week').subtract(1, 'week')
+    const { weekStart, weekEnd } = getWeekWindow(now)
+    const lastWeekStart = weekStart.subtract(7, 'day')
+    const lastWeekEnd = weekStart
     return progressEntries.reduce(
       (acc, entry) => {
         const minutes = Number(entry.minutes) || 0
@@ -656,10 +674,10 @@ export default function HomeDashboard({
         if (reference.isSame(now, 'day')) {
           acc.today += minutes
         }
-        if (reference.isSame(now, 'week')) {
+        if (isWithinRange(reference, weekStart, weekEnd)) {
           acc.week += minutes
         }
-        if (reference.isSame(lastWeekAnchor, 'week')) {
+        if (isWithinRange(reference, lastWeekStart, lastWeekEnd)) {
           acc.lastWeek += minutes
         }
         return acc

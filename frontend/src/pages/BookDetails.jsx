@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -13,7 +13,9 @@ import {
   MoreVertical,
 } from 'lucide-react'
 import bookService from '../services/bookService.js'
+import postService from '../services/postService.js'
 import BookModal from '../components/library/BookModal.jsx'
+import PostCard from '../components/social/PostCard.jsx'
 
 const statusLabels = {
   'want-to-read': 'Want to Read',
@@ -38,6 +40,12 @@ export default function BookDetails() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [otherBooks, setOtherBooks] = useState([])
+  const [showRelatedPosts, setShowRelatedPosts] = useState(false)
+  const [relatedPosts, setRelatedPosts] = useState([])
+  const [relatedPostsLoading, setRelatedPostsLoading] = useState(false)
+  const [relatedPostsError, setRelatedPostsError] = useState(null)
+  const relatedPostsRequestRef = useRef(0)
+  const bookId = book?.id ? String(book.id) : null
 
   // Determine back navigation based on where user came from
   const fromSocial = location.state?.from === 'social'
@@ -72,6 +80,14 @@ export default function BookDetails() {
       fetchBookData()
     }
   }, [id])
+
+  useEffect(() => {
+    setShowRelatedPosts(false)
+    setRelatedPosts([])
+    setRelatedPostsError(null)
+    setRelatedPostsLoading(false)
+    relatedPostsRequestRef.current += 1
+  }, [bookId])
 
   useEffect(() => {
     if (!loading && !book) {
@@ -124,6 +140,55 @@ export default function BookDetails() {
     } catch (err) {
       console.error('Error deleting book:', err)
       setError('Failed to delete book. Please try again.')
+    }
+  }
+
+  const fetchRelatedPosts = useCallback(async () => {
+    if (!bookId) {
+      setRelatedPosts([])
+      return
+    }
+
+    const requestId = relatedPostsRequestRef.current + 1
+    relatedPostsRequestRef.current = requestId
+    setRelatedPostsLoading(true)
+    setRelatedPostsError(null)
+
+    try {
+      const postsData = await postService.getAllPosts()
+      const filteredPosts = postsData.filter(
+        post =>
+          Array.isArray(post.books) && post.books.some(bookRef => String(bookRef) === bookId),
+      )
+
+      if (relatedPostsRequestRef.current !== requestId) {
+        return
+      }
+
+      setRelatedPosts(filteredPosts)
+    } catch (err) {
+      if (relatedPostsRequestRef.current !== requestId) {
+        return
+      }
+      console.error('Error fetching related posts:', err)
+      setRelatedPostsError('Failed to load related posts. Please try again.')
+    } finally {
+      if (relatedPostsRequestRef.current === requestId) {
+        setRelatedPostsLoading(false)
+      }
+    }
+  }, [bookId])
+
+  const handleToggleRelatedPosts = () => {
+    if (!bookId) {
+      return
+    }
+
+    const willShow = !showRelatedPosts
+    setShowRelatedPosts(willShow)
+
+    if (willShow && !relatedPostsLoading && relatedPosts.length === 0) {
+      fetchRelatedPosts()
     }
   }
 
@@ -241,8 +306,13 @@ export default function BookDetails() {
             </div>
 
             <div className="book-status-section">
-              <button type="button" className="btn post-related-btn">
-                Post Related
+              <button
+                type="button"
+                className={`btn post-related-btn${showRelatedPosts ? ' is-active' : ''}`}
+                onClick={handleToggleRelatedPosts}
+                aria-pressed={showRelatedPosts}
+              >
+                {showRelatedPosts ? 'Hide Related Posts' : 'Related Posts'}
               </button>
               <div className="visibility-badge">
                 {book.visibility === 'private' ? (
@@ -326,6 +396,43 @@ export default function BookDetails() {
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {showRelatedPosts && (
+          <div className="book-related-posts" aria-live="polite">
+            <div className="book-related-posts__header">
+              <h3>Posts mentioning {book.title}</h3>
+              {!relatedPostsLoading && !relatedPostsError && (
+                <span className="book-related-posts__count">
+                  {relatedPosts.length} {relatedPosts.length === 1 ? 'post' : 'posts'}
+                </span>
+              )}
+            </div>
+
+            {relatedPostsLoading ? (
+              <div className="book-related-posts__state">
+                <div className="spinner" />
+                <p>Loading related posts...</p>
+              </div>
+            ) : relatedPostsError ? (
+              <div className="book-related-posts__state is-error">
+                <p>{relatedPostsError}</p>
+                <button type="button" className="btn ghost" onClick={fetchRelatedPosts}>
+                  Retry
+                </button>
+              </div>
+            ) : relatedPosts.length === 0 ? (
+              <div className="book-related-posts__state">
+                <p>No posts mention this book yet. Share one from the social page!</p>
+              </div>
+            ) : (
+              <div className="book-related-posts__list">
+                {relatedPosts.map(post => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

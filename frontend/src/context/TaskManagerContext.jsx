@@ -205,6 +205,13 @@ function buildShowcasePlans() {
   const today = dayjs()
   const planDue = today.add(21, 'day').hour(9).minute(0).second(0).millisecond(0).toISOString()
   const writingPlanDue = today.add(12, 'day').hour(18).minute(0).second(0).millisecond(0).toISOString()
+  const presentationPlanDue = today
+    .add(5, 'day')
+    .hour(14)
+    .minute(0)
+    .second(0)
+    .millisecond(0)
+    .toISOString()
 
   const makeStamp = (offsetDays, hour = 9, minute = 0) =>
     today.add(offsetDays, 'day').hour(hour).minute(minute).second(0).millisecond(0).toISOString()
@@ -362,6 +369,110 @@ function buildShowcasePlans() {
           completedAt: addMinutes(makeStamp(0, 6, 45), 25),
           dueDate: makeStamp(0, 7, 30),
           trackedMinutes: 25,
+        },
+      ],
+    },
+    {
+      id: 'aiko-plan-presentations',
+      title: 'Knockout Presentation Sprint',
+      description: 'Layered drills from Knockout Presentations to keep every story arc sharp.',
+      status: 'in-progress',
+      category: 'communication',
+      tags: ['presentation', 'speaking', 'knockout'],
+      dueDate: presentationPlanDue,
+      tasks: [
+        {
+          id: 'aiko-plan-presentations-task-cold-open',
+          title: 'Cold open experimentation',
+          description: 'Record three bold hooks and score them for surprise vs clarity.',
+          status: 'completed',
+          priority: 'medium',
+          createdAt: makeStamp(-122, 7, 0),
+          startAt: makeStamp(-120, 7, 15),
+          completedAt: addMinutes(makeStamp(-120, 7, 15), 140),
+          dueDate: makeStamp(-119, 8, 0),
+          trackedMinutes: 140,
+        },
+        {
+          id: 'aiko-plan-presentations-task-storyboard',
+          title: 'Storyboard the promise',
+          description: 'Map each slide to audience questions using Knockout cues.',
+          status: 'completed',
+          priority: 'high',
+          createdAt: makeStamp(-100, 6, 0),
+          startAt: makeStamp(-97, 6, 45),
+          completedAt: addMinutes(makeStamp(-97, 6, 45), 190),
+          dueDate: makeStamp(-96, 9, 0),
+          trackedMinutes: 190,
+        },
+        {
+          id: 'aiko-plan-presentations-task-slide-audit',
+          title: 'Slide audit with mentors',
+          description: 'Cut clutter + add cues for gestures per Knockout checklist.',
+          status: 'completed',
+          priority: 'medium',
+          createdAt: makeStamp(-70, 8, 30),
+          startAt: makeStamp(-64, 9, 15),
+          completedAt: addMinutes(makeStamp(-64, 9, 15), 165),
+          dueDate: makeStamp(-63, 10, 0),
+          trackedMinutes: 165,
+        },
+        {
+          id: 'aiko-plan-presentations-task-feedback-loop',
+          title: 'Feedback lightning round',
+          description: 'Host 15-min peer reviews focusing on pace + gesture cues.',
+          status: 'completed',
+          priority: 'high',
+          createdAt: makeStamp(-45, 18, 0),
+          startAt: makeStamp(-38, 18, 30),
+          completedAt: addMinutes(makeStamp(-38, 18, 30), 175),
+          dueDate: makeStamp(-37, 20, 0),
+          trackedMinutes: 175,
+        },
+        {
+          id: 'aiko-plan-presentations-task-weekend-rehearsal',
+          title: 'Weekend dress rehearsal',
+          description: 'Full run-through with recorded Q&A banks.',
+          status: 'completed',
+          priority: 'medium',
+          createdAt: makeStamp(-18, 8, 0),
+          startAt: makeStamp(-12, 9, 0),
+          completedAt: addMinutes(makeStamp(-12, 9, 0), 130),
+          dueDate: makeStamp(-11, 11, 0),
+          trackedMinutes: 130,
+        },
+        {
+          id: 'aiko-plan-presentations-task-spotlight',
+          title: 'Spotlight clarity drill',
+          description: 'Rebuild slide 3 story with only images and questions.',
+          status: 'in-progress',
+          priority: 'high',
+          createdAt: makeStamp(-8, 7, 0),
+          startAt: makeStamp(-5, 7, 30),
+          dueDate: makeStamp(-3, 9, 0),
+          trackedMinutes: 85,
+        },
+        {
+          id: 'aiko-plan-presentations-task-live-loop',
+          title: 'Live loop rehearsal',
+          description: 'Today’s loop: opener + objection handling with timer.',
+          status: 'in-progress',
+          priority: 'high',
+          createdAt: makeStamp(0, 10, 30),
+          startAt: makeStamp(0, 11, 5),
+          dueDate: makeStamp(0, 13, 30),
+          trackedMinutes: 55,
+        },
+        {
+          id: 'aiko-plan-presentations-task-qa-bank',
+          title: 'Audience Q&A bank',
+          description: 'Research 12 tough follow-ups and craft punchy closes.',
+          status: 'not-started',
+          priority: 'medium',
+          createdAt: today.toISOString(),
+          startAt: makeStamp(2, 19, 0),
+          dueDate: makeStamp(4, 20, 30),
+          trackedMinutes: 0,
         },
       ],
     },

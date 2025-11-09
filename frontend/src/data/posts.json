@@ -159,5 +159,85 @@
       "過去問演習",
       "目標"
     ]
+  },
+  {
+    "id": 11,
+    "userId": 2,
+    "content": "Spent the morning rebuilding my elevator pitch using Knockout Presentations. Practiced the five-beat story arc and cut my filler words from 14 to 4 per minute. Feeling stage-ready now that the deck is leaner and more visual!",
+    "books": [
+      "7"
+    ],
+    "likes": 142,
+    "comments": 16,
+    "timestamp": "2025-10-26T08:40:00Z",
+    "tags": [
+      "presentation",
+      "knockout presentations",
+      "public speaking"
+    ]
+  },
+  {
+    "id": 12,
+    "userId": 5,
+    "content": "Knockout Presentations tip that stuck with me today: rehearse backwards. I recorded my closer first, then layered in the opening hook and stories. It forced me to prioritize the promise of the talk and everything feels sharper now.",
+    "books": [
+      "7"
+    ],
+    "likes": 101,
+    "comments": 9,
+    "timestamp": "2025-10-26T14:55:00Z",
+    "tags": [
+      "presentation",
+      "practice",
+      "book notes"
+    ]
+  },
+  {
+    "id": 13,
+    "userId": 3,
+    "content": "Quick win from Knockout Presentations: the \"listen for laughs\" rehearsal. I asked friends to flag the dull slides and rebuilt them with props + questions. Confidence shot way up once I saw where the energy dipped.",
+    "books": [
+      "7"
+    ],
+    "likes": 118,
+    "comments": 13,
+    "timestamp": "2025-10-27T10:15:00Z",
+    "tags": [
+      "presentation",
+      "feedback",
+      "knockout presentations"
+    ]
+  },
+  {
+    "id": 14,
+    "userId": 2,
+    "content": "Knockout Presentations dared me to \"talk like a headline\" so I workshopped a Make Intros Great Again opener. The rehearsal turned into a mock press conference and now my deck keeps promising to build a wall of bullet points that Mexico will totally fund.",
+    "books": [
+      "7"
+    ],
+    "likes": 154,
+    "comments": 20,
+    "timestamp": "2025-10-28T08:05:00Z",
+    "tags": [
+      "presentation",
+      "humor",
+      "knockout presentations"
+    ]
+  },
+  {
+    "id": 15,
+    "userId": 4,
+    "content": "Test-drove the Trump teleprompter cadence for tomorrow's Knockout talk: three hand chops, one \"folks\", and a promise to make study groups great again. Turns out a little American campaign humor keeps the room awake long enough to land the data slide.",
+    "books": [
+      "7"
+    ],
+    "likes": 131,
+    "comments": 17,
+    "timestamp": "2025-10-28T13:40:00Z",
+    "tags": [
+      "presentation",
+      "american humor",
+      "knockout presentations"
+    ]
   }
 ]
