@@ -13,6 +13,7 @@ import ImmerseMode from './pages/ImmerseMode.jsx'
 import HomeDashboard from './components/HomeDashboard.jsx'
 import Library from './pages/Library.jsx'
 import BookDetails from './pages/BookDetails.jsx'
+import BookRelatedPosts from './pages/BookRelatedPosts.jsx'
 import FlowView from './pages/FlowView.jsx'
 import FlashcardsPage from './tools/flashcard/FlashcardsPage.jsx'
 import { StudinyChat } from './tools/studiny-chat/index.js'
@@ -347,6 +348,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <BookDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/library/:id/related-posts"
+              element={
+                <ProtectedRoute>
+                  <BookRelatedPosts />
                 </ProtectedRoute>
               }
             />
