@@ -20,6 +20,8 @@ import {
   tagsRouter
 } from './routes/index.js'
 import adminRouter from './routes/admin.js'
+import { ensureSampleAccounts } from './utils/sampleAccounts.js'
+import { seedFrontendData } from './utils/frontendDataSeeder.js'
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url)
@@ -85,7 +87,18 @@ app.use((req, res) => {
   })
 })
 
-app.listen(PORT, async () => {
-  console.log(`? API server listening on http://localhost:${PORT}`)
-  await connectDB()
-})
+async function startServer() {
+  try {
+    await connectDB()
+    await ensureSampleAccounts()
+    await seedFrontendData()
+    app.listen(PORT, () => {
+      console.log(`? API server listening on http://localhost:${PORT}`)
+    })
+  } catch (error) {
+    console.error('[startup] Failed to initialize API server:', error)
+    process.exit(1)
+  }
+}
+
+startServer()

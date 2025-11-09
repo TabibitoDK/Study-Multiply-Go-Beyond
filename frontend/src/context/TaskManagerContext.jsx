@@ -1,8 +1,10 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import dayjs from 'dayjs'
+import { useAuth } from './AuthContext.jsx'
 
 const TaskManagerContext = createContext(null)
 const ENABLE_SAMPLE_PLANS = false
+const SHOWCASE_USERNAME = 'aiko_hennyu'
 
 function createId(prefix) {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -38,6 +40,26 @@ function computePlanDueDate(tasks, fallback = null) {
 
 function hasOwn(object, key) {
   return Object.prototype.hasOwnProperty.call(object, key)
+}
+
+function preparePlans(plans) {
+  return (plans ?? []).map(plan => {
+    const tasks = Array.isArray(plan.tasks)
+      ? plan.tasks.map(task => ({
+          ...task,
+          dueDate: task.dueDate ?? task.startAt ?? task.createdAt ?? task.completedAt ?? null,
+          trackedMinutes:
+            typeof task.trackedMinutes === 'number' && task.trackedMinutes >= 0
+              ? Math.round(task.trackedMinutes)
+              : 0,
+        }))
+      : []
+    return {
+      ...plan,
+      tasks,
+      dueDate: plan.dueDate ?? computePlanDueDate(tasks, null),
+    }
+  })
 }
 
 function buildDefaultPlans() {
@@ -176,23 +198,206 @@ function buildDefaultPlans() {
     },
   ]
 
-  return plans.map(plan => {
-    const tasks = Array.isArray(plan.tasks)
-      ? plan.tasks.map(task => ({
-          ...task,
-          dueDate: task.dueDate ?? task.startAt ?? task.createdAt ?? task.completedAt ?? null,
-        }))
-      : []
-    return {
-      ...plan,
-      tasks,
-      dueDate: plan.dueDate ?? computePlanDueDate(tasks, null),
-    }
-  })
+  return preparePlans(plans)
+}
+
+function buildShowcasePlans() {
+  const today = dayjs()
+  const planDue = today.add(21, 'day').hour(9).minute(0).second(0).millisecond(0).toISOString()
+  const writingPlanDue = today.add(12, 'day').hour(18).minute(0).second(0).millisecond(0).toISOString()
+
+  const makeStamp = (offsetDays, hour = 9, minute = 0) =>
+    today.add(offsetDays, 'day').hour(hour).minute(minute).second(0).millisecond(0).toISOString()
+
+  const addMinutes = (isoValue, minutes) => {
+    if (!isoValue || typeof minutes !== 'number') return null
+    return dayjs(isoValue).add(minutes, 'minute').toISOString()
+  }
+
+  const plans = [
+    {
+      id: 'aiko-plan-transfer',
+      title: 'Osaka Tech Transfer Sprint',
+      description: 'Three-week push blending past exam drills, tutor prep, and concept mapping.',
+      status: 'in-progress',
+      category: 'academic',
+      tags: ['math', 'engineering', 'focus'],
+      dueDate: planDue,
+      tasks: [
+        {
+          id: 'aiko-plan-transfer-task-archive',
+          title: 'Eigenvalue archive drills',
+          description: 'Full recap of eigen decomposition proofs with handwritten notes.',
+          status: 'completed',
+          priority: 'high',
+          createdAt: makeStamp(-32, 6, 20),
+          startAt: makeStamp(-32, 6, 30),
+          completedAt: addMinutes(makeStamp(-32, 6, 30), 185),
+          dueDate: makeStamp(-31, 10, 0),
+          trackedMinutes: 185,
+        },
+        {
+          id: 'aiko-plan-transfer-task-review',
+          title: 'Vector calc warm-up set',
+          description: 'Chain rule edge cases + divergence/convergence recap.',
+          status: 'completed',
+          priority: 'medium',
+          createdAt: makeStamp(-19, 7, 0),
+          startAt: makeStamp(-18, 7, 10),
+          completedAt: addMinutes(makeStamp(-18, 7, 10), 135),
+          dueDate: makeStamp(-17, 12, 0),
+          trackedMinutes: 135,
+        },
+        {
+          id: 'aiko-plan-transfer-task-sim',
+          title: 'Past exam simulation (90 min)',
+          description: 'Timed mix of 2023 + 2024 Osaka Tech problems, catalog mistakes.',
+          status: 'completed',
+          priority: 'high',
+          createdAt: makeStamp(-10, 12, 0),
+          startAt: makeStamp(-9, 13, 0),
+          completedAt: addMinutes(makeStamp(-9, 13, 0), 95),
+          dueDate: makeStamp(-8, 13, 0),
+          trackedMinutes: 95,
+        },
+        {
+          id: 'aiko-plan-transfer-task-map',
+          title: 'Mechanics concept map',
+          description: 'Turn all chapter highlights into a single-page visual map.',
+          status: 'in-progress',
+          priority: 'medium',
+          createdAt: makeStamp(-3, 8, 45),
+          startAt: makeStamp(-2, 9, 20),
+          dueDate: makeStamp(1, 9, 0),
+          trackedMinutes: 70,
+        },
+        {
+          id: 'aiko-plan-transfer-task-focus',
+          title: 'Today focus block',
+          description: '45-minute sprint on differential equations text book notes.',
+          status: 'in-progress',
+          priority: 'high',
+          createdAt: makeStamp(0, 6, 50),
+          startAt: makeStamp(0, 8, 15),
+          dueDate: makeStamp(0, 23, 0),
+          trackedMinutes: 45,
+        },
+        {
+          id: 'aiko-plan-transfer-task-tutor',
+          title: 'Tutor session prep',
+          description: 'Write three targeted questions for Thursday night tutor block.',
+          status: 'not-started',
+          priority: 'low',
+          createdAt: today.toISOString(),
+          startAt: makeStamp(3, 20, 0),
+          dueDate: makeStamp(3, 21, 0),
+          trackedMinutes: 0,
+        },
+      ],
+    },
+    {
+      id: 'aiko-plan-english',
+      title: 'Morning English Output Routine',
+      description: 'Daily reps combining BBC shadowing, essays, and speaking club reflections.',
+      status: 'in-progress',
+      category: 'personal',
+      tags: ['english', 'communication'],
+      dueDate: writingPlanDue,
+      tasks: [
+        {
+          id: 'aiko-plan-english-task-shadowing',
+          title: 'BBC shadowing archive',
+          description: 'Mark unfamiliar phrasing + mimic host cadence.',
+          status: 'completed',
+          priority: 'medium',
+          createdAt: makeStamp(-28, 5, 30),
+          startAt: makeStamp(-27, 5, 45),
+          completedAt: addMinutes(makeStamp(-27, 5, 45), 60),
+          dueDate: makeStamp(-26, 6, 0),
+          trackedMinutes: 60,
+        },
+        {
+          id: 'aiko-plan-english-task-writing',
+          title: 'Prompted writing: resilience',
+          description: 'Two-page reflection on study habits for the admissions essay.',
+          status: 'completed',
+          priority: 'high',
+          createdAt: makeStamp(-15, 18, 0),
+          startAt: makeStamp(-14, 19, 15),
+          completedAt: addMinutes(makeStamp(-14, 19, 15), 85),
+          dueDate: makeStamp(-13, 18, 0),
+          trackedMinutes: 85,
+        },
+        {
+          id: 'aiko-plan-english-task-speaking',
+          title: 'Speaking club recap',
+          description: 'Document pronunciation feedback & schedule follow-up drills.',
+          status: 'completed',
+          priority: 'medium',
+          createdAt: makeStamp(-7, 17, 0),
+          startAt: makeStamp(-6, 18, 0),
+          completedAt: addMinutes(makeStamp(-6, 18, 0), 50),
+          dueDate: makeStamp(-5, 19, 0),
+          trackedMinutes: 50,
+        },
+        {
+          id: 'aiko-plan-english-task-essay',
+          title: 'Essay draft: “Why transfer?”',
+          description: 'Polish intro & add concrete examples from robotics club.',
+          status: 'in-progress',
+          priority: 'high',
+          createdAt: makeStamp(-2, 19, 0),
+          startAt: makeStamp(-1, 21, 0),
+          dueDate: makeStamp(2, 20, 0),
+          trackedMinutes: 90,
+        },
+        {
+          id: 'aiko-plan-english-task-reflection',
+          title: 'Morning reflection log',
+          description: 'Short voice memo summary converted to bullet list.',
+          status: 'completed',
+          priority: 'low',
+          createdAt: makeStamp(0, 6, 20),
+          startAt: makeStamp(0, 6, 45),
+          completedAt: addMinutes(makeStamp(0, 6, 45), 25),
+          dueDate: makeStamp(0, 7, 30),
+          trackedMinutes: 25,
+        },
+      ],
+    },
+  ]
+
+  return preparePlans(plans)
 }
 
 export function TaskManagerProvider({ children }) {
+  const { user } = useAuth()
   const [plans, setPlans] = useState(() => (ENABLE_SAMPLE_PLANS ? buildDefaultPlans() : []))
+  const lastUserIdRef = useRef(null)
+  const authUserId = user?._id ?? user?.id ?? null
+  const username = user?.username ?? ''
+
+  useEffect(() => {
+    if (!authUserId) {
+      lastUserIdRef.current = null
+      setPlans([])
+      return
+    }
+
+    if (lastUserIdRef.current === authUserId) {
+      return
+    }
+
+    lastUserIdRef.current = authUserId
+
+    if (username === SHOWCASE_USERNAME) {
+      setPlans(buildShowcasePlans())
+    } else if (ENABLE_SAMPLE_PLANS) {
+      setPlans(buildDefaultPlans())
+    } else {
+      setPlans([])
+    }
+  }, [authUserId, username])
 
   const addPlan = useCallback(({ title, description, dueDate }) => {
     const plan = {
@@ -230,6 +435,10 @@ export function TaskManagerProvider({ children }) {
       status === 'completed'
         ? toIsoOrNull(data.completedAt) ?? now.toISOString()
         : null
+    const trackedMinutes =
+      typeof data.trackedMinutes === 'number' && data.trackedMinutes >= 0
+        ? Math.round(data.trackedMinutes)
+        : 0
 
     const task = {
       id: createId('task'),
@@ -240,6 +449,7 @@ export function TaskManagerProvider({ children }) {
       startAt,
       dueDate,
       completedAt,
+      trackedMinutes,
     }
 
     setPlans(prev =>
@@ -359,6 +569,15 @@ export function TaskManagerProvider({ children }) {
             completedAt = null
           }
 
+          let trackedMinutes = Number.isFinite(task.trackedMinutes) ? task.trackedMinutes : 0
+          if (hasOwn(payload, 'trackedMinutes')) {
+            const parsedMinutes = Number(payload.trackedMinutes)
+            trackedMinutes =
+              Number.isFinite(parsedMinutes) && parsedMinutes >= 0
+                ? Math.round(parsedMinutes)
+                : 0
+          }
+
           const nextTask = {
             ...task,
             ...payload,
@@ -371,6 +590,7 @@ export function TaskManagerProvider({ children }) {
             startAt,
             dueDate,
             completedAt,
+            trackedMinutes,
           }
 
           updatedTask = nextTask

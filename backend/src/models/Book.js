@@ -93,14 +93,23 @@ const bookSchema = new mongoose.Schema({
   favorite: {
     type: Boolean,
     default: false
+  },
+  textLanguage: {
+    type: String,
+    default: 'english',
+    select: false
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  languageOverride: 'textLanguage'
 });
 
 // Indexes
 bookSchema.index({ userId: 1 });
-bookSchema.index({ title: "text", author: "text", description: "text" });
+bookSchema.index(
+  { title: 'text', author: 'text', description: 'text' },
+  { language_override: 'textLanguage', default_language: 'english' },
+);
 bookSchema.index({ tags: 1 });
 bookSchema.index({ status: 1 });
 bookSchema.index({ visibility: 1 });

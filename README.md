@@ -76,6 +76,8 @@ All seeded demo users share the password `pwd`. Their login emails are:
 | `ren_math`      | `ren_math@nyacademy.dev`         | `pwd`    |
 | `sora_english`  | `sora_english@nyacademy.dev`     | `pwd`    |
 
+> ℹ️ The backend automatically ensures these accounts exist (and get the correct password) every time it boots, so you can log in immediately without running extra scripts.
+
 Sign in with any of these accounts to explore the social feed and other authenticated areas quickly.
 
 That’s it—both halves of the application are now separated but co-located for easier development, deployment, and scaling.

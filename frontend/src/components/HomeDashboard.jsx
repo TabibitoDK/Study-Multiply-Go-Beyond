@@ -432,12 +432,36 @@ export default function HomeDashboard({
         const hasCompleted = completed?.isValid() ?? false
         const start = hasStarted ? started.format('MMMM D, YYYY h:mm A') : '—'
         const finish = hasCompleted ? completed.format('MMMM D, YYYY h:mm A') : '—'
-        const diffMinutes =
-          hasStarted && hasCompleted && completed.isAfter(started)
-            ? completed.diff(started, 'minute')
-            : null
-        const minutes = diffMinutes && diffMinutes > 0 ? diffMinutes : 50
-        const hours = Number((minutes / 60).toFixed(2))
+        const manualMinutes =
+          typeof task.trackedMinutes === 'number' && task.trackedMinutes >= 0
+            ? Math.round(task.trackedMinutes)
+            : 0
+        const minutes = manualMinutes
+        const referenceMoment = hasCompleted
+          ? completed
+          : hasStarted
+            ? started
+            : hasCreated
+              ? created
+              : null
+        const referenceDate = referenceMoment?.isValid() ? referenceMoment.toISOString() : null
+        const planRef = {
+          id: plan.id,
+          title: plan.title,
+          description: plan.description ?? '',
+          status: plan.status ?? 'not-started',
+        }
+        const taskRef = {
+          id: task.id,
+          title: task.title,
+          description: task.description ?? '',
+          status: task.status ?? 'not-started',
+          createdAt: task.createdAt ?? null,
+          startAt: task.startAt ?? null,
+          completedAt: task.completedAt ?? null,
+          dueDate: task.dueDate ?? null,
+          trackedMinutes: manualMinutes,
+        }
         return {
           id: `progress-${task.id}`,
           name: task.title,
@@ -445,7 +469,10 @@ export default function HomeDashboard({
           start,
           finish,
           minutes,
-          hours,
+          planRef,
+          taskRef,
+          planId: plan.id,
+          taskId: task.id,
           createdSortKey: hasStarted
             ? started.valueOf()
             : hasCreated
@@ -453,6 +480,7 @@ export default function HomeDashboard({
             : 0,
           startDate: hasStarted ? started.toISOString() : null,
           finishDate: hasCompleted ? completed.toISOString() : null,
+          referenceDate,
         }
       })
     })
@@ -461,14 +489,31 @@ export default function HomeDashboard({
   }, [plans])
 
   const progressSegments = useMemo(() => {
+    if (progressEntries.length === 0) {
+      return []
+    }
+
+    const now = dayjs()
+    const matchesRange = reference => {
+      if (!reference) return false
+      const moment = dayjs(reference)
+      if (!moment.isValid()) return false
+      if (progressSummaryRange === 'today') {
+        return moment.isSame(now, 'day')
+      }
+      return moment.isSame(now, 'week')
+    }
+
     const grouped = new Map()
     progressEntries.forEach(entry => {
       const minutes = Number(entry.minutes) || 0
       if (minutes <= 0) return
+      if (!matchesRange(entry.referenceDate)) return
+
       const key = entry.tag.label
-      const current = grouped.get(key)
-      if (current) {
-        current.minutes += minutes
+      const existing = grouped.get(key)
+      if (existing) {
+        existing.minutes += minutes
       } else {
         grouped.set(key, {
           id: `segment-${key.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
@@ -483,7 +528,7 @@ export default function HomeDashboard({
       ...segment,
       hours: Number((segment.minutes / 60).toFixed(2)),
     }))
-  }, [progressEntries, t])
+  }, [progressEntries, progressSummaryRange])
 
   const progressLineData = useMemo(() => {
     const monthSet = new Set()
@@ -568,22 +613,22 @@ export default function HomeDashboard({
     return { labels, monthKeys, series, maxValue }
   }, [progressEntries])
 
-  const totalProgressMinutes = useMemo(
+  const summaryTotalMinutes = useMemo(
     () => progressSegments.reduce((sum, segment) => sum + (Number(segment.minutes) || 0), 0),
     [progressSegments],
   )
 
   const formattedTrackedHours =
-    totalProgressMinutes > 0 ? (totalProgressMinutes / 60).toFixed(2) : '0.00'
+    summaryTotalMinutes > 0 ? (summaryTotalMinutes / 60).toFixed(2) : '0.00'
 
   const progressChart = useMemo(() => {
-    if (totalProgressMinutes <= 0) {
+    if (summaryTotalMinutes <= 0) {
       return { gradient: 'conic-gradient(#e5e7eb 0deg 360deg)' }
     }
 
     let currentAngle = 0
     const stops = progressSegments.map(segment => {
-      const slice = (segment.minutes / totalProgressMinutes) * 360
+      const slice = (segment.minutes / summaryTotalMinutes) * 360
       const start = currentAngle
       const end = currentAngle + slice
       currentAngle = end
@@ -593,7 +638,59 @@ export default function HomeDashboard({
     return {
       gradient: `conic-gradient(${stops.join(', ')})`,
     }
-  }, [progressSegments, totalProgressMinutes])
+  }, [progressSegments, summaryTotalMinutes])
+
+  const summaryMinutes = useMemo(() => {
+    const now = dayjs()
+    const lastWeekAnchor = now.startOf('week').subtract(1, 'week')
+    return progressEntries.reduce(
+      (acc, entry) => {
+        const minutes = Number(entry.minutes) || 0
+        if (minutes <= 0 || !entry.referenceDate) {
+          return acc
+        }
+        const reference = dayjs(entry.referenceDate)
+        if (!reference.isValid()) {
+          return acc
+        }
+        if (reference.isSame(now, 'day')) {
+          acc.today += minutes
+        }
+        if (reference.isSame(now, 'week')) {
+          acc.week += minutes
+        }
+        if (reference.isSame(lastWeekAnchor, 'week')) {
+          acc.lastWeek += minutes
+        }
+        return acc
+      },
+      { today: 0, week: 0, lastWeek: 0 },
+    )
+  }, [progressEntries])
+
+  const weekComparison = useMemo(() => {
+    const current = summaryMinutes.week
+    const previous = summaryMinutes.lastWeek
+    const diff = current - previous
+    let percent = 0
+    if (previous === 0) {
+      percent = current > 0 ? 100 : 0
+    } else {
+      percent = (diff / previous) * 100
+    }
+    return {
+      current,
+      previous,
+      diff,
+      percent,
+    }
+  }, [summaryMinutes])
+
+  const weekTrendPercent = Number.isFinite(weekComparison.percent)
+    ? Math.abs(weekComparison.percent).toFixed(0)
+    : '0'
+  const weekTrendSign =
+    weekComparison.percent > 0 ? '+' : weekComparison.percent < 0 ? '-' : ''
 
   const selectedLongTerm = useMemo(
     () => plans.find(item => item.id === selectedLongTermId) ?? null,
@@ -703,6 +800,18 @@ export default function HomeDashboard({
         },
       },
     })
+  }
+
+  function openProgressEntry(entry) {
+    if (!entry?.planRef || !entry?.taskRef) return
+    handleOpenTaskDetail(entry.planRef, entry.taskRef)
+  }
+
+  function handleProgressRowKey(event, entry) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      openProgressEntry(entry)
+    }
   }
 
   const longTermCount = plans.length
@@ -1102,35 +1211,29 @@ export default function HomeDashboard({
                     {t('home.dashboard.progress.tableHeaders.plan', { defaultValue: 'Plan' })}
                   </span>
                   <span
-                    className="progress-table__cell progress-table__cell--head"
-                    role="columnheader"
-                  >
-                    {t('home.dashboard.progress.tableHeaders.start', { defaultValue: 'Start' })}
-                  </span>
-                  <span
-                    className="progress-table__cell progress-table__cell--head"
-                    role="columnheader"
-                  >
-                    {t('home.dashboard.progress.tableHeaders.finish', { defaultValue: 'Finish' })}
-                  </span>
-                  <span
                     className="progress-table__cell progress-table__cell--head progress-table__cell--meta"
                     role="columnheader"
                   >
-                    {t('home.dashboard.progress.tableHeaders.minutes', { defaultValue: 'M' })}
-                  </span>
-                  <span
-                    className="progress-table__cell progress-table__cell--head progress-table__cell--meta"
-                    role="columnheader"
-                  >
-                    {t('home.dashboard.progress.tableHeaders.hours', { defaultValue: 'H' })}
+                    {t('home.dashboard.progress.tableHeaders.minutes', {
+                      defaultValue: 'Minutes',
+                    })}
                   </span>
                 </div>
 
                 <div className="progress-table__body">
                   {progressEntries.length > 0 ? (
                     progressEntries.map(entry => (
-                      <div key={entry.id} className="progress-table__row" role="row">
+                      <div
+                        key={entry.id}
+                        className="progress-table__row is-clickable"
+                        role="row"
+                        tabIndex={0}
+                        aria-label={t('home.dashboard.progress.openTask', {
+                          defaultValue: 'Open task details',
+                        })}
+                        onClick={() => openProgressEntry(entry)}
+                        onKeyDown={event => handleProgressRowKey(event, entry)}
+                      >
                         <span
                           className="progress-table__cell progress-table__cell--name"
                           role="cell"
@@ -1145,23 +1248,11 @@ export default function HomeDashboard({
                             {entry.tag.label}
                           </span>
                         </span>
-                        <span className="progress-table__cell" role="cell">
-                          {entry.start}
-                        </span>
-                        <span className="progress-table__cell" role="cell">
-                          {entry.finish}
-                        </span>
                         <span
                           className="progress-table__cell progress-table__cell--meta"
                           role="cell"
                         >
-                          {entry.minutes}
-                        </span>
-                        <span
-                          className="progress-table__cell progress-table__cell--meta"
-                          role="cell"
-                        >
-                          {entry.hours.toFixed(2)}
+                          {entry.minutes ?? 0}
                         </span>
                       </div>
                     ))
@@ -1455,6 +1546,33 @@ export default function HomeDashboard({
                     </li>
                   )}
                 </ul>
+
+                <div className="progress-summary__comparison" aria-live="polite">
+                  <p className="progress-summary__comparison-title">
+                    {t('home.dashboard.progress.weekComparisonTitle', {
+                      defaultValue: 'This week vs last week',
+                    })}
+                  </p>
+                  <div
+                    className={`progress-summary__comparison-value${
+                      weekComparison.diff >= 0 ? ' is-up' : ' is-down'
+                    }`}
+                  >
+                    {weekTrendSign}
+                    {weekTrendPercent}%
+                  </div>
+                  <p className="progress-summary__comparison-note">
+                    {weekComparison.diff >= 0
+                      ? t('home.dashboard.progress.weekComparisonPositive', {
+                          defaultValue: '{{minutes}} min more focus time',
+                          minutes: weekComparison.diff,
+                        })
+                      : t('home.dashboard.progress.weekComparisonNegative', {
+                          defaultValue: '{{minutes}} min less focus time',
+                          minutes: Math.abs(weekComparison.diff),
+                        })}
+                  </p>
+                </div>
               </div>
             </aside>
           </div>
