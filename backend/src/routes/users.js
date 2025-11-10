@@ -385,7 +385,8 @@ router.get('/suggestions', authenticate, async (req, res, next) => {
     
     // Format the response with user profile information
     const suggestions = allSuggestionsCombined.map(profile => ({
-      _id: profile.userId._id,
+      _id: profile.userId._id.toString(), // Ensure _id is a string
+      userId: profile.userId._id.toString(), // Add userId field as string
       username: profile.userId.username,
       name: profile.name,
       bio: profile.bio,

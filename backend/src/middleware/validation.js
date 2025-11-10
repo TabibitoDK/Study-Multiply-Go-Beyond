@@ -9,7 +9,9 @@ export const validateObjectId = (paramName = 'id') => {
     if (!objectIdRegex.test(id)) {
       return res.status(400).json({
         error: 'Invalid ID',
-        message: `The ${paramName} parameter must be a valid ObjectId`
+        message: `The ${paramName} parameter must be a valid ObjectId (24-character hex string). Received: "${id}"`,
+        receivedValue: id,
+        expectedFormat: '24-character hexadecimal string (e.g., 507f1f77bcf86cd799439011)'
       });
     }
     

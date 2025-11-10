@@ -2,12 +2,37 @@ import api from '../lib/api.js'
 
 const normalizeId = value => {
   if (!value) return null
-  if (typeof value === 'string') return value
-  if (typeof value === 'object') {
-    if (value._id) return value._id.toString()
-    if (value.id) return value.id.toString()
-    if (typeof value.toString === 'function') return value.toString()
+  
+  // Check if it's already a valid ObjectId string (24 hex characters)
+  const objectIdRegex = /^[0-9a-fA-F]{24}$/
+  
+  if (typeof value === 'string') {
+    // Validate if it's a proper ObjectId format
+    if (objectIdRegex.test(value)) {
+      return value
+    }
+    // If it's not a valid ObjectId, return null
+    return null
   }
+  
+  if (typeof value === 'object') {
+    if (value._id) {
+      const idStr = value._id.toString()
+      // Validate the converted string
+      return objectIdRegex.test(idStr) ? idStr : null
+    }
+    if (value.id) {
+      const idStr = value.id.toString()
+      // Validate the converted string
+      return objectIdRegex.test(idStr) ? idStr : null
+    }
+    if (typeof value.toString === 'function') {
+      const idStr = value.toString()
+      // Validate the converted string
+      return objectIdRegex.test(idStr) ? idStr : null
+    }
+  }
+  
   return null
 }
 
@@ -139,7 +164,14 @@ export const profileService = {
   // Follow a user
   followUser: async (userId) => {
     try {
-      const response = await api.post(`/profiles/follow/${userId}`)
+      // Validate userId before making the API call
+      const normalizedId = normalizeId(userId)
+      if (!normalizedId) {
+        throw new Error('Invalid user ID format. Please try again.')
+      }
+      
+      console.log('Following user with ID:', normalizedId)
+      const response = await api.post(`/profiles/follow/${normalizedId}`)
       return response
     } catch (error) {
       console.error('Error following user:', error)
@@ -158,7 +190,14 @@ export const profileService = {
   // Unfollow a user
   unfollowUser: async (userId) => {
     try {
-      const response = await api.delete(`/profiles/unfollow/${userId}`)
+      // Validate userId before making the API call
+      const normalizedId = normalizeId(userId)
+      if (!normalizedId) {
+        throw new Error('Invalid user ID format. Please try again.')
+      }
+      
+      console.log('Unfollowing user with ID:', normalizedId)
+      const response = await api.delete(`/profiles/unfollow/${normalizedId}`)
       return response
     } catch (error) {
       console.error('Error unfollowing user:', error)

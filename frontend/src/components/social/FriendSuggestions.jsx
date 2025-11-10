@@ -27,17 +27,24 @@ export default function FriendSuggestions() {
     try {
       // Use profileService to get suggested users
       const suggestions = await profileService.getSuggestedUsers()
+      console.log('Raw suggestions from API:', suggestions)
       
       // Normalize the response data to handle _id vs id mismatch
-      const normalizedSuggestions = suggestions.map(user => ({
-        id: user._id || user.id,
-        name: user.name,
-        username: user.username,
-        bio: user.bio || '',
-        profileImage: user.avatar || user.profileImage || '',
-        isFollowing: user.isFollowing || false
-      }))
+      const normalizedSuggestions = suggestions.map(user => {
+        const userId = user._id || user.id || user.userId
+        console.log('Processing user:', user.name, 'with ID:', userId, 'type:', typeof userId)
+        
+        return {
+          id: userId,
+          name: user.name,
+          username: user.username,
+          bio: user.bio || '',
+          profileImage: user.avatar || user.profileImage || '',
+          isFollowing: user.isFollowing || false
+        }
+      }).filter(user => user.id) // Filter out users without valid IDs
       
+      console.log('Normalized suggestions:', normalizedSuggestions)
       setSuggestions(normalizedSuggestions)
       
       // Initialize following state
@@ -167,6 +174,16 @@ export default function FriendSuggestions() {
   const handleFollowToggle = async (userId) => {
     const isCurrentlyFollowing = following.has(userId)
     
+    // Validate userId before proceeding
+    if (!userId) {
+      console.error('Invalid userId provided to handleFollowToggle:', userId)
+      setError('Invalid user ID. Please try again.')
+      return
+    }
+    
+    // Log the ID format for debugging
+    console.log('handleFollowToggle called with userId:', userId, 'type:', typeof userId)
+    
     try {
       // Use profileService with correct endpoints
       if (isCurrentlyFollowing) {
@@ -214,6 +231,8 @@ export default function FriendSuggestions() {
         setError('Unable to follow this user. They may have restricted who can follow them.')
       } else if (err.status === 400) {
         setError(err.message || 'Invalid follow operation. You may already be following this user.')
+      } else if (err.message && err.message.includes('Invalid user ID format')) {
+        setError('Invalid user ID format. Please refresh the page and try again.')
       } else {
         setError('Failed to update follow status. Please check your connection and try again.')
       }
