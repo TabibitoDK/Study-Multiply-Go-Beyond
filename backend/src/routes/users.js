@@ -1,6 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { User } from '../models/index.js';
+import { User, Profile } from '../models/index.js';
 import { authenticate, ensureUserAccess, addUserIdToBody } from '../middleware/auth.js';
 import {
   validateObjectId,
@@ -317,5 +317,148 @@ router.put('/:id/password',
     }
   }
 );
+
+// GET /api/users/suggestions - Get friend suggestions for the current user
+router.get('/suggestions', authenticate, async (req, res, next) => {
+  try {
+    const currentUserId = req.user.id;
+    
+    // Get current user's profile to see who they're following
+    const currentUserProfile = await Profile.findOne({ userId: currentUserId });
+    
+    if (!currentUserProfile) {
+      return res.status(404).json({
+        error: 'Profile not found',
+        message: 'You need to create a profile first to get friend suggestions'
+      });
+    }
+    
+    // Get IDs of users already followed
+    const followingIds = currentUserProfile.following.map(id => id.toString());
+    followingIds.push(currentUserId); // Exclude self from suggestions
+    
+    // Find users with similar tags (interests)
+    const similarTagsUsers = await Profile.find({
+      userId: { $nin: followingIds },
+      tags: { $in: currentUserProfile.tags }
+    }).populate('userId', 'username email').limit(10);
+    
+    // Find users followed by people the current user follows
+    let followedByFollowed = [];
+    if (followingIds.length > 1) { // Only if user follows someone
+      const profilesOfFollowed = await Profile.find({
+        userId: { $in: followingIds.slice(0, -1) } // Exclude self
+      });
+      
+      const followedByFollowedIds = profilesOfFollowed.flatMap(profile =>
+        profile.following.map(id => id.toString())
+      );
+      
+      // Remove duplicates and already followed users
+      const uniqueFollowedIds = [...new Set(followedByFollowedIds)]
+        .filter(id => !followingIds.includes(id));
+      
+      if (uniqueFollowedIds.length > 0) {
+        followedByFollowed = await Profile.find({
+          userId: { $in: uniqueFollowedIds }
+        }).populate('userId', 'username email').limit(10);
+      }
+    }
+    
+    // Get random users as additional suggestions if needed
+    let randomUsers = [];
+    const allSuggestions = [...similarTagsUsers, ...followedByFollowed];
+    const suggestionIds = allSuggestions.map(p => p.userId._id.toString());
+    
+    if (allSuggestions.length < 10) {
+      const remainingCount = 10 - allSuggestions.length;
+      randomUsers = await Profile.find({
+        userId: {
+          $nin: [...followingIds, ...suggestionIds]
+        }
+      }).populate('userId', 'username email')
+        .limit(remainingCount);
+    }
+    
+    // Combine all suggestions and limit to 10
+    const allSuggestionsCombined = [...allSuggestions, ...randomUsers].slice(0, 10);
+    
+    // Format the response with user profile information
+    const suggestions = allSuggestionsCombined.map(profile => ({
+      _id: profile.userId._id,
+      username: profile.userId.username,
+      name: profile.name,
+      bio: profile.bio,
+      avatar: profile.profileImage,
+      tags: profile.tags,
+      isFollowing: false // All suggestions are users not currently followed
+    }));
+    
+    res.json({
+      suggestions,
+      count: suggestions.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/users/search - Search users by name, username, and bio
+router.get('/search', authenticate, validatePagination, async (req, res, next) => {
+  try {
+    const { page, limit, skip } = req.pagination;
+    const { q } = req.query;
+    
+    if (!q || q.trim().length === 0) {
+      return res.status(400).json({
+        error: 'Missing search query',
+        message: 'Search query parameter "q" is required'
+      });
+    }
+    
+    const searchTerm = q.trim();
+    
+    // Get current user's profile to check follow status
+    const currentUserProfile = await Profile.findOne({ userId: req.user.id });
+    const followingIds = currentUserProfile ?
+      currentUserProfile.following.map(id => id.toString()) : [];
+    
+    // Search for users by name, username, or bio
+    const searchFilter = {
+      $or: [
+        { name: { $regex: searchTerm, $options: 'i' } },
+        { username: { $regex: searchTerm, $options: 'i' } },
+        { bio: { $regex: searchTerm, $options: 'i' } }
+      ]
+    };
+    
+    const profiles = await Profile.find(searchFilter)
+      .populate('userId', 'username email isActive')
+      .skip(skip)
+      .limit(limit)
+      .sort({ joined: -1 });
+    
+    const total = await Profile.countDocuments(searchFilter);
+    
+    // Format results with follow status
+    const users = profiles.map(profile => {
+      const userObj = profile.toObject();
+      userObj.isFollowing = followingIds.includes(profile.userId._id.toString());
+      return userObj;
+    });
+    
+    res.json({
+      users,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default router;

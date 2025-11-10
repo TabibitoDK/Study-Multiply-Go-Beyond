@@ -465,4 +465,138 @@ router.get('/:id/following',
   }
 );
 
+// POST /api/profiles/follow/:userId - Follow a user by userId
+router.post('/follow/:userId',
+  authenticate,
+  validateObjectId('userId'),
+  async (req, res, next) => {
+    try {
+      const targetUserId = req.params.userId;
+      
+      // Check if user is trying to follow themselves
+      if (targetUserId === req.user.id) {
+        return res.status(400).json({
+          error: 'Invalid action',
+          message: 'You cannot follow yourself'
+        });
+      }
+      
+      // Get target user's profile
+      const targetProfile = await Profile.findOne({ userId: targetUserId });
+      
+      if (!targetProfile) {
+        return res.status(404).json({
+          error: 'Profile not found',
+          message: 'The profile for the provided user ID does not exist'
+        });
+      }
+      
+      // Check if following is allowed
+      if (!targetProfile.privacy?.allowFollowers) {
+        return res.status(403).json({
+          error: 'Follow not allowed',
+          message: 'This user does not allow followers'
+        });
+      }
+      
+      // Get current user's profile
+      const currentUserProfile = await Profile.findOne({ userId: req.user.id });
+      
+      if (!currentUserProfile) {
+        return res.status(404).json({
+          error: 'Profile not found',
+          message: 'You need to create a profile first'
+        });
+      }
+      
+      // Check if already following
+      const isAlreadyFollowing = currentUserProfile.following.includes(
+        new mongoose.Types.ObjectId(targetUserId)
+      );
+      
+      if (isAlreadyFollowing) {
+        return res.status(400).json({
+          error: 'Already following',
+          message: 'You are already following this user'
+        });
+      }
+      
+      // Add to following list
+      currentUserProfile.following.push(targetUserId);
+      await currentUserProfile.save();
+      
+      // Add to followers list of target user
+      targetProfile.followers.push(req.user.id);
+      await targetProfile.save();
+      
+      res.json({
+        message: 'User followed successfully'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// DELETE /api/profiles/unfollow/:userId - Unfollow a user by userId
+router.delete('/unfollow/:userId',
+  authenticate,
+  validateObjectId('userId'),
+  async (req, res, next) => {
+    try {
+      const targetUserId = req.params.userId;
+      
+      // Get target user's profile
+      const targetProfile = await Profile.findOne({ userId: targetUserId });
+      
+      if (!targetProfile) {
+        return res.status(404).json({
+          error: 'Profile not found',
+          message: 'The profile for the provided user ID does not exist'
+        });
+      }
+      
+      // Get current user's profile
+      const currentUserProfile = await Profile.findOne({ userId: req.user.id });
+      
+      if (!currentUserProfile) {
+        return res.status(404).json({
+          error: 'Profile not found',
+          message: 'You need to create a profile first'
+        });
+      }
+      
+      // Check if actually following
+      const isFollowing = currentUserProfile.following.includes(
+        new mongoose.Types.ObjectId(targetUserId)
+      );
+      
+      if (!isFollowing) {
+        return res.status(400).json({
+          error: 'Not following',
+          message: 'You are not following this user'
+        });
+      }
+      
+      // Remove from following list
+      currentUserProfile.following = currentUserProfile.following.filter(
+        id => id.toString() !== targetUserId
+      );
+      await currentUserProfile.save();
+      
+      // Remove from followers list of target user
+      targetProfile.followers = targetProfile.followers.filter(
+        id => id.toString() !== req.user.id
+      );
+      await targetProfile.save();
+      
+      res.json({
+        message: 'User unfollowed successfully'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 export default router;

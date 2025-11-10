@@ -4,7 +4,7 @@ import { BookOpen } from 'lucide-react'
 import PostCard from './PostCard.jsx'
 import PostModal from './PostModal.jsx'
 import ProfileSidebar from './ProfileSidebar.jsx'
-import TrendingSidebar from './TrendingSidebar.jsx'
+import FriendSuggestions from './FriendSuggestions.jsx'
 import postService from '../../services/postService.js'
 import profileService from '../../services/profileService.js'
 import CatPeekAnimation from '../CatPeekAnimation.jsx'
@@ -173,7 +173,7 @@ export default function SocialPage({ currentUser, posts, onCreatePost, onSelectP
         )}
       </div>
 
-      <TrendingSidebar />
+      <FriendSuggestions />
 
       <div className="cat-peek-spot">
         <CatPeekAnimation size={150} />

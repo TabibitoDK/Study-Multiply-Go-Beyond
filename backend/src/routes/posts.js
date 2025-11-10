@@ -98,6 +98,62 @@ router.get('/public', validatePagination, async (req, res, next) => {
   }
 });
 
+// GET /api/posts/search - Search posts with pagination
+router.get('/search', validatePagination, async (req, res, next) => {
+  try {
+    const { page, limit, skip } = req.pagination;
+    const { q, tags, visibility } = req.query;
+    
+    // Validate search query
+    if (!q || q.trim().length === 0) {
+      return res.status(400).json({
+        error: 'Invalid search query',
+        message: 'Search query cannot be empty'
+      });
+    }
+    
+    // Build filter object for search
+    const filter = { visibility: 'public' }; // Default to public posts for search
+    
+    // Override visibility if specified
+    if (visibility) {
+      filter.visibility = visibility;
+    }
+    
+    // Add tags filter if provided
+    if (tags) {
+      const tagArray = Array.isArray(tags) ? tags : [tags];
+      filter.tags = { $in: tagArray };
+    }
+    
+    // Text search using MongoDB's $text operator
+    filter.$text = { $search: q.trim() };
+    
+    const posts = await Post.find(filter)
+      .populate('userId', 'username')
+      .populate('books', 'title author cover')
+      .populate('comments.userId', 'username')
+      .skip(skip)
+      .limit(limit)
+      .sort({ score: { $meta: 'textScore' }, createdAt: -1 }); // Sort by relevance then date
+    
+    const total = await Post.countDocuments(filter);
+    
+    res.json({
+      posts,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      },
+      query: q.trim()
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/posts/user/:userId - Get posts for a specific user (public unless owner)
 router.get('/user/:userId', validateObjectId('userId'), async (req, res, next) => {
   try {

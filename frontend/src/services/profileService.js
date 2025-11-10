@@ -139,10 +139,18 @@ export const profileService = {
   // Follow a user
   followUser: async (userId) => {
     try {
-      const response = await api.post(`/profiles/${userId}/follow`)
+      const response = await api.post(`/profiles/follow/${userId}`)
       return response
     } catch (error) {
       console.error('Error following user:', error)
+      // Enhance error with more context
+      if (error.status === 404) {
+        error.message = 'User profile not found. The user may not have created a profile yet.'
+      } else if (error.status === 403) {
+        error.message = 'Unable to follow this user. They may have restricted who can follow them.'
+      } else if (error.status === 400) {
+        error.message = error.message || 'Invalid follow operation. You may already be following this user.'
+      }
       throw error
     }
   },
@@ -150,10 +158,39 @@ export const profileService = {
   // Unfollow a user
   unfollowUser: async (userId) => {
     try {
-      const response = await api.delete(`/profiles/${userId}/follow`)
+      const response = await api.delete(`/profiles/unfollow/${userId}`)
       return response
     } catch (error) {
       console.error('Error unfollowing user:', error)
+      // Enhance error with more context
+      if (error.status === 404) {
+        error.message = 'User profile not found. The user may not have created a profile yet.'
+      } else if (error.status === 400) {
+        error.message = error.message || 'Invalid unfollow operation. You may not be following this user.'
+      }
+      throw error
+    }
+  },
+
+  // Get suggested users to follow
+  getSuggestedUsers: async () => {
+    try {
+      const response = await api.get('/users/suggestions')
+      // Normalize the response data to handle _id vs id mismatch
+      const suggestions = response?.suggestions || []
+      return suggestions.map(user => ({
+        _id: user._id || user.id,
+        id: user._id || user.id,
+        name: user.name,
+        username: user.username,
+        bio: user.bio || '',
+        avatar: user.avatar || user.profileImage || '',
+        profileImage: user.avatar || user.profileImage || '',
+        tags: user.tags || [],
+        isFollowing: user.isFollowing || false
+      }))
+    } catch (error) {
+      console.error('Error fetching suggested users:', error)
       throw error
     }
   },
@@ -238,14 +275,37 @@ export const profileService = {
     }
   },
 
-  // Search profiles by query
-  searchProfiles: async (query) => {
+  // Search profiles by query with pagination
+  searchProfiles: async (query, page = 1, limit = 10) => {
     try {
-      const response = await api.get(`/profiles/search?q=${encodeURIComponent(query)}`)
-      return normalizeProfileList(response?.profiles ?? response)
+      const response = await api.get(`/profiles?search=${encodeURIComponent(query)}&page=${page}&limit=${limit}`)
+      return {
+        profiles: normalizeProfileList(response?.profiles ?? response),
+        pagination: response?.pagination || {
+          page,
+          limit,
+          total: 0,
+          pages: 0
+        }
+      }
     } catch (error) {
       console.error('Error searching profiles:', error)
-      throw error
+      // If profiles search fails, try users search as fallback
+      try {
+        const usersResponse = await api.get(`/users/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`)
+        return {
+          profiles: normalizeProfileList(usersResponse?.users ?? usersResponse),
+          pagination: usersResponse?.pagination || {
+            page,
+            limit,
+            total: 0,
+            pages: 0
+          }
+        }
+      } catch (fallbackError) {
+        console.error('Fallback search also failed:', fallbackError)
+        throw error
+      }
     }
   }
 }

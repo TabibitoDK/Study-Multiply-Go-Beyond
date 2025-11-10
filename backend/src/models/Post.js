@@ -70,6 +70,8 @@ postSchema.index({ books: 1 });
 postSchema.index({ tags: 1 });
 postSchema.index({ userId: 1, createdAt: -1 });
 postSchema.index({ visibility: 1, likes: -1 });
+// Text search index for content and tags
+postSchema.index({ content: 'text', tags: 'text' });
 
 const Post = mongoose.model('Post', postSchema);
 

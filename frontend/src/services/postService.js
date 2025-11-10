@@ -199,6 +199,26 @@ export const postService = {
       console.error('Error fetching trending posts:', error)
       throw error
     }
+  },
+
+  // Search posts by query with pagination
+  searchPosts: async (query, page = 1, limit = 10) => {
+    try {
+      const response = await api.get(`/posts/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`)
+      return {
+        posts: normalizePostList(response?.posts ?? response),
+        pagination: response?.pagination || {
+          page,
+          limit,
+          total: 0,
+          pages: 0
+        },
+        query: response?.query || query
+      }
+    } catch (error) {
+      console.error('Error searching posts:', error)
+      throw error
+    }
   }
 }
 
