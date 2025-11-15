@@ -25,3 +25,6 @@ temp
 *.njsproj
 *.sln
 *.sw?
+
+# JSON storage files
+backend/data/*.json

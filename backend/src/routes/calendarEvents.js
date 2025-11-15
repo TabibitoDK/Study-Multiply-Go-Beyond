@@ -1,6 +1,5 @@
 
 import express from 'express';
-import mongoose from 'mongoose';
 import { CalendarEvent } from '../models/index.js';
 import { authenticate, ensureUserAccess, addUserIdToBody } from '../middleware/auth.js';
 import {
@@ -343,7 +342,7 @@ router.get('/stats/user', authenticate, async (req, res, next) => {
     const { startDate, endDate } = req.query;
     
     // Build date filter
-    const dateFilter = { userId: new mongoose.Types.ObjectId(userId) };
+    const dateFilter = { userId };
     if (startDate && endDate) {
       dateFilter.date = {
         $gte: startDate,

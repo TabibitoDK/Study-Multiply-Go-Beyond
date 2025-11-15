@@ -1,5 +1,4 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import { Post } from '../models/index.js';
 import { authenticate, ensureUserAccess, addUserIdToBody } from '../middleware/auth.js';
 import {
@@ -162,7 +161,7 @@ router.get('/user/:userId', validateObjectId('userId'), async (req, res, next) =
     const isOwner = requesterId && requesterId === targetUserId;
 
     const filter = {
-      userId: new mongoose.Types.ObjectId(targetUserId)
+      userId: targetUserId
     };
 
     if (!isOwner) {
@@ -469,7 +468,7 @@ router.get('/stats/user', authenticate, async (req, res, next) => {
     const userId = req.user.id;
     
     const stats = await Post.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $match: { userId } },
       {
         $group: {
           _id: '$visibility',
@@ -482,11 +481,11 @@ router.get('/stats/user', authenticate, async (req, res, next) => {
     
     const totalPosts = await Post.countDocuments({ userId });
     const totalLikes = await Post.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $match: { userId } },
       { $group: { _id: null, total: { $sum: '$likes' } } }
     ]);
     const totalComments = await Post.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $match: { userId } },
       { $group: { _id: null, total: { $sum: { $size: '$comments' } } } }
     ]);
     

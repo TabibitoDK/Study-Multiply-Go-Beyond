@@ -1,5 +1,4 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import { Tag } from '../models/index.js';
 import { authenticate } from '../middleware/auth.js';
 import {
@@ -367,7 +366,7 @@ router.post('/:id/related',
       
       // Check if already related
       const isAlreadyRelated = tag.relatedTags.includes(
-        new mongoose.Types.ObjectId(relatedTagId)
+        relatedTagId
       );
       
       if (isAlreadyRelated) {
@@ -413,7 +412,7 @@ router.delete('/:id/related/:relatedTagId',
       
       // Check if actually related
       const isRelated = tag.relatedTags.includes(
-        new mongoose.Types.ObjectId(relatedTagId)
+        relatedTagId
       );
       
       if (!isRelated) {

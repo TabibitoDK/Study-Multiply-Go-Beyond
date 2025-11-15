@@ -1,5 +1,4 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import { Book } from '../models/index.js';
 import { authenticate, ensureUserAccess, addUserIdToBody } from '../middleware/auth.js';
 import {
@@ -355,7 +354,7 @@ router.get('/stats/user', authenticate, async (req, res, next) => {
     const userId = req.user.id;
     
     const stats = await Book.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $match: { userId } },
       {
         $group: {
           _id: '$status',
@@ -368,7 +367,7 @@ router.get('/stats/user', authenticate, async (req, res, next) => {
     const totalBooks = await Book.countDocuments({ userId });
     const favoriteBooks = await Book.countDocuments({ userId, favorite: true });
     const totalPages = await Book.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId), pages: { $exists: true, $gt: 0 } } },
+      { $match: { userId, pages: { $exists: true, $gt: 0 } } },
       { $group: { _id: null, total: { $sum: '$pages' } } }
     ]);
     

@@ -1,60 +1,18 @@
-import mongoose from 'mongoose';
+import createJsonModel from '../lib/jsonModelFactory.js'
 
-const goalSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+const Goal = createJsonModel('Goal', {
+  collectionName: 'goals',
+  defaults: {
+    isPublic: false,
+    category: 'personal',
+    priority: 'medium',
+    status: 'active',
+    progress: 0
   },
-  text: {
-    type: String,
-    required: true,
-    trim: true,
-    minlength: 1,
-    maxlength: 500
+  relations: {
+    userId: { ref: 'User' }
   },
-  isPublic: {
-    type: Boolean,
-    default: false
-  },
-  category: {
-    type: String,
-    enum: ['academic', 'personal', 'career'],
-    default: 'personal'
-  },
-  priority: {
-    type: String,
-    enum: ['low', 'medium', 'high'],
-    default: 'medium'
-  },
-  targetDate: {
-    type: Date
-  },
-  status: {
-    type: String,
-    enum: ['active', 'completed', 'paused'],
-    default: 'active'
-  },
-  progress: {
-    type: Number,
-    min: 0,
-    max: 100,
-    default: 0
-  },
-  completedAt: {
-    type: Date
-  }
-}, {
-  timestamps: true
-});
+  textFields: ['text', 'category']
+})
 
-// Indexes
-goalSchema.index({ userId: 1 });
-goalSchema.index({ userId: 1, status: 1 });
-goalSchema.index({ userId: 1, isPublic: 1 });
-goalSchema.index({ targetDate: 1 });
-goalSchema.index({ createdAt: -1 });
-
-const Goal = mongoose.model('Goal', goalSchema);
-
-export default Goal;
+export default Goal

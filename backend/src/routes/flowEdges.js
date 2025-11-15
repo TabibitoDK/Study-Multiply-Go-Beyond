@@ -1,5 +1,4 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import { FlowEdge, TaskPlan } from '../models/index.js';
 import { authenticate, ensureUserAccess, addUserIdToBody } from '../middleware/auth.js';
 import {
@@ -433,7 +432,7 @@ router.get('/stats/user', authenticate, async (req, res, next) => {
     const userId = req.user.id;
     
     const stats = await FlowEdge.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $match: { userId } },
       {
         $group: {
           _id: null,
@@ -444,7 +443,7 @@ router.get('/stats/user', authenticate, async (req, res, next) => {
     ]);
     
     const edgeTypeStats = await FlowEdge.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $match: { userId } },
       { $unwind: '$edges' },
       {
         $group: {

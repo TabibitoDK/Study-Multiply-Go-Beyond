@@ -1,5 +1,4 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import { TaskPlan } from '../models/index.js';
 import { authenticate, ensureUserAccess, addUserIdToBody } from '../middleware/auth.js';
 import {
@@ -622,7 +621,7 @@ router.get('/stats/user', authenticate, async (req, res, next) => {
     const userId = req.user.id;
     
     const stats = await TaskPlan.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $match: { userId } },
       {
         $group: {
           _id: '$status',
@@ -636,7 +635,7 @@ router.get('/stats/user', authenticate, async (req, res, next) => {
     
     // Task statistics
     const taskStats = await TaskPlan.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $match: { userId } },
       { $unwind: '$tasks' },
       {
         $group: {
@@ -647,13 +646,13 @@ router.get('/stats/user', authenticate, async (req, res, next) => {
     ]);
     
     const totalTasks = await TaskPlan.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $match: { userId } },
       { $project: { taskCount: { $size: '$tasks' } } },
       { $group: { _id: null, total: { $sum: '$taskCount' } } }
     ]);
     
     const completedTasks = await TaskPlan.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $match: { userId } },
       { $unwind: '$tasks' },
       { $match: { 'tasks.status': 'completed' } },
       { $group: { _id: null, total: { $sum: 1 } } }

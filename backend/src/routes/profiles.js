@@ -1,5 +1,4 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import { Profile, User } from '../models/index.js';
 import { authenticate, ensureUserAccess, addUserIdToBody } from '../middleware/auth.js';
 import {
@@ -302,7 +301,7 @@ router.post('/:id/follow',
       
       // Check if already following
       const isAlreadyFollowing = currentUserProfile.following.includes(
-        new mongoose.Types.ObjectId(targetProfile.userId)
+        targetProfile.userId
       );
       
       if (isAlreadyFollowing) {
@@ -356,7 +355,7 @@ router.delete('/:id/follow',
       
       // Check if actually following
       const isFollowing = currentUserProfile.following.includes(
-        new mongoose.Types.ObjectId(targetProfile.userId)
+        targetProfile.userId
       );
       
       if (!isFollowing) {
@@ -511,7 +510,7 @@ router.post('/follow/:userId',
       
       // Check if already following
       const isAlreadyFollowing = currentUserProfile.following.includes(
-        new mongoose.Types.ObjectId(targetUserId)
+        targetUserId
       );
       
       if (isAlreadyFollowing) {
@@ -568,7 +567,7 @@ router.delete('/unfollow/:userId',
       
       // Check if actually following
       const isFollowing = currentUserProfile.following.includes(
-        new mongoose.Types.ObjectId(targetUserId)
+        targetUserId
       );
       
       if (!isFollowing) {

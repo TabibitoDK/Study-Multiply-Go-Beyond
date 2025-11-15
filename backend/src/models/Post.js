@@ -1,78 +1,22 @@
-import mongoose from 'mongoose';
+import createJsonModel from '../lib/jsonModelFactory.js'
 
-const commentSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+const Post = createJsonModel('Post', {
+  collectionName: 'posts',
+  defaults: {
+    books: () => [],
+    likes: 0,
+    comments: () => [],
+    tags: () => [],
+    visibility: 'public',
+    isEdited: false
   },
-  content: {
-    type: String,
-    required: true,
-    trim: true,
-    minlength: 1,
-    maxlength: 1000
+  relations: {
+    userId: { ref: 'User' },
+    books: { ref: 'Book', isArray: true },
+    'comments.userId': { ref: 'User' }
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
+  subDocumentArrays: ['comments'],
+  textFields: ['content', 'tags']
+})
 
-const postSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  content: {
-    type: String,
-    required: true,
-    trim: true,
-    minlength: 1,
-    maxlength: 2000
-  },
-  books: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Book'
-  }],
-  likes: {
-    type: Number,
-    min: 0,
-    default: 0
-  },
-  comments: [commentSchema],
-  tags: [{
-    type: String,
-    trim: true
-  }],
-  visibility: {
-    type: String,
-    enum: ['public', 'followers', 'private'],
-    default: 'public'
-  },
-  isEdited: {
-    type: Boolean,
-    default: false
-  },
-  editedAt: {
-    type: Date
-  }
-}, {
-  timestamps: true
-});
-
-// Indexes
-postSchema.index({ userId: 1 });
-postSchema.index({ createdAt: -1 });
-postSchema.index({ visibility: 1, createdAt: -1 });
-postSchema.index({ books: 1 });
-postSchema.index({ tags: 1 });
-postSchema.index({ userId: 1, createdAt: -1 });
-postSchema.index({ visibility: 1, likes: -1 });
-// Text search index for content and tags
-postSchema.index({ content: 'text', tags: 'text' });
-
-const Post = mongoose.model('Post', postSchema);
-
-export default Post;
+export default Post

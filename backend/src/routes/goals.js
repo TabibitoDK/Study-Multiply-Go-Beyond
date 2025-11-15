@@ -1,5 +1,4 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import { Goal } from '../models/index.js';
 import { authenticate, ensureUserAccess, addUserIdToBody } from '../middleware/auth.js';
 import {
@@ -322,7 +321,7 @@ router.get('/stats/user', authenticate, async (req, res, next) => {
     const userId = req.user.id;
     
     const stats = await Goal.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $match: { userId } },
       {
         $group: {
           _id: '$status',

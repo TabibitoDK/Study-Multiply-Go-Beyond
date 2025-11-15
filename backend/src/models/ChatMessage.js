@@ -1,54 +1,17 @@
-import mongoose from 'mongoose'
+﻿import createJsonModel from '../lib/jsonModelFactory.js'
 
-const chatMessageSchema = new mongoose.Schema(
-  {
-    type: {
-      type: String,
-      enum: ['direct', 'group'],
-      required: true,
-    },
-    conversationKey: {
-      type: String,
-      index: true,
-      sparse: true,
-    },
-    participants: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-      },
-    ],
-    groupId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'StudyGroup',
-    },
-    senderId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    text: {
-      type: String,
-      trim: true,
-      maxlength: 2000,
-    },
-    image: {
-      type: String,
-      trim: true,
-    },
-    deliveredAt: {
-      type: Date,
-      default: () => new Date(),
-    },
+const ChatMessage = createJsonModel('ChatMessage', {
+  collectionName: 'chatMessages',
+  defaults: {
+    participants: () => [],
+    deliveredAt: () => new Date().toISOString()
   },
-  {
-    timestamps: true,
+  relations: {
+    participants: { ref: 'User', isArray: true },
+    groupId: { ref: 'StudyGroup' },
+    senderId: { ref: 'User' }
   },
-)
-
-chatMessageSchema.index({ type: 1, groupId: 1, createdAt: 1 })
-chatMessageSchema.index({ type: 1, participants: 1, createdAt: 1 })
-
-const ChatMessage = mongoose.model('ChatMessage', chatMessageSchema)
+  textFields: ['text']
+})
 
 export default ChatMessage

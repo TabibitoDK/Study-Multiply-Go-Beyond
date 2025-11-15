@@ -1,70 +1,24 @@
-import mongoose from 'mongoose';
+﻿import createJsonModel from '../lib/jsonModelFactory.js'
 
-const monthlyUsageSchema = new mongoose.Schema({
-  month: {
-    type: String,
-    required: true,
-    match: /^\d{4}-\d{2}$/
-  },
-  count: {
-    type: Number,
-    min: 0,
-    default: 0
-  }
-});
-
-const flashcardAISettingsSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    unique: true
-  },
-  language: {
-    type: String,
-    enum: ['en', 'es', 'fr', 'de', 'ja'],
-    default: 'en'
-  },
-  apiKey: {
-    type: String,
-    trim: true
-  },
-  preferences: {
-    defaultCardCount: {
-      type: Number,
-      min: 1,
-      max: 50,
-      default: 10
+const FlashcardAISettings = createJsonModel('FlashcardAISettings', {
+  collectionName: 'flashcardAISettings',
+  defaults: {
+    language: 'en',
+    preferences: {
+      defaultCardCount: 10,
+      difficulty: 'intermediate',
+      includeImages: false,
+      autoTranslate: false
     },
-    difficulty: {
-      type: String,
-      enum: ['beginner', 'intermediate', 'advanced'],
-      default: 'intermediate'
-    },
-    includeImages: {
-      type: Boolean,
-      default: false
-    },
-    autoTranslate: {
-      type: Boolean,
-      default: false
+    usageStats: {
+      totalCardsGenerated: 0,
+      monthlyUsage: () => []
     }
   },
-  usageStats: {
-    totalCardsGenerated: {
-      type: Number,
-      min: 0,
-      default: 0
-    },
-    lastUsed: {
-      type: Date
-    },
-    monthlyUsage: [monthlyUsageSchema]
-  }
-}, {
-  timestamps: true
-});
+  relations: {
+    userId: { ref: 'User' }
+  },
+  subDocumentArrays: ['usageStats.monthlyUsage']
+})
 
-const FlashcardAISettings = mongoose.model('FlashcardAISettings', flashcardAISettingsSchema);
-
-export default FlashcardAISettings;
+export default FlashcardAISettings
