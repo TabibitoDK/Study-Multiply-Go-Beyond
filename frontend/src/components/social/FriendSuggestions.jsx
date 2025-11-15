@@ -1,11 +1,43 @@
 import { useState, useEffect } from 'react'
 import { Search, Users, FileText, UserPlus, UserCheck, Loader, AlertCircle } from 'lucide-react'
-import api from '../../lib/api.js'
 import profileService from '../../services/profileService.js'
 import postService from '../../services/postService.js'
+import { useAuth } from '../../context/AuthContext.jsx'
 import './FriendSuggestions.css'
 
+const GUEST_FALLBACK_SUGGESTIONS = [
+  {
+    id: 'guest_suggestion_1',
+    name: 'Kai Ito',
+    username: 'kai_focus',
+    bio: 'Sharing focus playlists and weekly study recaps.',
+    profileImage: '',
+  },
+  {
+    id: 'guest_suggestion_2',
+    name: 'Lena Park',
+    username: 'lenapark',
+    bio: 'Design student rebuilding fundamentals with sketch challenges.',
+    profileImage: '',
+  },
+  {
+    id: 'guest_suggestion_3',
+    name: 'Noah W',
+    username: 'noah_reads',
+    bio: 'Morning book club host + accountability buddy.',
+    profileImage: '',
+  },
+]
+
+const getGuestSuggestions = () =>
+  GUEST_FALLBACK_SUGGESTIONS.map(suggestion => ({
+    ...suggestion,
+    isFollowing: false,
+  }))
+
 export default function FriendSuggestions() {
+  const { user } = useAuth()
+  const isGuest = Boolean(user?.isGuest)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState('friends')
   const [suggestions, setSuggestions] = useState([])
@@ -16,11 +48,21 @@ export default function FriendSuggestions() {
 
   // Fetch suggested friends on component mount
   useEffect(() => {
+    if (isGuest) {
+      setSuggestions(getGuestSuggestions())
+      setLoading(false)
+      setError(null)
+      return
+    }
     fetchFriendSuggestions()
-  }, [])
+  }, [isGuest])
 
   // Fetch friend suggestions from API
   const fetchFriendSuggestions = async () => {
+    if (isGuest) {
+      return
+    }
+
     setLoading(true)
     setError(null)
     
@@ -99,6 +141,21 @@ export default function FriendSuggestions() {
       return
     }
 
+    if (isGuest) {
+      const normalizedQuery = searchQuery.trim().toLowerCase()
+      const guestMatches = getGuestSuggestions().filter(user =>
+        [user.name, user.username, user.bio].some(field =>
+          field?.toLowerCase().includes(normalizedQuery),
+        ),
+      )
+      setSearchResults({
+        friends: guestMatches,
+        posts: [],
+      })
+      setError(null)
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -168,10 +225,15 @@ export default function FriendSuggestions() {
     }, 300) // Debounce search
 
     return () => clearTimeout(timeoutId)
-  }, [searchQuery])
+  }, [searchQuery, isGuest])
 
   // Handle follow/unfollow functionality
   const handleFollowToggle = async (userId) => {
+    if (isGuest) {
+      setError('Create a free account to follow other learners.')
+      return
+    }
+
     const isCurrentlyFollowing = following.has(userId)
     
     // Validate userId before proceeding

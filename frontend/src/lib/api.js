@@ -7,6 +7,16 @@ const getAuthToken = () => {
   return localStorage.getItem('auth_token')
 }
 
+const getStoredUser = () => {
+  try {
+    const raw = localStorage.getItem('auth_user')
+    return raw ? JSON.parse(raw) : null
+  } catch (error) {
+    console.warn('Unable to parse stored auth user', error)
+    return null
+  }
+}
+
 async function handleResponse(response) {
   let data = null
 
@@ -45,17 +55,39 @@ async function apiRequest(endpoint, options = {}) {
     ...options,
   }
 
+  const handleUnauthorized = async response => {
+    const storedUser = getStoredUser()
+    const isGuest = Boolean(storedUser?.isGuest)
+    let payload = null
+
+    try {
+      payload = await response.clone().json()
+    } catch (parseError) {
+      // Ignore JSON parsing errors for unauthorized responses
+    }
+
+    if (!isGuest) {
+      localStorage.removeItem('auth_user')
+      localStorage.removeItem('auth_token')
+      window.location.href = '/login'
+    } else {
+      console.warn('Guest session attempted to access a protected endpoint.')
+    }
+
+    const messageFromPayload = payload?.message || payload?.error
+    const message = messageFromPayload || (isGuest ? 'Please create an account to use this feature.' : 'Authentication required')
+    const error = new Error(message)
+    error.status = 401
+    error.data = payload
+    throw error
+  }
+
   try {
     const response = await fetch(url, config)
     
     // Handle 401 Unauthorized responses
     if (response.status === 401) {
-      // Clear invalid authentication data
-      localStorage.removeItem('auth_user')
-      localStorage.removeItem('auth_token')
-      // Redirect to login page
-      window.location.href = '/login'
-      throw new Error('Authentication required')
+      await handleUnauthorized(response)
     }
 
     return response
