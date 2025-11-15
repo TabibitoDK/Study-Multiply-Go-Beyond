@@ -162,13 +162,21 @@ body {
    ======================================================= */
 .navbar {
   grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 16px;
   padding: 10px 16px;
   border-bottom: 1px solid var(--ring);
   background: var(--panel);
+  flex-wrap: wrap;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 0 1 auto;
 }
 
 .brand {
@@ -191,7 +199,13 @@ body {
   line-height: 1.2;
 }
 
-.tabs { display: flex; gap: 8px; justify-content: flex-start; }
+.tabs { 
+  display: flex; 
+  gap: 8px; 
+  justify-content: flex-start; 
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+}
 .tab {
   padding: 6px 10px;
   border-radius: 12px;
@@ -213,9 +227,9 @@ body {
 
 .nav-actions {
   display: flex;
-  justify-content: flex-end;
   gap: 16px;
   align-items: center;
+  margin-left: auto;
 }
 
 .current-task-display {

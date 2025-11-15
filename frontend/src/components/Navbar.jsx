@@ -28,27 +28,28 @@ export default function Navbar({ currentTask, lastCompletedTask }) {
 
   return (
     <header className="navbar">
-      <div className="brand">
-        <img src="/Logo Ver01.png" alt={t('navbar.logoAlt')} className="logo-img" />
-        <div className="brand-text">
-          <div className="brand-title">{t('brand.title')}</div>
+      <div className="navbar-left">
+        <div className="brand">
+          <img src="/Logo Ver01.png" alt={t('navbar.logoAlt')} className="logo-img" />
+          <div className="brand-text">
+            <div className="brand-title">{t('brand.title')}</div>
+          </div>
         </div>
+        <nav className="tabs" role="tablist" aria-label={t('navbar.tabsAria')}>
+          {tabItems.map(tab => {
+            return (
+              <NavLink
+                key={tab.key}
+                to={tab.path}
+                className={({ isActive }) => (isActive ? 'tab active' : 'tab')}
+                end={tab.key === 'home'}
+              >
+                {tab.label}
+              </NavLink>
+            )
+          })}
+        </nav>
       </div>
-
-      <nav className="tabs" role="tablist" aria-label={t('navbar.tabsAria')}>
-        {tabItems.map(tab => {
-          return (
-            <NavLink
-              key={tab.key}
-              to={tab.path}
-              className={({ isActive }) => (isActive ? 'tab active' : 'tab')}
-              end={tab.key === 'home'}
-            >
-              {tab.label}
-            </NavLink>
-          )
-        })}
-      </nav>
 
       <div className="nav-actions">
         <div className="current-task-display" aria-live="polite">

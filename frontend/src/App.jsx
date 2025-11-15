@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import CalendarTopbar from './components/CalendarTopbar.jsx'
 import ToolTopbar from './components/ToolTopbar.jsx'
@@ -27,6 +27,8 @@ import profileService from './services/profileService.js'
 import postService from './services/postService.js'
 import groupService from './services/groupService.js'
 import LoginPage from './pages/LoginPage.jsx'
+import DemoFriends from './pages/DemoFriends.jsx'
+import { Spinner } from './components/Spinner.jsx'
 
 const FRIEND_STATUS_PRESETS = {
   haruto_study: { status: 'online', activity: 'Slide rewrites' },
@@ -52,7 +54,7 @@ function ProfileWrapper({ currentUserId, posts, onCreatePost, onSelectProfile })
 }
 
 function AppContent() {
-  const { user } = useAuth()
+  const { user, isAuthenticated, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [posts, setPosts] = useState([])
@@ -60,7 +62,7 @@ function AppContent() {
   const [userProfile, setUserProfile] = useState(null)
   const [friends, setFriends] = useState([])
   const [groups, setGroups] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [, setDataLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
   const [currentTask, setCurrentTask] = useState(null)
   const [lastCompletedTask, setLastCompletedTask] = useState(null)
@@ -133,12 +135,12 @@ function AppContent() {
         setUserProfile(null)
         setFriends([])
         setGroups([])
-        setLoading(false)
+        setDataLoading(false)
         return
       }
 
       try {
-        setLoading(true)
+        setDataLoading(true)
         const authUserId = user._id || user.id
 
         const [publicPosts, profileList, currentProfile] = await Promise.all([
@@ -174,7 +176,7 @@ function AppContent() {
       } catch (err) {
         console.error('Error fetching initial data:', err)
       } finally {
-        setLoading(false)
+        setDataLoading(false)
       }
     }
 
@@ -232,6 +234,26 @@ function AppContent() {
   const toolMatch = location.pathname.match(/^\/tools\/(flashcards|chat|stream)/)
   const isToolPage = toolMatch !== null
   const toolId = toolMatch ? toolMatch[1] : null
+
+  if (authLoading) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--canvas, #fff)',
+        }}
+      >
+        <Spinner size="large" />
+      </div>
+    )
+  }
+
+  if (!isAuthenticated && !isLoginPage) {
+    return <Navigate to="/login" replace />
+  }
 
   let containerClass = isLoginPage ? 'login-standalone' : 'container'
   if (!isLoginPage && showRightPanel) {
@@ -509,6 +531,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <FlowView />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/demo/friends"
+              element={
+                <ProtectedRoute>
+                  <DemoFriends />
                 </ProtectedRoute>
               }
             />
