@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+﻿import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import './LoginPage.css'
@@ -21,7 +21,6 @@ const INITIAL_SIGNUP_FORM = {
 
 const AUTH_TABS = [
   { key: 'email', label: 'Email' },
-  { key: 'google', label: 'Google' },
   { key: 'anonymous', label: 'Guest' },
 ]
 
@@ -65,7 +64,8 @@ export default function LoginPage() {
   const persistGuestId = id => {
     try {
       if (typeof window === 'undefined' || !window.localStorage) return
-      window.localStorage.setItem('nyacademy_guest_id', id)
+      const guestId = id || randomGuestId()
+      window.localStorage.setItem('nyacademy_guest_id', guestId)
     } catch (error) {
       console.warn('Unable to store guest id', error)
     }
@@ -167,21 +167,29 @@ export default function LoginPage() {
 
   const handleForgotPassword = event => {
     event.preventDefault()
-    showNotification('パスワード再設定リンクをメールで送信しました。', 'info', 'login')
-  }
-
-  const handleGoogleAuth = mode => {
-    const action = mode === 'login' ? 'ログイン' : 'サインアップ'
-    showNotification(`Google で${action}を準備しています…`, 'info', mode)
+    showNotification('Password reset link sent to your email.', 'info', 'login')
   }
 
   const handleAnonymousAuth = mode => {
-    const result = guestLogin()
-    const action = mode === 'login' ? 'ログイン' : 'サインアップ'
-    showNotification(`ゲストとして${action}しました。`, 'success', mode)
-    setTimeout(() => {
-      navigate('/')
-    }, 1000)
+    try {
+      const result = guestLogin()
+      const action = mode === 'login' ? 'login' : 'signup'
+
+      if (result?.user?._id) {
+        persistGuestId(result.user._id)
+      }
+
+      if (result?.success) {
+        showNotification(`Guest ${action} successful. Redirecting...`, 'success', mode)
+        setTimeout(() => {
+          navigate('/')
+        }, 1000)
+      } else {
+        showNotification('Unable to start guest session. Please try again.', 'error', mode)
+      }
+    } catch (error) {
+      showNotification('Guest access is currently unavailable. Please try again.', 'error', mode)
+    }
   }
 
   useEffect(() => {
@@ -203,26 +211,13 @@ export default function LoginPage() {
   }
 
   const renderLoginContent = () => {
-    if (loginActiveTab === 'google') {
-      return (
-        <div className="method-card">
-          <h3 className="method-title">Google でログイン</h3>
-          <div className="method-actions">
-            <button type="button" className="btn btn-primary" onClick={() => handleGoogleAuth('login')}>
-              Google で続行
-            </button>
-          </div>
-        </div>
-      )
-    }
-
     if (loginActiveTab === 'anonymous') {
       return (
         <div className="method-card">
-          <h3 className="method-title">ゲストでログイン</h3>
+          <h3 className="method-title">Quick guest login</h3>
           <div className="method-actions">
             <button type="button" className="btn btn-secondary" onClick={() => handleAnonymousAuth('login')}>
-              ゲストとして入る
+              Continue as guest
             </button>
           </div>
         </div>
@@ -231,10 +226,10 @@ export default function LoginPage() {
 
     return (
       <form onSubmit={handleLoginSubmit} className="method-card stack-gap">
-        <h3 className="method-title">メールでログイン</h3>
+        <h3 className="method-title">Sign in with email</h3>
         <div className="form-group">
           <label className="form-label" htmlFor="login-email">
-            メールアドレス
+            Email address
           </label>
           <input
             id="login-email"
@@ -248,7 +243,7 @@ export default function LoginPage() {
         </div>
         <div className="form-group">
           <label className="form-label" htmlFor="login-password">
-            パスワード
+            Password
           </label>
           <input
             id="login-password"
@@ -263,15 +258,15 @@ export default function LoginPage() {
         <div className="helper-row">
           <label className="remember-checkbox">
             <input type="checkbox" checked={loginForm.remember} onChange={handleLoginChange('remember')} />
-            <span>ログイン情報を保持</span>
+            <span>Keep me signed in</span>
           </label>
           <a href="#" onClick={handleForgotPassword}>
-            パスワードをお忘れですか？
+            Forgot password?
           </a>
         </div>
         <div className="method-actions">
           <button type="submit" className="btn btn-primary" disabled={isSubmitting || loading}>
-            {isSubmitting || loading ? 'ログイン中...' : 'ログイン'}
+            {isSubmitting || loading ? 'Signing in...' : 'Log in'}
           </button>
         </div>
       </form>
@@ -279,26 +274,13 @@ export default function LoginPage() {
   }
 
   const renderSignupContent = () => {
-    if (signupActiveTab === 'google') {
-      return (
-        <div className="method-card">
-          <h3 className="method-title">Google でサインアップ</h3>
-          <div className="method-actions">
-            <button type="button" className="btn btn-primary" onClick={() => handleGoogleAuth('signup')}>
-              Google で登録
-            </button>
-          </div>
-        </div>
-      )
-    }
-
     if (signupActiveTab === 'anonymous') {
       return (
         <div className="method-card">
-          <h3 className="method-title">ゲストではじめる</h3>
+          <h3 className="method-title">Try guest mode</h3>
           <div className="method-actions">
             <button type="button" className="btn btn-secondary" onClick={() => handleAnonymousAuth('signup')}>
-              ゲストモードで試す
+              Explore as guest
             </button>
           </div>
         </div>
@@ -307,7 +289,7 @@ export default function LoginPage() {
 
     return (
       <form onSubmit={handleSignupSubmit} className="method-card stack-gap">
-        <h3 className="method-title">メールでサインアップ</h3>
+        <h3 className="method-title">Sign up with email</h3>
         <div className="form-group">
           <label className="form-label" htmlFor="signup-username">
             Username
@@ -324,7 +306,7 @@ export default function LoginPage() {
         </div>
         <div className="form-group">
           <label className="form-label" htmlFor="signup-email">
-            メールアドレス
+            Email address
           </label>
           <input
             id="signup-email"
@@ -338,13 +320,13 @@ export default function LoginPage() {
         </div>
         <div className="form-group">
           <label className="form-label" htmlFor="signup-password">
-            パスワード
+            Password
           </label>
           <input
             id="signup-password"
             type="password"
             className="form-input"
-            placeholder="8文字以上で入力"
+            placeholder="At least 8 characters"
             value={signupForm.password}
             onChange={handleSignupChange('password')}
             required
@@ -355,7 +337,7 @@ export default function LoginPage() {
         </div>
         <div className="form-group">
           <label className="form-label" htmlFor="signup-confirm">
-            パスワードを確認
+            Confirm password
           </label>
           <input
             id="signup-confirm"
@@ -370,12 +352,12 @@ export default function LoginPage() {
         <label className="terms">
           <input type="checkbox" checked={signupForm.terms} onChange={handleSignupChange('terms')} />
           <span>
-            <a href="#">利用規約</a> と <a href="#">プライバシーポリシー</a> に同意します。
+            I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
           </span>
         </label>
         <div className="method-actions">
           <button type="submit" className="btn btn-primary" disabled={isSubmitting || loading}>
-            {isSubmitting || loading ? 'サインアップ中...' : 'サインアップ'}
+            {isSubmitting || loading ? 'Signing up...' : 'Sign up'}
           </button>
         </div>
       </form>
@@ -395,7 +377,7 @@ export default function LoginPage() {
               </div>
             </div>
             <p className="tagline">
-              あなたの努力をそっと見守る、猫と学ぶ AI 学習コミュニティで集中セッションを記録しましょう。
+              Track your study sessions with a cozy, cat-inspired AI learning community.
             </p>
           </div>
         </section>
@@ -403,11 +385,12 @@ export default function LoginPage() {
         <section className="right-section">
           <div className="form-container">
             <div className="form-header">
-              <h2 className="form-title">{authMode === 'login' ? 'ログイン' : 'サインアップ'}</h2>
+              <h2 className="form-title">{authMode === 'login' ? 'Log In' : 'Sign Up'}</h2>
               <p className="form-subtitle">
                 {authMode === 'login'
-                  ? '保存された学習プランやチャットへすぐに戻れます。'
-                  : 'タスク、友達、ツールを同期して学習を加速しましょう。'}
+                  ? 'Jump back into your saved study plans in seconds.'
+                  : 'Sync tasks, friends, and tools to accelerate your learning.'
+                }
               </p>
             </div>
 
@@ -445,16 +428,16 @@ export default function LoginPage() {
             <div className="auth-toggle">
               {authMode === 'login' ? (
                 <>
-                  Nyacademy を初めて利用しますか？{' '}
+                  New to Nyacademy?{' '}
                   <button type="button" className="link-button" onClick={() => setAuthMode('signup')}>
-                    今すぐ登録
+                    Create account
                   </button>
                 </>
               ) : (
                 <>
-                  すでにアカウントをお持ちですか？{' '}
+                  Already have an account?{' '}
                   <button type="button" className="link-button" onClick={() => setAuthMode('login')}>
-                    ログイン
+                    Log in
                   </button>
                 </>
               )}
@@ -465,3 +448,5 @@ export default function LoginPage() {
     </div>
   )
 }
+
+

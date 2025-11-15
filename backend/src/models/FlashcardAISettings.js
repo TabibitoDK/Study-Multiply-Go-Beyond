@@ -65,9 +65,6 @@ const flashcardAISettingsSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes
-flashcardAISettingsSchema.index({ userId: 1 }, { unique: true });
-
 const FlashcardAISettings = mongoose.model('FlashcardAISettings', flashcardAISettingsSchema);
 
 export default FlashcardAISettings;

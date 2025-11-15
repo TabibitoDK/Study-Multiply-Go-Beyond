@@ -41,7 +41,6 @@ const tagSchema = new mongoose.Schema({
 });
 
 // Indexes
-tagSchema.index({ name: 1 }, { unique: true });
 tagSchema.index({ category: 1 });
 tagSchema.index({ usageCount: -1 });
 

@@ -53,8 +53,6 @@ const userSchema = new mongoose.Schema({
 });
 
 // Indexes
-userSchema.index({ username: 1 }, { unique: true });
-userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ isActive: 1 });
 userSchema.index({ createdAt: 1 });
 

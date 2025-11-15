@@ -23,10 +23,14 @@ export default function SocialPage({ currentUser, posts, onCreatePost, onSelectP
     }
 
     try {
-      const [postsData, profilesData] = await Promise.all([
-        postService.getAllPosts(),
-        profileService.getAllProfiles(),
-      ])
+      const postsData = await postService.getAllPosts()
+
+      let profilesData = []
+      try {
+        profilesData = await profileService.getAllProfiles()
+      } catch (profileErr) {
+        console.warn('Profile directory unavailable, continuing with posts only.', profileErr)
+      }
 
       const profilesByUserId = new Map((profilesData || []).map(profile => [profile.userId, profile]))
 

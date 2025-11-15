@@ -111,8 +111,6 @@ const profileSchema = new mongoose.Schema({
 });
 
 // Indexes
-profileSchema.index({ userId: 1 }, { unique: true });
-profileSchema.index({ username: 1 }, { unique: true });
 profileSchema.index({ followers: 1 });
 profileSchema.index({ following: 1 });
 profileSchema.index({ tags: 1 });

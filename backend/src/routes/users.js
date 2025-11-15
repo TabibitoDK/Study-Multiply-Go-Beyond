@@ -13,6 +13,10 @@ import {
 
 const router = express.Router();
 
+const LOGIN_ALIAS_MAP = {
+  'aiko_henyuu@nyacademy.dev': 'aiko_hennyuu@nyacademy.dev'
+};
+
 // GET /api/users - Get all users (admin only in production)
 // For demo purposes, returns basic user info
 router.get('/', authenticate, validatePagination, async (req, res, next) => {
@@ -226,9 +230,12 @@ router.post('/login', async (req, res, next) => {
         message: 'Both email and password are required'
       });
     }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const resolvedEmail = LOGIN_ALIAS_MAP[normalizedEmail] || normalizedEmail;
     
     // Find user by email
-    const user = await User.findOne({ email, isActive: true });
+    const user = await User.findOne({ email: resolvedEmail, isActive: true });
     
     if (!user) {
       return res.status(401).json({

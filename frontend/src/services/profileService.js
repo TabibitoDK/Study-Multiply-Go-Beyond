@@ -1,38 +1,38 @@
 import api from '../lib/api.js'
 
+const OBJECT_ID_REGEX = /^[0-9a-fA-F]{24}$/
+
 const normalizeId = value => {
   if (!value) return null
-  
-  // Check if it's already a valid ObjectId string (24 hex characters)
-  const objectIdRegex = /^[0-9a-fA-F]{24}$/
-  
+
+  const checkId = candidate => (candidate && OBJECT_ID_REGEX.test(candidate) ? candidate : null)
+
   if (typeof value === 'string') {
-    // Validate if it's a proper ObjectId format
-    if (objectIdRegex.test(value)) {
-      return value
-    }
-    // If it's not a valid ObjectId, return null
-    return null
+    return checkId(value)
   }
-  
+
   if (typeof value === 'object') {
-    if (value._id) {
-      const idStr = value._id.toString()
-      // Validate the converted string
-      return objectIdRegex.test(idStr) ? idStr : null
-    }
-    if (value.id) {
-      const idStr = value.id.toString()
-      // Validate the converted string
-      return objectIdRegex.test(idStr) ? idStr : null
-    }
-    if (typeof value.toString === 'function') {
-      const idStr = value.toString()
-      // Validate the converted string
-      return objectIdRegex.test(idStr) ? idStr : null
+    if (value._id) return checkId(value._id.toString())
+    if (value.id) return checkId(value.id.toString())
+    if (typeof value.toString === 'function') return checkId(value.toString())
+  }
+
+  return null
+}
+
+const ensureValidObjectId = id => {
+  if (!id) return null
+  if (typeof id === 'string') {
+    return OBJECT_ID_REGEX.test(id) ? id : null
+  }
+
+  if (typeof id === 'object') {
+    const fromObject = id._id || id.id
+    if (typeof fromObject === 'string') {
+      return OBJECT_ID_REGEX.test(fromObject) ? fromObject : null
     }
   }
-  
+
   return null
 }
 
@@ -102,8 +102,11 @@ export const profileService = {
   // Get a profile by ID
   getProfileById: async (id) => {
     try {
-      if (!id) return null
-      const response = await api.get(`/profiles/user/${id}`)
+      const safeId = ensureValidObjectId(id)
+      if (!safeId) {
+        return null
+      }
+      const response = await api.get(`/profiles/user/${safeId}`)
       return normalizeProfile(response)
     } catch (error) {
       if (error.status === 404) {
