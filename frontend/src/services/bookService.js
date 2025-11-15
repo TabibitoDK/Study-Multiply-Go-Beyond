@@ -27,6 +27,8 @@ const normalizeBookList = books => {
   return books.map(normalizeBook).filter(Boolean)
 }
 
+const normalizeBookResponse = response => normalizeBook(response?.book ?? response)
+
 const PUBLIC_LIMIT = 100
 
 const fetchPublicBooks = async (queryString = '') => {
@@ -47,11 +49,24 @@ export const bookService = {
   },
 
   // Get a single book by ID
-  getBookById: async (id) => {
+  getBookById: async (id, options = {}) => {
+    const { allowPublicFallback = true } = options
     try {
       const response = await api.get(`/books/${id}`)
-      return normalizeBook(response?.book ?? response)
+      return normalizeBookResponse(response)
     } catch (error) {
+      const shouldFallback = allowPublicFallback && error?.status === 401
+
+      if (shouldFallback) {
+        try {
+          const response = await api.get(`/books/public/${id}`)
+          return normalizeBookResponse(response)
+        } catch (publicError) {
+          console.error('Error fetching public book:', publicError)
+          throw publicError
+        }
+      }
+
       console.error('Error fetching book:', error)
       throw error
     }

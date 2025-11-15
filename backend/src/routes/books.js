@@ -101,6 +101,31 @@ router.get('/public', validatePagination, async (req, res, next) => {
   }
 });
 
+// GET /api/books/public/:id - Get a single public book by ID (no auth required)
+router.get('/public/:id', validateObjectId('id'), async (req, res, next) => {
+  try {
+    const book = await Book.findById(req.params.id).populate('userId', 'username');
+
+    if (!book) {
+      return res.status(404).json({
+        error: 'Book not found',
+        message: 'The book with the provided ID does not exist'
+      });
+    }
+
+    if (book.visibility !== 'public') {
+      return res.status(403).json({
+        error: 'Access denied',
+        message: 'This book is private'
+      });
+    }
+
+    res.json(book);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/books/:id - Get book by ID
 router.get('/:id', authenticate, validateObjectId('id'), async (req, res, next) => {
   try {
