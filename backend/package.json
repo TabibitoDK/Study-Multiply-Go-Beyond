@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "dev": "nodemon src/index.js",
+    "dev": "nodemon --watch src --ext js,mjs,cjs,json,ejs src/index.js",
     "start": "node src/index.js"
   },
   "keywords": [],

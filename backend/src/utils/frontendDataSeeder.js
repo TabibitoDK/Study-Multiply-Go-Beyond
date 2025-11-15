@@ -265,10 +265,14 @@ export async function seedFrontendData() {
       return
     }
 
-    try {
-      await Book.syncIndexes()
-    } catch (indexError) {
-      console.warn('[seed] Could not sync book indexes:', indexError.message)
+    if (typeof Book.syncIndexes === 'function') {
+      try {
+        await Book.syncIndexes()
+      } catch (indexError) {
+        console.warn('[seed] Could not sync book indexes:', indexError.message)
+      }
+    } else {
+      console.warn('[seed] Book.syncIndexes is unavailable in JSON storage mode - skipping index sync')
     }
 
     const uniqueTagNames = collectAllTagNames(tagsData, booksData, postsData)
