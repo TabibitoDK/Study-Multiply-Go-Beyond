@@ -116,7 +116,7 @@ export default function Profile({
 
   const syncUserRecord = useCallback(
     async ({ name: displayName, profileImage }) => {
-      if (!authUser?.id || authUser?.isGuest) return
+      if (!authUser?.id) return
       const payload = {}
       if (displayName && displayName.trim()) {
         payload.name = displayName.trim()
@@ -138,17 +138,20 @@ export default function Profile({
 
   const buildFallbackProfile = () => {
     const fallbackId = profileId || currentUserId || authUser?._id || authUser?.id || null
-    const fallbackName =
-      authUser?.username ||
-      authUser?.name ||
+    const preferredName =
+      (typeof authUser?.name === 'string' && authUser.name.trim()) ||
+      (typeof authUser?.displayName === 'string' && authUser.displayName.trim()) ||
+      null
+    const fallbackHandle =
+      (typeof authUser?.username === 'string' && authUser.username.trim()) ||
       (authUser?.email ? authUser.email.split('@')[0] : null) ||
       'New Student'
 
     return {
       id: fallbackId,
       userId: fallbackId,
-      username: fallbackName,
-      name: fallbackName,
+      username: fallbackHandle,
+      name: preferredName || fallbackHandle,
       bio: '',
       bioPrivacy: true,
       profileImage: authUser?.profileImage || '',
@@ -335,7 +338,7 @@ export default function Profile({
       return profileSnapshot
     }
 
-    if (!authUser || authUser.isGuest) {
+    if (!authUser?.id) {
       return persistLocally()
     }
 
