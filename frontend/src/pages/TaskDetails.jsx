@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { useTaskManager } from '../context/TaskManagerContext.jsx'
@@ -56,28 +56,32 @@ export default function TaskDetails() {
 
   const planFromState = location.state?.plan ?? null
   const taskFromState = location.state?.task ?? null
-  let plan = planFromState
-  let task = taskFromState
 
-  if ((!plan || !task) && Array.isArray(plans)) {
-    const lookupPlan = plans.find(entry =>
-      Array.isArray(entry.tasks) && entry.tasks.some(item => item.id === taskId),
-    )
-    if (lookupPlan) {
-      const lookupTask = lookupPlan.tasks.find(item => item.id === taskId)
-      if (lookupTask) {
-        plan =
-          plan ??
-          {
-            id: lookupPlan.id,
-            title: lookupPlan.title,
-            description: lookupPlan.description ?? '',
-            status: lookupPlan.status ?? 'not-started',
+  const { plan, task } = useMemo(() => {
+    if (Array.isArray(plans)) {
+      const lookupPlan = plans.find(entry =>
+        Array.isArray(entry.tasks) && entry.tasks.some(item => item.id === taskId),
+      )
+      if (lookupPlan) {
+        const lookupTask = lookupPlan.tasks.find(item => item.id === taskId)
+        if (lookupTask) {
+          return {
+            plan: {
+              id: lookupPlan.id,
+              title: lookupPlan.title,
+              description: lookupPlan.description ?? '',
+              status: lookupPlan.status ?? 'not-started',
+            },
+            task: { ...lookupTask },
           }
-        task = task ?? { ...lookupTask }
+        }
       }
     }
-  }
+    return {
+      plan: planFromState ?? null,
+      task: taskFromState ?? null,
+    }
+  }, [plans, planFromState, taskFromState, taskId])
 
   const [isEditing, setIsEditing] = useState(false)
   const [formState, setFormState] = useState(() => buildTaskFormState(task))
