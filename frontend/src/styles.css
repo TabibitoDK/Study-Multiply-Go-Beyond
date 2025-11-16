@@ -939,6 +939,13 @@ body {
   letter-spacing: 0.02em;
 }
 
+.chat-input-form .chat-input-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
 .icon-btn {
   border: none;
   background: transparent;

@@ -27,10 +27,6 @@ export default function RightPanel({ friends = [], groups = [], onOpenChat, isCo
 
   function renderFriendCard(friend) {
     const isOnline = friend.status === 'online'
-    // Remove the duplicate count display - only show activity/status text
-    const chipText = isOnline
-      ? friend.activity ?? t('rightPanel.badgeOnline')
-      : t('rightPanel.badgeOffline')
 
     return (
       <button
@@ -48,7 +44,6 @@ export default function RightPanel({ friends = [], groups = [], onOpenChat, isCo
         <div className="friend-card__body">
           <div className="friend-card__top">
             <span className="friend-card__name">{friend.name}</span>
-            <span className="friend-card__chip">{chipText}</span>
           </div>
           <span className="friend-card__status">
             {isOnline ? t('rightPanel.online') : t('rightPanel.offline')}

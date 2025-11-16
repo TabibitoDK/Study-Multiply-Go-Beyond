@@ -29,6 +29,12 @@ import groupService from './services/groupService.js'
 import LoginPage from './pages/LoginPage.jsx'
 import DemoFriends from './pages/DemoFriends.jsx'
 import { Spinner } from './components/Spinner.jsx'
+import {
+  loadGuestFriends,
+  saveGuestFriends,
+  loadGuestGroups,
+  saveGuestGroups,
+} from './utils/guestConnections.js'
 
 const FRIEND_STATUS_PRESETS = {
   haruto_study: { status: 'online', activity: 'Slide rewrites' },
@@ -92,6 +98,11 @@ function AppContent() {
       return
     }
 
+    if (user.isGuest) {
+      setFriends(loadGuestFriends())
+      return
+    }
+
     try {
       const authUserId = user._id || user.id
       const [profileList, currentProfileData] = await Promise.all([
@@ -118,6 +129,11 @@ function AppContent() {
       return
     }
 
+    if (user.isGuest) {
+      setGroups(loadGuestGroups())
+      return
+    }
+
     try {
       const groupList = await groupService.getMyGroups()
       setGroups(groupList)
@@ -132,25 +148,25 @@ function AppContent() {
         return
       }
       if (!user || user.isGuest) {
+        const normalized = {
+          id: friend.id,
+          name: friend.name || friend.username || 'New friend',
+          username: friend.username || friend.name || '',
+          profileImage: friend.profileImage || '',
+          status: friend.status || 'online',
+          activity: friend.activity || 'Ready to study',
+        }
         setFriends(prev => {
-          if (prev.some(existing => existing.id === friend.id)) {
+          if (prev.some(existing => existing.id === normalized.id)) {
             return prev
           }
-          return [
-            ...prev,
-            {
-              id: friend.id,
-              name: friend.name || friend.username || 'New friend',
-              username: friend.username || friend.name || '',
-              profileImage: friend.profileImage || '',
-              status: friend.status || 'online',
-              activity: friend.activity || 'Ready to study',
-            },
-          ]
+          const next = [...prev, normalized]
+          saveGuestFriends(next)
+          return next
         })
-      } else {
-        refreshFriends()
+        return
       }
+      refreshFriends()
     },
     [refreshFriends, user],
   )
@@ -161,10 +177,14 @@ function AppContent() {
         return
       }
       if (!user || user.isGuest) {
-        setFriends(prev => prev.filter(friend => friend.id !== friendId))
-      } else {
-        refreshFriends()
+        setFriends(prev => {
+          const next = prev.filter(friend => friend.id !== friendId)
+          saveGuestFriends(next)
+          return next
+        })
+        return
       }
+      refreshFriends()
     },
     [refreshFriends, user],
   )
@@ -173,22 +193,33 @@ function AppContent() {
     if (!group?.id) {
       return
     }
+    const normalized = {
+      id: group.id,
+      name: group.name || 'Study Group',
+      memberCount:
+        typeof group.memberCount === 'number'
+          ? group.memberCount
+          : group.members?.length || 1,
+      image: group.image || group.coverImage || '',
+    }
+    if (!user || user.isGuest) {
+      setGroups(prev => {
+        if (prev.some(existing => existing.id === normalized.id)) {
+          return prev
+        }
+        const next = [...prev, normalized]
+        saveGuestGroups(next)
+        return next
+      })
+      return
+    }
     setGroups(prev => {
-      if (prev.some(existing => existing.id === group.id)) {
+      if (prev.some(existing => existing.id === normalized.id)) {
         return prev
-      }
-      const normalized = {
-        id: group.id,
-        name: group.name || 'Study Group',
-        memberCount:
-          typeof group.memberCount === 'number'
-            ? group.memberCount
-            : group.members?.length || 1,
-        image: group.image || group.coverImage || '',
       }
       return [...prev, normalized]
     })
-  }, [])
+  }, [user])
 
   // Fetch initial data
   useEffect(() => {

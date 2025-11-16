@@ -64,10 +64,14 @@ export default function Chat({ currentUserId, friends, groups }) {
 
     try {
       setIsSending(true)
+      const meta = {
+        senderId: currentUserId,
+        senderName: 'You',
+      }
       const sentMessage =
         type === 'friend'
-          ? await chatService.sendDirectMessage(chatInfo.id, payload)
-          : await chatService.sendGroupMessage(chatInfo.id, payload)
+          ? await chatService.sendDirectMessage(chatInfo.id, payload, meta)
+          : await chatService.sendGroupMessage(chatInfo.id, payload, meta)
 
       setMessages(prev => [...prev, sentMessage])
       setMessageText('')

@@ -4,6 +4,12 @@ import profileService from '../../services/profileService.js'
 import postService from '../../services/postService.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import './FriendSuggestions.css'
+import {
+  loadGuestFriends,
+  saveGuestFriends,
+  loadGuestGroups,
+  saveGuestGroups,
+} from '../../utils/guestConnections.js'
 
 const GUEST_FALLBACK_SUGGESTIONS = [
   {
@@ -76,17 +82,30 @@ export default function FriendSuggestions({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [following, setFollowing] = useState(new Set())
+  const [guestFriendProfiles, setGuestFriendProfiles] = useState(() => loadGuestFriends())
   const [groupSuggestions] = useState(() => GROUP_SUGGESTIONS)
-  const [joinedGroups, setJoinedGroups] = useState(new Set())
+  const [guestGroupProfiles, setGuestGroupProfiles] = useState(() => loadGuestGroups())
+  const [joinedGroups, setJoinedGroups] = useState(
+    () => new Set(loadGuestGroups().map(group => group.id)),
+  )
 
   // Fetch suggested friends on component mount
   useEffect(() => {
     if (isGuest) {
+      const storedFriends = loadGuestFriends()
+      setGuestFriendProfiles(storedFriends)
+      setFollowing(new Set(storedFriends.map(friend => friend.id)))
+      const storedGroups = loadGuestGroups()
+      setGuestGroupProfiles(storedGroups)
+      setJoinedGroups(new Set(storedGroups.map(group => group.id)))
       setSuggestions(getGuestSuggestions())
       setLoading(false)
       setError(null)
       return
     }
+    setGuestFriendProfiles([])
+    setGuestGroupProfiles([])
+    setJoinedGroups(new Set())
     fetchFriendSuggestions()
   }, [isGuest])
 
@@ -173,20 +192,32 @@ export default function FriendSuggestions({
       return
     }
 
-    setJoinedGroups(prev => {
-      const next = new Set(prev)
-      next.add(groupId)
-      return next
-    })
-
-    onGroupJoin({
+    const groupPayload = {
       id: targetGroup.id,
       name: targetGroup.name,
       memberCount: targetGroup.memberCount,
       description: targetGroup.description,
       image: targetGroup.image,
       topic: targetGroup.topic,
+    }
+
+    if (isGuest) {
+      const filtered = guestGroupProfiles.filter(group => group.id !== groupId)
+      const nextGroups = [...filtered, groupPayload]
+      setGuestGroupProfiles(nextGroups)
+      saveGuestGroups(nextGroups)
+      setJoinedGroups(new Set(nextGroups.map(group => group.id)))
+      onGroupJoin(groupPayload)
+      return
+    }
+
+    setJoinedGroups(prev => {
+      const next = new Set(prev)
+      next.add(groupId)
+      return next
     })
+
+    onGroupJoin(groupPayload)
   }
 
   // Handle search functionality
@@ -335,7 +366,20 @@ export default function FriendSuggestions({
       }
     }
 
+    const friendPayload = {
+      id: targetUser.id,
+      name: targetUser.name || targetUser.username || 'New friend',
+      username: targetUser.username || targetUser.name || '',
+      profileImage: targetUser.profileImage || '',
+      status: 'online',
+      activity: targetUser.bio || 'Ready to study',
+    }
+
     if (isGuest) {
+      const filtered = guestFriendProfiles.filter(friend => friend.id !== userId)
+      const nextProfiles = isCurrentlyFollowing ? filtered : [...filtered, friendPayload]
+      setGuestFriendProfiles(nextProfiles)
+      saveGuestFriends(nextProfiles)
       updateLocalCollections()
       syncPanels()
       return
