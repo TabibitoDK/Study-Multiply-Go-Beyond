@@ -137,53 +137,120 @@ const loadGroups = () => {
 const getLanguageOption = (value) =>
   LANGUAGE_OPTIONS.find((option) => option.value === value) ?? LANGUAGE_OPTIONS[0];
 
-const sanitizeJsonText = (raw) =>
-  (raw || '').replace(/```json/gi, '').replace(/```/g, '').trim();
+const sanitizeModelText = raw =>
+  (raw || '')
+    .replace(/```json/gi, '')
+    .replace(/```/g, '')
+    .trim();
 
-const parseFlashcardsJson = (rawText, fallbackCategory) => {
+const parseLineFormat = (rawText, fallbackCategory) => {
+  const lines = (rawText || '')
+    .split('\n')
+    .map(line => line.trim().replace(/^\d+[\).\-\s]+/, ''))
+    .filter(Boolean);
+
+  if (!lines.length) {
+    return [];
+  }
+
+  const cards = [];
+  for (const line of lines) {
+    const segments = line
+      .split('||')
+      .map(segment => segment.trim())
+      .filter(Boolean);
+
+    if (!segments.length) {
+      continue;
+    }
+
+    let question = '';
+    let answer = '';
+    let category = '';
+
+    segments.forEach(segment => {
+      const [label, ...rest] = segment.split(/[:=]/);
+      if (!label || rest.length === 0) {
+        return;
+      }
+      const value = rest.join('=').trim();
+      const normalizedLabel = label.trim().toLowerCase();
+      if (['q', 'question'].includes(normalizedLabel)) {
+        question = value;
+      } else if (['a', 'answer'].includes(normalizedLabel)) {
+        answer = value;
+      } else if (['c', 'category'].includes(normalizedLabel)) {
+        category = value;
+      }
+    });
+
+    if (question && answer) {
+      cards.push({
+        question,
+        answer,
+        category: category || fallbackCategory,
+      });
+    }
+  }
+
+  return cards;
+};
+
+const parseJsonStructure = (rawText, fallbackCategory) => {
+  const sanitized = sanitizeModelText(rawText);
+  const jsonMatch = sanitized.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+  const candidate = jsonMatch ? jsonMatch[0] : sanitized;
+
+  if (!candidate) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(candidate);
+    const cardsSource = Array.isArray(parsed)
+      ? parsed
+      : Array.isArray(parsed.cards)
+        ? parsed.cards
+        : Array.isArray(parsed.flashcards)
+          ? parsed.flashcards
+          : null;
+
+    if (!cardsSource) {
+      return [];
+    }
+
+    return cardsSource
+      .map(item => ({
+        question: typeof item.question === 'string' ? item.question.trim() : '',
+        answer: typeof item.answer === 'string' ? item.answer.trim() : '',
+        category: typeof item.category === 'string' ? item.category.trim() : '',
+      }))
+      .filter(card => card.question && card.answer)
+      .map(card => ({
+        ...card,
+        category: card.category || fallbackCategory,
+      }));
+  } catch {
+    return [];
+  }
+};
+
+const parseFlashcardsFromResponse = (rawText, fallbackCategory, expectedCount) => {
   if (!rawText) {
     throw new Error('Gemini returned an empty response.');
   }
 
-  const sanitized = sanitizeJsonText(rawText);
-  const jsonMatch = sanitized.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-  const jsonCandidate = jsonMatch ? jsonMatch[0] : sanitized;
-
-  let parsed;
-  try {
-    parsed = JSON.parse(jsonCandidate);
-  } catch (error) {
-    throw new Error('Unable to parse the AI response. Please try again.');
+  const fromLines = parseLineFormat(rawText, fallbackCategory);
+  if (fromLines.length) {
+    return fromLines.slice(0, expectedCount);
   }
 
-  const cardsSource = Array.isArray(parsed)
-    ? parsed
-    : Array.isArray(parsed.cards)
-    ? parsed.cards
-    : Array.isArray(parsed.flashcards)
-    ? parsed.flashcards
-    : null;
-
-  if (!cardsSource) {
-    throw new Error('The AI response did not include flashcards.');
+  const fromJson = parseJsonStructure(rawText, fallbackCategory);
+  if (fromJson.length) {
+    return fromJson.slice(0, expectedCount);
   }
 
-  const cards = cardsSource
-    .map((item) => ({
-      question: typeof item.question === 'string' ? item.question.trim() : '',
-      answer: typeof item.answer === 'string' ? item.answer.trim() : '',
-      category: typeof item.category === 'string' ? item.category.trim() : '',
-    }))
-    .filter((card) => card.question && card.answer);
-
-  if (cards.length === 0) {
-    throw new Error('The AI response did not contain any usable flashcards.');
-  }
-
-  return cards.map((card) => ({
-    ...card,
-    category: card.category || fallbackCategory,
-  }));
+  throw new Error('The AI response did not contain any usable flashcards.');
 };
 
 const buildFlashcardPrompt = ({ topic, detail, count, languageLabel }) => {
@@ -197,16 +264,13 @@ const buildFlashcardPrompt = ({ topic, detail, count, languageLabel }) => {
     'You are an expert study coach who writes effective flashcards.',
     `Write ${count} flashcards in ${languageLabel}.`,
     focusLine,
-    'Respond ONLY with valid JSON that matches this schema:',
-    '{',
-    '  "cards": [',
-    '    { "question": "string", "answer": "string", "category": "string" }',
-    '  ]',
-    '}',
-    'Each question should be a single concise sentence.',
+    'Return exactly one line per flashcard. Each line must follow this format:',
+    'Q=<question> || A=<answer> || C=<category>',
+    'Use plain text only (no markdown, numbering, or extra commentary).',
+    'Each question should be one concise sentence.',
     'Each answer should contain 2-4 sentences or bullet points.',
-    'The category should be short (max 5 words) and also written in the requested language.',
-    'Do not include explanations, markdown, or code fences outside of the JSON structure.',
+    'Each category should be short (max 5 words) and written in the requested language.',
+    'Do not include any additional text before or after the lines.',
   ].join('\n');
 };
 
@@ -231,6 +295,8 @@ const requestFlashcardsFromGemini = async ({
   const fallbackCategory =
     trimmedTopic && trimmedDetail ? `${trimmedTopic} / ${trimmedDetail}` : trimmedTopic || 'General';
 
+  const estimatedTokens = Math.min(2048, Math.max(512, count * 180));
+
   const response = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
     method: 'POST',
     headers: {
@@ -245,8 +311,15 @@ const requestFlashcardsFromGemini = async ({
       ],
       generationConfig: {
         temperature: 0.75,
-        maxOutputTokens: 768,
+        maxOutputTokens: estimatedTokens,
       },
+      safetySettings: [
+        { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
+      ],
     }),
     signal,
   });
@@ -257,12 +330,21 @@ const requestFlashcardsFromGemini = async ({
     throw new Error(message);
   }
 
+  const finishReason = data?.candidates?.[0]?.finishReason;
+  if (finishReason && finishReason !== 'STOP') {
+    console.warn(
+      '[flashcards] Gemini finish reason:',
+      finishReason,
+      '- continuing parse attempt with available text.',
+    );
+  }
+
   const replyText = (data?.candidates?.[0]?.content?.parts ?? [])
     .map((part) => (typeof part?.text === 'string' ? part.text.trim() : ''))
     .filter(Boolean)
     .join('\n');
 
-  const cards = parseFlashcardsJson(replyText, fallbackCategory).slice(0, count);
+  const cards = parseFlashcardsFromResponse(replyText, fallbackCategory, count);
 
   if (cards.length === 0) {
     throw new Error('No flashcards were generated. Try again with more context.');
@@ -1042,20 +1124,6 @@ function HomeScreen({
     onDeleteGroup(groupId);
   };
 
-  const recentGroup = groupList[0] ?? null;
-
-  const handleQuickGenerate = () => {
-    onGenerateAiCards({
-      topic: 'Starter study set',
-      detail: 'Productivity habits',
-      count: 3,
-      mode: 'new',
-      targetGroupId: '',
-      newGroupName: 'Quick Start Deck (AI)',
-      language: aiSettings.language,
-    });
-  };
-
   return (
     <div className="screen">
       <header className="home-header">
@@ -1067,27 +1135,6 @@ function HomeScreen({
             <span>{copy.summary.cards(totalCards)}</span>
             <span>{copy.summary.categories(totalCategories)}</span>
           </div>
-        </div>
-        <div className="home-actions">
-          <button
-            className="button button--primary"
-            onClick={handleQuickGenerate}
-            type="button"
-          >
-            Generate sample deck
-          </button>
-          <button
-            className="button button--secondary"
-            disabled={!recentGroup}
-            onClick={() => {
-              if (recentGroup) {
-                onSelectGroup(recentGroup.id);
-              }
-            }}
-            type="button"
-          >
-            Resume recent group
-          </button>
         </div>
       </header>
 

@@ -14,7 +14,146 @@ import {
 const router = express.Router();
 
 const LOGIN_ALIAS_MAP = {
-  'aiko_henyuu@nyacademy.dev': 'aiko_hennyuu@nyacademy.dev'
+  'aiko_henyuu@nyacademy.dev': 'aiko_hennyuu@nyacademy.dev',
+  'aiko_henyuu': 'aiko_hennyuu',
+  'aiko_hennyu@nyacademy.dev': 'aiko_hennyuu@nyacademy.dev',
+  'aiko_hennyu': 'aiko_hennyuu'
+};
+
+const USERNAME_PATTERN = /^[a-z0-9_]{3,30}$/;
+
+const looksLikeEmail = value => value.includes('@');
+
+const normalizeIdentifier = value =>
+  typeof value === 'string' ? value.trim().toLowerCase() : '';
+
+const resolveLoginAlias = value => {
+  let normalized = normalizeIdentifier(value);
+  if (!normalized) {
+    return normalized;
+  }
+
+  const visited = new Set();
+  while (LOGIN_ALIAS_MAP[normalized] && !visited.has(normalized)) {
+    visited.add(normalized);
+    normalized = normalizeIdentifier(LOGIN_ALIAS_MAP[normalized]);
+  }
+
+  return normalized;
+};
+
+const buildUsernameCandidates = identifier => {
+  if (!identifier || typeof identifier !== 'string') {
+    return [];
+  }
+
+  const normalized = identifier.trim().toLowerCase();
+  if (!normalized) {
+    return [];
+  }
+
+  const candidates = new Set();
+
+  if (USERNAME_PATTERN.test(normalized)) {
+    candidates.add(normalized);
+  }
+
+  const sanitized = normalized
+    .replace(/[^a-z0-9_]+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '');
+
+  if (USERNAME_PATTERN.test(sanitized)) {
+    candidates.add(sanitized);
+  }
+
+  const spaceCollapsed = normalized.replace(/\s+/g, '_');
+  if (USERNAME_PATTERN.test(spaceCollapsed)) {
+    candidates.add(spaceCollapsed);
+  }
+
+  return Array.from(candidates);
+};
+
+const expandUsernameCandidates = baseCandidates => {
+  if (!baseCandidates?.length) {
+    return [];
+  }
+
+  const candidates = new Set();
+  const addCandidate = candidate => {
+    if (candidate && USERNAME_PATTERN.test(candidate)) {
+      candidates.add(candidate);
+    }
+  };
+
+  baseCandidates.forEach(addCandidate);
+
+  baseCandidates.forEach(candidate => {
+    const alias = resolveLoginAlias(candidate);
+    if (alias && alias !== candidate) {
+      if (looksLikeEmail(alias)) {
+        const [localPart] = alias.split('@');
+        addCandidate(localPart);
+      } else {
+        addCandidate(alias);
+      }
+    }
+  });
+
+  return Array.from(candidates);
+};
+
+const findActiveUserByEmail = async email => {
+  const normalizedEmail = resolveLoginAlias(email);
+  if (!normalizedEmail || !looksLikeEmail(normalizedEmail)) {
+    return null;
+  }
+  return User.findOne({ email: normalizedEmail, isActive: true });
+};
+
+const findActiveUserByUsername = async identifier => {
+  const usernameCandidates = expandUsernameCandidates(buildUsernameCandidates(identifier));
+  if (!usernameCandidates.length) {
+    return null;
+  }
+
+  const userByUsername = await User.findOne({
+    isActive: true,
+    username: { $in: usernameCandidates }
+  });
+
+  if (userByUsername) {
+    return userByUsername;
+  }
+
+  const guessedEmails = usernameCandidates.map(candidate => `${candidate}@nyacademy.dev`);
+  return User.findOne({
+    isActive: true,
+    email: { $in: guessedEmails }
+  });
+};
+
+const findActiveUserByLoginIdentifier = async identifier => {
+  const normalizedIdentifier = resolveLoginAlias(identifier);
+  if (!normalizedIdentifier) {
+    return null;
+  }
+
+  if (looksLikeEmail(normalizedIdentifier)) {
+    const userByEmail = await findActiveUserByEmail(normalizedIdentifier);
+    if (userByEmail) {
+      return userByEmail;
+    }
+
+    const [localPart] = normalizedIdentifier.split('@');
+    if (localPart) {
+      return findActiveUserByUsername(localPart);
+    }
+    return null;
+  }
+
+  return findActiveUserByUsername(normalizedIdentifier);
 };
 
 // GET /api/users - Get all users (admin only in production)
@@ -224,25 +363,26 @@ router.delete('/:id',
 // POST /api/users/login - User login
 router.post('/login', async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, username: usernameField, identifier: identifierField } = req.body;
+    const rawIdentifier =
+      [email, usernameField, identifierField].find(
+        value => typeof value === 'string' && value.trim().length > 0
+      ) || '';
+    const identifier = rawIdentifier.trim();
     
-    if (!email || !password) {
+    if (!identifier || !password) {
       return res.status(400).json({
         error: 'Missing credentials',
-        message: 'Both email and password are required'
+        message: 'Email or username and password are required'
       });
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
-    const resolvedEmail = LOGIN_ALIAS_MAP[normalizedEmail] || normalizedEmail;
-    
-    // Find user by email
-    const user = await User.findOne({ email: resolvedEmail, isActive: true });
+    const user = await findActiveUserByLoginIdentifier(identifier);
     
     if (!user) {
       return res.status(401).json({
         error: 'Invalid credentials',
-        message: 'Email or password is incorrect'
+        message: 'Email/username or password is incorrect'
       });
     }
     
@@ -252,7 +392,7 @@ router.post('/login', async (req, res, next) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         error: 'Invalid credentials',
-        message: 'Email or password is incorrect'
+        message: 'Email/username or password is incorrect'
       });
     }
     

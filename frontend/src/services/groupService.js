@@ -47,12 +47,20 @@ const dedupeGroups = groups => {
   const seen = new Set()
   return groups.filter(group => {
     if (!group) return false
-    const fallbackKey = `${(group.name || '').toLowerCase()}::${(group.topic || '').toLowerCase()}`
-    const key = group.id || fallbackKey
-    if (seen.has(key)) {
+    const normalizedName = (group.name || '').trim().toLowerCase()
+    const normalizedTopic = (group.topic || '').trim().toLowerCase()
+    const fallbackKey = `${normalizedName}::${normalizedTopic}`
+    const keys = [
+      group.id || null,
+      normalizedName ? `name::${normalizedName}` : null,
+      fallbackKey || null,
+    ].filter(Boolean)
+
+    if (keys.some(key => seen.has(key))) {
       return false
     }
-    seen.add(key)
+
+    keys.forEach(key => seen.add(key))
     return true
   })
 }

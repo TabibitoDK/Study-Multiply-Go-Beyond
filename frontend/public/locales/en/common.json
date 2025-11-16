@@ -41,7 +41,9 @@
     "badgeOnline": "Online",
     "offline": "Offline",
     "nobodyOffline": "No friends are offline.",
-    "badgeOffline": "Offline"
+    "badgeOffline": "Offline",
+    "groups": "Groups",
+    "noGroupsYet": "No groups yet"
   },
   "widgetPicker": {
     "add": "Add {{name}}"
@@ -927,9 +929,9 @@
         "cta": "Explore as guest"
       },
       "login": {
-        "title": "Sign in with email",
-        "emailLabel": "Email address",
-        "emailPlaceholder": "name@example.com",
+        "title": "Sign in with email or username",
+        "emailLabel": "Email or username",
+        "emailPlaceholder": "name@example.com or username",
         "passwordLabel": "Password",
         "passwordPlaceholder": "Enter your password",
         "remember": "Keep me signed in",
@@ -957,7 +959,7 @@
       }
     },
     "notifications": {
-      "missingCredentials": "Enter both email and password.",
+      "missingCredentials": "Enter your email or username and password.",
       "loginSuccess": "Login successful. Redirecting to your dashboard...",
       "loginFailed": "Login failed.",
       "loginFailedRetry": "Login failed. Please try again.",

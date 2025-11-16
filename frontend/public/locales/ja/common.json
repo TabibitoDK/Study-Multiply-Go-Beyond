@@ -1,48 +1,52 @@
 {
   "brand": {
-    "title": "Nyacademy"
+    "title": "Nyacademy",
+    "tagline": "学びを掛け算にして、その先へ。"
   },
   "navbar": {
-    "logoAlt": "Nyacademyのロゴ",
+    "logoAlt": "Nyacademy ロゴ",
     "tabsAria": "メインナビゲーション"
   },
   "nav": {
     "home": "ホーム",
     "social": "ソーシャル",
-    "library": "ライブラリー",
+    "library": "ライブラリ",
     "profile": "プロフィール",
     "calendar": "カレンダー",
-    "newTask": "新しいタスク",
     "tools": "ツール",
+    "newTask": "新しいタスク",
     "currentTaskLabel": "現在のタスク：",
     "currentTaskNone": "なし",
     "lastTaskSummary": "前回：{{time}}"
   },
   "app": {
-    "newTaskDialog": "この機能は近日公開予定です。"
+    "newTaskDialog": "タスク作成機能はまもなく利用可能になります。"
   },
   "buttons": {
     "edit": "レイアウトを編集",
-    "exitEdit": "編集を終了",
+    "exitEdit": "編集完了",
     "today": "今日",
     "cancel": "キャンセル",
-    "save": "保存"
+    "save": "保存",
+    "retry": "再試行",
+    "delete": "削除",
+    "send": "送信"
   },
   "rightPanel": {
     "guest": "ゲスト",
     "anonymous": "匿名",
     "friends": "フレンド",
     "online": "オンライン",
-    "nobodyOnline": "オンラインのフレンドはいません",
+    "nobodyOnline": "オンラインのフレンドはいません。",
     "badgeOnline": "オンライン",
     "offline": "オフライン",
-    "nobodyOffline": "オフラインのフレンドはいません",
+    "nobodyOffline": "オフラインのフレンドはいません。",
     "badgeOffline": "オフライン",
     "groups": "グループ",
-    "noGroupsYet": "まだグループはありません"
+    "noGroupsYet": "まだグループがありません"
   },
   "widgetPicker": {
-    "add": "{{name}}を追加"
+    "add": "{{name}} を追加"
   },
   "widgets": {
     "delete": "ウィジェットを削除",
@@ -54,133 +58,162 @@
       "name": "タイマー"
     },
     "todo": {
-      "name": "ToDoリスト"
+      "name": "To-do リスト"
     }
   },
   "languageSwitcher": {
-    "label": "言語を切り替え",
+    "label": "言語を変更",
     "options": {
       "en": "英語",
       "ja": "日本語"
     }
   },
+  "presence": {
+    "online": "オンライン",
+    "offline": "オフライン"
+  },
+  "bookStatus": {
+    "wantToRead": "読みたい",
+    "reading": "読書中",
+    "completed": "読み終わり"
+  },
+  "bookVisibility": {
+    "public": "公開",
+    "private": "非公開"
+  },
+  "bookLabels": {
+    "pages": "{{count}} ページ",
+    "published": "出版年：{{year}}",
+    "publisher": "出版社",
+    "language": "言語",
+    "status": "ステータス",
+    "visibility": "公開範囲",
+    "description": "説明",
+    "tags": "タグ",
+    "byAuthor": "{{author}} 著"
+  },
+  "labels": {
+    "members_one": "{{count}} 人のメンバー",
+    "members_other": "{{count}} 人のメンバー",
+    "minutes": "{{count}} 分"
+  },
   "calendar": {
     "aria": {
-      "previous": "前の月",
-      "next": "次の月"
+      "previous": "前の月へ",
+      "next": "次の月へ"
     },
-    "title": "{{year}}年{{month}}",
-    "subtitle": "学習の予定や目標を確認しましょう。",
+    "title": "{{month}} {{year}}",
+    "subtitle": "勉強時間や締め切りを一目で見渡しましょう。",
     "appSubtitle": "Nyacademy",
-    "moreEvents": "ほか{{count}}件",
-    "modal": {
-      "title": "タスクをスケジュール",
-      "noPlans": "ダッシュボードでプランを作成してタスクをスケジュールしましょう。",
-      "existing": "登録済みのタスク",
-      "planLabel": "プラン",
-      "nameLabel": "タスク名",
-      "namePlaceholder": "フォーカスセッションや成果物など",
-      "descriptionLabel": "説明 (任意)",
-      "descriptionPlaceholder": "背景・リソース・チェックポイントなどを入力してください。",
-      "createdLabel": "作成日時",
-      "startLabel": "開始日時",
-      "save": "タスクを保存"
-    },
+    "moreEvents": "ほか {{count}} 件",
     "stats": {
-      "focusDay": "フォーカスしている日",
-      "pickDay": "日付を選択してください",
-      "tasksPlanned_one": "{{count}}件のタスクを予定",
-      "tasksPlanned_other": "{{count}}件のタスクを予定",
+      "focusDay": "集中日",
+      "pickDay": "日付を選択",
+      "tasksPlanned_one": "{{count}} 件のタスクを予定",
+      "tasksPlanned_other": "{{count}} 件のタスクを予定",
       "month": "今月",
-      "monthHint": "今月に予定されたタスク",
-      "nextSeven": "今後7日間",
+      "monthHint": "今月に予定されているタスク",
+      "nextSeven": "今後 7 日間",
       "nextSevenHint": "今週の予定タスク"
     },
     "actions": {
       "addTask": "タスクを追加"
     },
     "sidebar": {
-      "tasksCount_one": "{{count}}件のタスク",
-      "tasksCount_other": "{{count}}件のタスク",
-      "noTasks": "タスクはありません",
-      "noTasksYet": "予定されたタスクはありません。",
+      "tasksCount_one": "{{count}} 件のタスク",
+      "tasksCount_other": "{{count}} 件のタスク",
+      "noTasks": "タスクなし",
+      "noTasksYet": "まだタスクが予定されていません。",
       "removeTask": "タスクを削除",
-      "upcomingTitle": "今後の予定",
-      "upcomingEmpty": "今後のタスクはありません。"
+      "upcomingTitle": "近日",
+      "upcomingEmpty": "近日のタスクはありません。"
     },
     "today": "今日",
+    "modal": {
+      "title": "タスクをスケジュール",
+      "noPlans": "まずダッシュボードでプランを作成してからタスクを登録してください。",
+      "existing": "すでに登録されているタスク",
+      "planLabel": "プラン",
+      "nameLabel": "タスク名",
+      "namePlaceholder": "集中セッション名や締め切りなど",
+      "descriptionLabel": "説明（任意）",
+      "descriptionPlaceholder": "背景、リソース、チェックポイントなどを追加。",
+      "createdLabel": "作成日",
+      "startLabel": "開始日時",
+      "save": "タスクを保存"
+    },
     "nav": {
-      "back": "ツール一覧に戻る"
+      "back": "ツールへ戻る"
     },
     "appTitle": "カレンダー"
   },
   "home": {
     "header": {
       "welcomePrefix": "おかえりなさい、",
-      "welcomeSuffix": "さん",
-      "fallbackName": "学生"
+      "welcomeSuffix": " さん",
+      "fallbackName": "Student"
     },
     "weather": {
-      "condition": "雲が多い天気"
+      "condition": "雲が多い"
     },
     "calendar": {
-      "previous": "前の月",
-      "next": "次の月"
+      "previous": "前の月へ",
+      "next": "次の月へ"
     },
     "tasks": {
       "title": "タスク",
       "add": "タスクを追加",
       "today": "今日",
-      "noneToday": "今日のタスクはありません",
-      "upcoming": "今後の予定",
+      "noneToday": "今日のタスクはありません。",
+      "upcoming": "近日のタスク",
       "removeAria": "タスクを削除",
       "currentBadge": "進行中",
       "actions": {
         "title": "タスクの操作",
-        "scheduledFor": "{{date}}に予定",
+        "scheduledFor": "{{date}} に予定済み",
         "setCurrent": "現在のタスクに設定",
-        "end": "タスクを完了",
-        "confirm": "記録する",
-        "timePrompt": "費やした時間",
-        "timePlaceholder": "例：45分",
-        "timeError": "学習時間を入力してください。",
-        "alreadyCurrent": "このタスクは現在取り組んでいます。"
+        "end": "タスクを終了",
+        "confirm": "セッションを保存",
+        "timePrompt": "経過時間",
+        "timePlaceholder": "例: 45 分",
+        "timeError": "勉強に使った時間を入力してください。",
+        "alreadyCurrent": "このタスクはすでに現在のタスクです。"
       },
       "modal": {
         "title": "タスクを追加",
         "dateLabel": "日付",
-        "placeholder": "ここにタスクを入力してください..."
+        "placeholder": "ここにタスク内容を入力..."
       }
     },
     "studyStatus": {
       "title": "学習状況",
-      "subtitle": "読書中の各科目の週次・月次の集中度を把握しましょう",
-      "emptyTitle": "ライブラリーに本を追加して分析を確認しましょう。",
-      "emptyCopy": "各科目の学習時間を週間・月間で可視化します。",
+      "subtitle": "読んでいるすべての科目について、週・月ごとの集中度を確認",
+      "emptyTitle": "まずはライブラリに本を追加しましょう。",
+      "emptyCopy": "追加した本ごとに、週・月単位の学習傾向を表示します。",
       "viewProfile": "プロフィールを見る",
-      "onPar": "先週と同じペースです",
-      "changeCompared": "先週比{{value}}",
-      "generalSubject": "その他",
+      "onPar": "先週と同じペースです。",
+      "changeCompared": "先週比 {{value}}",
+      "generalSubject": "全体",
       "summary": {
         "thisWeek": "今週",
         "lastWeek": "先週",
-        "topFocus": "集中科目",
+        "topFocus": "一番集中している科目",
         "thisMonth": "今月",
         "noChange": "変化なし"
       },
       "aria": {
-        "weekComparison": "今週は{{current}}、先週は{{previous}}"
+        "weekComparison": "今週 {{current}}、先週 {{previous}}"
       },
       "openLog": "学習ログを開く"
     },
     "goals": {
       "title": "目標",
       "edit": "目標を編集",
-      "empty": "まだ目標がありません",
+      "empty": "まだ目標がありません。",
       "defaults": {
-        "honors": "卒業時に表彰を受ける",
-        "react": "Reactを使いこなす",
-        "projects": "プロジェクトを5つ完成させる"
+        "honors": "成績優秀で卒業する",
+        "react": "React をマスターする",
+        "projects": "5 つのプロジェクトを作る"
       }
     },
     "dashboard": {
@@ -193,15 +226,15 @@
         "view": "プロフィールを見る"
       },
       "longTerm": {
-        "title": "長期プラン",
+        "title": "長期フォーカス",
         "add": "プランを追加",
-        "count": "プラン {{count}} 件",
-        "count_plural": "プラン {{count}} 件",
-        "taskCount": "タスク {{count}} 件",
-        "taskCount_plural": "タスク {{count}} 件",
-        "empty": "長期目標を管理するためにプランを追加しましょう。",
+        "count": "{{count}} 個のプラン",
+        "count_plural": "{{count}} 個のプラン",
+        "taskCount": "{{count}} 個のタスク",
+        "taskCount_plural": "{{count}} 個のタスク",
+        "empty": "長期目標を追跡するために、まずプランを追加しましょう。",
         "status": {
-          "notStarted": "未着手",
+          "notStarted": "未開始",
           "inProgress": "進行中",
           "cancelled": "中止",
           "completed": "完了"
@@ -211,38 +244,38 @@
           "close": "プラン追加ダイアログを閉じる",
           "nameLabel": "プラン名",
           "namePlaceholder": "例: 試験対策",
-          "summaryLabel": "概要 (任意)",
-          "summaryPlaceholder": "このフォーカス領域のメモを追加してください。",
+          "summaryLabel": "概要（任意）",
+          "summaryPlaceholder": "このフォーカス領域に関する簡単なメモを追加。",
           "cancel": "キャンセル",
           "save": "プランを保存"
         }
       },
       "shortTerm": {
-        "placeholderTitle": "プランを選択してください",
-        "selectPrompt": "タスクを見るには左のプランを選択してください。",
+        "placeholderTitle": "プランを選択",
+        "selectPrompt": "タスクを表示するプランを選択してください。",
         "add": "タスクを追加",
-        "noteFallback": "このプランのポイントを簡単にメモしておきましょう。",
+        "noteFallback": "このプランのフォーカスを明確にするため、簡単なメモを追加しましょう。",
         "statusLabel": "プランのステータス",
         "filtersAria": "タスクのフィルター",
         "searchLabel": "検索",
         "searchPlaceholder": "タスクを検索...",
         "statusFilterLabel": "ステータス",
         "allStatuses": "すべてのステータス",
-        "empty": "まだタスクがありません。追加して進捗を始めましょう。",
-        "noMatches": "条件に合致するタスクがありません。フィルターを調整してください。",
-        "noSelection": "タスクを表示するには左の長期プランを選択してください。",
-        "openTask": "タスク「{{title}}」を開く",
+        "empty": "タスクがまだありません。まずはタスクを追加しましょう。",
+        "noMatches": "フィルターに一致するタスクはありません。条件を調整またはクリアしてください。",
+        "noSelection": "左側から長期フォーカスを選択してタスクを表示してください。",
+        "openTask": "タスク {{title}} を開く",
         "inFocus": "フォーカス中",
         "statusFieldLabel": "ステータス",
         "visibleSummary": "{{total}} 件中 {{visible}} 件を表示",
         "modal": {
           "title": "タスクを追加",
-          "planLabel": "プラン: {{title}}",
+          "planLabel": "プラン：{{title}}",
           "close": "タスク追加ダイアログを閉じる",
-          "nameLabel": "名称",
-          "namePlaceholder": "フォーカスセッションや成果物など",
-          "descriptionLabel": "説明 (任意)",
-          "descriptionPlaceholder": "背景・リソース・チェックポイントなどを記載してください。",
+          "nameLabel": "名前",
+          "namePlaceholder": "集中セッション名や締め切りなど",
+          "descriptionLabel": "説明（任意）",
+          "descriptionPlaceholder": "背景、リソース、チェックポイントなどを追加。",
           "createdLabel": "作成日時",
           "startLabel": "開始日時",
           "cancel": "キャンセル",
@@ -251,8 +284,8 @@
       },
       "progress": {
         "panelAria": "進捗タブ",
-        "viewsAria": "表示モード",
-        "title": "フォーカス時間データベース",
+        "viewsAria": "フォーカスビュー",
+        "title": "学習時間トラッカー・データベース",
         "tableAria": "フォーカス時間の一覧",
         "tableHeaders": {
           "task": "タスク",
@@ -262,112 +295,214 @@
           "minutes": "分",
           "hours": "時間"
         },
-        "empty": "短期タスクの記録はまだありません。",
-        "trendsAria": "プラン別進捗推移",
+        "empty": "短期タスクの記録がまだありません。",
+        "trendsAria": "プランごとの進捗推移",
         "badge": "学習時間",
-        "rangeLabel": "月別集計",
-        "chartAria": "プラン別の学習時間の推移",
-        "noTrends": "タスクを追加するとタイムラインが表示されます。",
-        "summaryAria": "学習時間のサマリー",
-        "summaryRangeAria": "サマリー期間",
-        "totalHoursLabel": "合計時間",
+        "rangeLabel": "月ごとの合計",
+        "chartAria": "プランごとの時間推移グラフ",
+        "noTrends": "タスクを追加してタイムラインの洞察を表示しましょう。",
+        "summaryAria": "合計時間のサマリー",
+        "summaryRangeAria": "サマリーの期間",
+        "totalHoursLabel": "合計時間（H）",
         "noSegments": "時間を記録すると内訳が表示されます。"
       },
       "demoPlans": {
-        "capstone": "キャップストーン・プロジェクト",
+        "capstone": "卒業研究プロジェクト",
         "language": "語学スプリント",
-        "foundations": "基礎復習"
+        "foundations": "基礎固め"
+      }
+    }
+  },
+  "flashcards": {
+    "languages": {
+      "en": "英語",
+      "es": "スペイン語",
+      "fr": "フランス語",
+      "de": "ドイツ語",
+      "ja": "日本語"
+    },
+    "actions": {
+      "create": "作成",
+      "delete": "削除",
+      "close": "閉じる"
+    },
+    "home": {
+      "title": "フラッシュカード",
+      "subtitle": "科目ごとにデッキを作成し、AI に数秒で新しいカードを作ってもらいましょう。",
+      "summary": {
+        "groups": "グループ：{{count}}",
+        "cards": "カード：{{count}}",
+        "categories": "カテゴリ：{{count}}"
+      },
+      "createLabel": "新しいグループを作成",
+      "createPlaceholder": "例: 物理の公式",
+      "groupsTitle": "グループ（{{count}} 件）",
+      "empty": "まだグループがありません。上の欄から作成しましょう。",
+      "groupMeta": "{{count}} 枚のカード",
+      "actions": {
+        "study": "学習する"
+      }
+    },
+    "addForm": {
+      "title": "カードを追加",
+      "category": "カテゴリ",
+      "categoryHint": "既存のカテゴリを選択",
+      "categoryPlaceholder": "または新しいカテゴリを作成",
+      "question": "問題",
+      "questionPlaceholder": "例: React はどのような問題を解決しますか？",
+      "answer": "答え",
+      "answerPlaceholder": "例: 複雑な UI 状態の管理を簡単にする。",
+      "submit": "カードを追加",
+      "validation": {
+        "required": "カードの問題・答え・カテゴリをすべて入力してください。"
+      }
+    },
+    "study": {
+      "back": "グループ一覧に戻る",
+      "hideForm": "フォームを隠す",
+      "addCard": "カードを追加",
+      "categoryLabel": "カテゴリ",
+      "filters": {
+        "all": "すべて"
+      },
+      "cardCount": "カード：{{count}}",
+      "markedEasyTotal": "簡単マーク：{{count}}",
+      "emptyCategory": "このカテゴリにはまだカードがありません。",
+      "complete": "このカテゴリのカードはすべて終わりました！",
+      "restart": "セッションをやり直す",
+      "actions": {
+        "reviewAgain": "もう一度復習する",
+        "gotIt": "理解した"
+      },
+      "hint": "カードをクリックすると答えが表示されます。",
+      "card": {
+        "question": "問題",
+        "answer": "答え",
+        "questionSide": "問題側",
+        "answerSide": "答え側",
+        "uncategorized": "カテゴリなし",
+        "markedEasy": "簡単マーク：{{count}}"
+      }
+    },
+    "generator": {
+      "title": "AI フラッシュカード・ジェネレーター",
+      "beta": "ベータ版",
+      "topicLabel": "トピック",
+      "topicPlaceholder": "例: React コンポーネントパターン",
+      "detailLabel": "フォーカス（任意）",
+      "detailPlaceholder": "例: フック、状態管理、テスト",
+      "countLabel": "カード枚数",
+      "countOption": "{{count}} 枚のカード",
+      "languageLabel": "カードの言語",
+      "mode": {
+        "new": "新しいグループを作成",
+        "existing": "既存グループに追加"
+      },
+      "newGroupLabel": "グループ名",
+      "newGroupPlaceholder": "例: React 基礎（AI）",
+      "newGroupHint": "空欄の場合は「{{name}}」を使用します。",
+      "defaultGroupName": "新しい AI グループ",
+      "existingGroupLabel": "追加先のグループ",
+      "existingGroupPlaceholder": "グループを選択",
+      "generating": "生成中...",
+      "submit": "カードを生成",
+      "result": "{{group}} に {{count}} 枚のカードを追加しました。",
+      "resultTopic": "トピック：{{topic}}",
+      "resultDetail": "- フォーカス：{{detail}}",
+      "resultLanguage": "- 言語：{{language}}",
+      "errors": {
+        "envKey": "AI フラッシュカード生成を有効にするには、プロジェクトの .env に VITE_GEMINI_API_KEY を追加してください。",
+        "apiKey": "AI 設定で Gemini API キーを入力してください。",
+        "topicRequired": "トピックを入力してから生成してください。",
+        "groupRequired": "カードを追加するグループを選択してください。",
+        "groupMissing": "選択したグループが見つかりません。リロードして再試行してください。",
+        "noCards": "AI からカードが返されませんでした。より詳しく指定して再試行してください。",
+        "noFlashcards": "フラッシュカードが生成されませんでした。もう少し文脈を追加して試してください。",
+        "networkHint": "ネットワーク接続を確認してください。",
+        "network": "Gemini に接続できませんでした。{{detail}}",
+        "unreadable": "Gemini からのレスポンスを読み取れませんでした。",
+        "requestFailed": "Gemini へのリクエストに失敗しました。",
+        "emptyResponse": "Gemini から空のレスポンスが返されました。",
+        "default": "カード生成中に問題が発生しました。もう一度お試しください。"
       }
     }
   },
   "tools": {
-    "title": "学習ツールハブ",
-    "subtitle": "学習を支えるツールをすぐに起動し、必要な機能を1か所にまとめましょう。",
+    "title": "ツールハブ",
+    "subtitle": "学習を助けるツールにすばやくアクセスし、1 つの場所にまとめておきましょう。",
     "apps": {
-      "calendar": {
-        "title": "カレンダー",
-        "description": "学習予定や締め切りを一括管理し、スケジュールを可視化します。"
-      },
       "immerse": {
-        "title": "集中モード",
-        "description": "雑念を遮り、全画面の集中レイアウトに切り替えます。"
+        "title": "没入モード",
+        "description": "気が散る要素を消して、全画面の集中レイアウトに切り替えます。"
       },
       "flashcards": {
         "title": "フラッシュカード",
-        "description": "重要な概念を間隔反復で繰り返し復習し、記憶を定着させます。"
-      },
-      "chat": {
-        "title": "AIチャット",
-        "description": "課題の疑問をAIアシスタントに相談し、学習のサポートを受けましょう。"
-      },
-      "stream": {
-        "title": "勉強会ルーム",
-        "description": "仲間とバーチャル学習ルームに参加し、ホワイトボードで協働できます。"
+        "description": "間隔反復で重要な概念を繰り返し練習しましょう。"
       },
       "summary": {
-        "title": "Summary",
-        "description": "資料をアップロードすると、要点を素早くまとめたサマリーを生成します。"
+        "title": "要約",
+        "description": "資料をアップロードして、素早く大まかな要約を受け取ります。"
       },
       "pomodoro": {
-        "title": "Pomodoro",
-        "description": "集中と休憩をメリハリ良く切り替え、学習リズムを整えます。"
+        "title": "ポモドーロ",
+        "description": "集中と休憩を切り替えながら勉強ブロックを管理します。"
       }
     },
     "chat": {
-      "placeholder": "ワークスペースアシスタントに質問する...",
+      "placeholder": "ワークスペースアシスタントに質問...",
       "send": "送信"
     }
   },
   "immerse": {
-    "close": "集中モードから出る",
+    "close": "没入モードを終了",
     "settings": {
       "open": "設定",
-      "title": "集中モード設定",
+      "title": "没入モードの設定",
       "close": "閉じる",
-      "typeLabel": "バックグラウンドタイプ",
-      "mediaLabel": "メディアURL",
-      "mediaPlaceholder": "イメージまたはビデオのURLを入力してください...",
-      "colorLabel": "カラーコード",
-      "apply": "変更を保存",
+      "typeLabel": "背景タイプ",
+      "mediaLabel": "メディア URL",
+      "mediaPlaceholder": "画像または動画のリンクを貼り付け...",
+      "colorLabel": "背景色",
+      "apply": "変更を適用",
       "type": {
-        "image": "図像",
+        "image": "画像",
         "video": "動画",
-        "color": "カラー"
+        "color": "単色"
       }
     }
   },
   "library": {
-    "title": "マイ本棚",
-    "subtitle": "ライブラリー",
+    "title": "マイブックシェルフ",
+    "subtitle": "自分だけの学習ライブラリを管理しましょう。",
     "addBook": "本を追加",
-    "searchPlaceholder": "タイトル、著者、またはタグで検索...",
-    "sortBy": "ソート",
+    "searchPlaceholder": "タイトル・著者・タグで検索...",
+    "sortBy": "並び替え",
     "sortOptions": {
-      "latest": "最近追加した順",
-      "oldest": "古い順",
+      "latest": "追加が新しい順",
+      "oldest": "追加が古い順",
       "popular": "人気順（評価）"
     },
     "status": "ステータス",
     "statusOptions": {
-      "all": "全ての本",
-      "wantToRead": "読みたい",
-      "reading": "読んでいる",
-      "completed": "読み終わった"
+      "all": "すべての本",
+      "wantToRead": "読みたい本",
+      "reading": "読書中",
+      "completed": "読み終わった本"
     },
-    "visibility": "公開設定",
+    "visibility": "公開範囲",
     "visibilityOptions": {
-      "all": "全て",
+      "all": "すべての本",
       "public": "公開",
       "private": "非公開"
     },
-    "filterByTags": "タグでフィルター",
+    "filterByTags": "タグで絞り込み",
     "reset": "リセット",
-    "noBooks": "本が見つかりません",
-    "noBooksDesc": "検索またはフィルターを調整してください。",
-    "addFirstBook": "最初の本を追加する",
-    "emptyStateDesc": "最初の本を追加してあなたのライブラリーを構築しましょう！",
-    "bookCount": "{{count}} 冊の本",
-    "bookCountPlural": "{{count}} 冊の本",
+    "noBooks": "本が見つかりませんでした。",
+    "noBooksDesc": "検索条件やフィルターを変更してみてください。",
+    "addFirstBook": "最初の本を追加",
+    "emptyStateDesc": "まずは 1 冊目の本を追加して、ライブラリを作り始めましょう！",
+    "bookCount": "{{count}} 冊",
+    "bookCountPlural": "{{count}} 冊",
     "modal": {
       "addTitle": "新しい本を追加",
       "editTitle": "本を編集",
@@ -376,13 +511,13 @@
       "update": "変更を保存",
       "title": "タイトル",
       "author": "著者",
-      "year": "年",
+      "year": "出版年",
       "pages": "ページ数",
-      "coverUrl": "カバー画像URL",
+      "coverUrl": "表紙画像 URL",
       "publisher": "出版社",
       "description": "説明",
       "tags": "タグ",
-      "addTags": "タグを追加してEnterを押す",
+      "addTags": "タグを入力して Enter を押す",
       "status": "ステータス",
       "rating": "評価",
       "language": "言語",
@@ -391,31 +526,31 @@
     },
     "statuses": {
       "wantToRead": "読みたい",
-      "reading": "読んでいる",
-      "completed": "読み終わった"
+      "reading": "読書中",
+      "completed": "読了"
     },
     "details": {
-      "backToLibrary": "ライブラリーに戻る",
+      "backToLibrary": "ライブラリに戻る",
       "readNow": "今すぐ読む",
       "borrow": "借りる",
       "edit": "本を編集",
       "delete": "本を削除",
       "description": "説明",
       "tags": "タグ",
-      "otherBooks": "{{author}}の他の本"
+      "otherBooks": "{{author}} の他の本"
     },
     "deleteConfirm": "本を削除しますか？",
-    "deleteConfirmMsg": "この本を削除してもよろしいですか？この操作は元に戻せません。",
-    "deleteConfirmBook": "\"{{title}}\"を削除してもよろしいですか？この操作は元に戻せません。"
+    "deleteConfirmMsg": "本を削除すると元に戻せません。本当に削除しますか？",
+    "deleteConfirmBook": "「{{title}}」を削除してもよろしいですか？この操作は取り消せません。"
   },
   "profile": {
     "defaults": {
-      "goal1": "栄誉ある卒業を目指す",
-      "goal2": "React を習得する",
-      "goal3": "プロジェクトを5件完成させる"
+      "goal1": "成績優秀で卒業する",
+      "goal2": "React をマスターする",
+      "goal3": "5 つのプロジェクトを作る"
     },
     "header": {
-      "joined": "参加: {{date}}",
+      "joined": "参加日：{{date}}",
       "stats": {
         "followers": "フォロワー",
         "following": "フォロー中",
@@ -423,7 +558,7 @@
       }
     },
     "actions": {
-      "current": "自分のプロフィール",
+      "current": "あなたのプロフィール",
       "viewMine": "自分のプロフィールを見る"
     },
     "sections": {
@@ -436,69 +571,363 @@
       "goalsEdit": "目標を編集"
     },
     "bio": {
-      "empty": "自己紹介はまだありません。"
+      "empty": "まだ自己紹介がありません。"
     },
     "privacy": {
       "public": "公開",
       "private": "非公開"
     },
     "interests": {
-      "empty": "興味・関心はまだありません"
+      "empty": "興味・関心はまだ登録されていません。"
     },
     "posts": {
-      "shareTitle": "近況を共有する",
-      "shareSubtitle": "取り組んでいることを仲間に伝えましょう。",
+      "shareTitle": "近況をシェア",
+      "shareSubtitle": "今取り組んでいることをみんなに伝えましょう。",
       "shareButton": "投稿を作成",
       "empty": "まだ投稿がありません。",
-      "anonymous": "匿名の学習者",
+      "anonymous": "匿名の学生",
       "unknownHandle": "@unknown",
-      "viewProfileAria": "{{name}} さんのプロフィールを表示",
+      "viewProfileAria": "{{name}} のプロフィールを見る",
       "viewBook": "「{{title}}」を見る",
-      "likes_one": "{{formattedCount}}件のいいね",
-      "likes_other": "{{formattedCount}}件のいいね",
-      "comments_one": "{{formattedCount}}件のコメント",
-      "comments_other": "{{formattedCount}}件のコメント"
+      "likes_one": "{{formattedCount}} 件のいいね",
+      "likes_other": "{{formattedCount}} 件のいいね",
+      "comments_one": "{{formattedCount}} 件のコメント",
+      "comments_other": "{{formattedCount}} 件のコメント"
     },
     "goals": {
-      "empty": "目標はまだありません"
+      "empty": "まだ目標がありません。"
     },
     "edit": {
       "title": "編集",
       "bioTitle": "自己紹介を編集",
       "interestsTitle": "興味・関心を編集",
       "goalsTitle": "目標を編集",
-      "bioPlaceholder": "自己紹介を書いてみましょう...",
+      "bioPlaceholder": "自分について自由に書いてみましょう...",
       "addInterestPlaceholder": "興味・関心を追加...",
       "addGoalPlaceholder": "目標を追加...",
       "addButton": "追加",
-      "makePrivate": "公開設定: クリックで非公開に変更",
-      "makePublic": "非公開: クリックで公開に変更",
+      "makePrivate": "公開中 - クリックして非公開にする",
+      "makePublic": "非公開 - クリックして公開にする",
       "remove": "削除",
-      "interestsEmpty": "興味・関心はまだありません。上から追加できます。",
-      "goalsEmpty": "目標はまだありません。上から追加できます。",
+      "interestsEmpty": "まだ興味・関心がありません。上から追加できます！",
+      "goalsEmpty": "まだ目標がありません。上から追加できます！",
       "save": "変更を保存"
     }
   },
   "social": {
     "postModal": {
-      "title": "学習投稿を作成",
-      "subtitle": "今日の進捗や気付き、質問を共有しましょう。",
+      "title": "新しい学習投稿",
+      "subtitle": "今日の進捗・達成・勉強仲間への質問を記録しましょう。",
       "close": "ダイアログを閉じる",
       "fields": {
-        "text": "今日の内容",
-        "book": "教材 / リソース",
+        "text": "何を勉強しましたか？",
+        "book": "本・教材",
         "duration": "学習時間",
-        "subject": "科目 / タグ"
+        "subject": "科目・タグ"
       },
       "placeholders": {
-        "text": "学習したことや気付き、質問などを記入してください…",
+        "text": "今日の学習ノート・質問・気づきを共有しましょう…",
         "book": "例: Essential Calculus、講義スライド",
-        "duration": "例: 45分、2時間",
-        "subject": "例: 線形代数、小学2年漢字"
+        "duration": "例: 45m, 2h",
+        "subject": "例: 線形代数、小学 2 年生の漢字"
       },
-      "characters_one": "{{formattedCount}}文字",
-      "characters_other": "{{formattedCount}}文字",
+      "characters_one": "{{formattedCount}} 文字",
+      "characters_other": "{{formattedCount}} 文字",
       "submit": "投稿する"
     }
+  },
+  "socialPage": {
+    "errors": {
+      "loadFeed": "ソーシャルフィードの読み込みに失敗しました。時間をおいて再試行してください。",
+      "createPost": "投稿の作成に失敗しました。もう一度お試しください。"
+    },
+    "loading": {
+      "feed": "ソーシャルフィードを読み込み中..."
+    },
+    "empty": {
+      "title": "まだ投稿がありません",
+      "description": "最初の投稿をして、コミュニティにシェアしてみましょう！"
+    },
+    "aria": {
+      "composePost": "新しい投稿を作成"
+    },
+    "post": {
+      "duration": "学習時間：{{value}}",
+      "defaultContent": "新しい学習アップデートを共有しました。"
+    }
+  },
+  "friendSuggestions": {
+    "searchPlaceholder": "フレンドまたは投稿を検索...",
+    "tabs": {
+      "friends": "フレンド",
+      "posts": "投稿"
+    },
+    "loading": {
+      "search": "検索中...",
+      "suggestions": "おすすめを読み込み中..."
+    },
+    "empty": {
+      "friends": "フレンドが見つかりませんでした。",
+      "posts": "投稿が見つかりませんでした。",
+      "suggestions": "おすすめは現在ありません。"
+    },
+    "headers": {
+      "friends": "おすすめのフレンド",
+      "groups": "おすすめのグループ"
+    },
+    "errors": {
+      "load": "おすすめの読み込みに失敗しました。後でもう一度お試しください。",
+      "search": "検索に失敗しました。後でもう一度お試しください。",
+      "missingUser": "この学習者を見つけることができませんでした。再度お試しください。",
+      "follow": "フォロー状態を更新できませんでした。もう一度お試しください。"
+    },
+    "buttons": {
+      "follow": "フォロー",
+      "following": "フォロー中",
+      "join": "参加",
+      "joined": "参加済み"
+    },
+    "aria": {
+      "follow": "フォローする",
+      "unfollow": "フォローを外す"
+    },
+    "fallback": {
+      "newFriend": "新しいフレンド",
+      "readyToStudy": "学習する準備万端"
+    },
+    "mock": {
+      "post": "「{{query}}」を含むモック投稿",
+      "userName": "検索結果ユーザー",
+      "userBio": "これはモックの検索結果です"
+    }
+  },
+  "libraryPage": {
+    "title": "ライブラリ",
+    "subtitle": "コミュニティで共有されているライブラリを探検しよう",
+    "searchPlaceholder": "タイトル・著者・タグで検索...",
+    "buttons": {
+      "add": "本を追加",
+      "addFirst": "最初の本を追加",
+      "reset": "リセット"
+    },
+    "filters": {
+      "tags": "タグで絞り込み："
+    },
+    "stats": {
+      "books_one": "{{count}} 冊の本",
+      "books_other": "{{count}} 冊の本"
+    },
+    "empty": {
+      "title": "本が見つかりませんでした",
+      "filters": "検索条件やフィルターを変更してみてください。",
+      "start": "まずは 1 冊目の本を追加して、ライブラリを作り始めましょう！"
+    },
+    "errors": {
+      "load": "共有ライブラリの読み込みに失敗しました。後でもう一度お試しください。",
+      "refresh": "本の更新に失敗しました。後でもう一度お試しください。",
+      "save": "本の保存に失敗しました。もう一度お試しください。"
+    }
+  },
+  "bookDetails": {
+    "backToSocial": "ソーシャルに戻る",
+    "backToLibrary": "ライブラリに戻る",
+    "loading": "本の詳細を読み込み中...",
+    "errors": {
+      "load": "本の詳細を読み込めませんでした。後でもう一度お試しください。",
+      "save": "本の保存に失敗しました。もう一度お試しください。",
+      "delete": "本の削除に失敗しました。もう一度お試しください。",
+      "visibility": "公開範囲の更新に失敗しました。もう一度お試しください。"
+    },
+    "buttons": {
+      "relatedPosts": "関連する投稿",
+      "edit": "本を編集",
+      "delete": "本を削除"
+    },
+    "visibility": {
+      "makePrivate": "非公開にする",
+      "makePublic": "公開にする"
+    },
+    "rating": {
+      "label": "{{value}} 件の評価"
+    },
+    "sections": {
+      "description": "説明",
+      "tags": "タグ",
+      "otherBooks": "{{name}} の他の本"
+    },
+    "modal": {
+      "delete": {
+        "title": "本を削除しますか？",
+        "body": "「{{title}}」を削除してもよろしいですか？この操作は取り消せません。"
+      }
+    },
+    "aria": {
+      "back": "{{destination}} に戻る",
+      "moreOptions": "その他のオプション"
+    }
+  },
+  "bookPosts": {
+    "errors": {
+      "noSelection": "本が選択されていません。",
+      "loadBook": "本の情報を読み込めませんでした。後でもう一度お試しください。",
+      "loadPosts": "関連する投稿を読み込めませんでした。"
+    },
+    "loading": {
+      "book": "本の情報を読み込み中...",
+      "posts": "関連投稿を読み込み中..."
+    },
+    "buttons": {
+      "backToLibrary": "ライブラリに戻る",
+      "backToBook": "本の詳細に戻る"
+    },
+    "headers": {
+      "eyebrow": "コミュニティ投稿",
+      "title": "「{{title}}」に言及している投稿",
+      "featured": "注目の本",
+      "related": "関連する投稿",
+      "details": "本の詳細",
+      "tags": "タグ"
+    },
+    "empty": {
+      "posts": "まだこの本に言及している投稿はありません。ソーシャルページから投稿してみましょう！"
+    },
+    "counts": {
+      "posts_one": "{{count}} 件の投稿",
+      "posts_other": "{{count}} 件の投稿"
+    },
+    "aria": {
+      "backToDetails": "本の詳細に戻る"
+    }
+  },
+  "bookCard": {
+    "aria": {
+      "view": "「{{title}}」を見る"
+    }
+  },
+  "loginPage": {
+    "hero": {
+      "copy": "猫モチーフの AI 学習コミュニティで、勉強時間をかわいく記録しよう。"
+    },
+    "headings": {
+      "login": "ログイン",
+      "signup": "新規登録"
+    },
+    "subtitles": {
+      "login": "保存した学習プランにすぐ戻れます。",
+      "signup": "タスク・フレンド・ツールを同期して、学習を加速させましょう。"
+    },
+    "tabs": {
+      "email": "メール",
+      "anonymous": "ゲスト"
+    },
+    "forms": {
+      "guestLogin": {
+        "title": "かんたんゲストログイン",
+        "cta": "ゲストとして続ける"
+      },
+      "guestSignup": {
+        "title": "ゲストモードを試す",
+        "cta": "ゲストとして体験する"
+      },
+      "login": {
+        "title": "メールまたはユーザー名でログイン",
+        "emailLabel": "メールアドレスまたはユーザー名",
+        "emailPlaceholder": "name@example.com または username",
+        "passwordLabel": "パスワード",
+        "passwordPlaceholder": "パスワードを入力",
+        "remember": "ログイン状態を保持する",
+        "forgot": "パスワードをお忘れですか？",
+        "submit": "ログイン",
+        "submitting": "ログイン中..."
+      },
+      "signup": {
+        "title": "メールで新規登録",
+        "usernameLabel": "ユーザー名",
+        "usernamePlaceholder": "英数字またはアンダースコアが使用できます",
+        "emailLabel": "メールアドレス",
+        "emailPlaceholder": "name@example.com",
+        "passwordLabel": "パスワード",
+        "passwordPlaceholder": "8 文字以上",
+        "confirmLabel": "パスワード（確認）",
+        "confirmPlaceholder": "もう一度パスワードを入力",
+        "termsPrefix": "私は",
+        "termsConnector": "と",
+        "termsSuffix": "に同意します。",
+        "termsTos": "利用規約",
+        "termsPrivacy": "プライバシーポリシー",
+        "submit": "登録する",
+        "submitting": "登録中..."
+      }
+    },
+    "notifications": {
+      "missingCredentials": "メールアドレスまたはユーザー名とパスワードを入力してください。",
+      "loginSuccess": "ログインに成功しました。ダッシュボードへ移動します...",
+      "loginFailed": "ログインに失敗しました。",
+      "loginFailedRetry": "ログインに失敗しました。もう一度お試しください。",
+      "usernameRequired": "続行するにはユーザー名が必要です。",
+      "usernameFormat": "ユーザー名は 3〜30 文字で、英数字とアンダースコアのみ使用できます。",
+      "emailRequired": "有効なメールアドレスを入力してください。",
+      "passwordLength": "パスワードは 8 文字以上である必要があります。",
+      "passwordMismatch": "パスワードが一致しません。",
+      "termsRequired": "続行するには規約への同意が必要です。",
+      "signupSuccess": "アカウントが作成されました。ダッシュボードへ移動します...",
+      "signupFailed": "新規登録に失敗しました。",
+      "signupFailedRetry": "新規登録に失敗しました。しばらくしてから再試行してください。",
+      "passwordReset": "パスワード再設定リンクをメールで送信しました。",
+      "guestLoginSuccess": "ゲストログインに成功しました。移動します...",
+      "guestSignupSuccess": "ゲスト登録に成功しました。移動します...",
+      "guestFailure": "ゲストセッションを開始できませんでした。もう一度お試しください。",
+      "guestUnavailable": "現在、ゲストアクセスは利用できません。時間をおいてお試しください。"
+    },
+    "toggle": {
+      "newHere": "Nyacademy を初めて利用しますか？",
+      "haveAccount": "すでにアカウントをお持ちですか？",
+      "createAccount": "アカウントを作成",
+      "login": "ログインする"
+    }
+  },
+  "taskDetails": {
+    "errors": {
+      "save": "変更の保存に失敗しました。もう一度お試しください。",
+      "unavailableTitle": "タスクを利用できません",
+      "unavailableDescription": "タスク #{{id}} の詳細を読み込めませんでした。ダッシュボードに戻ってから再度開いてください。"
+    },
+    "buttons": {
+      "back": "戻る",
+      "dashboard": "ダッシュボードへ"
+    },
+    "actions": {
+      "edit": "タスクを編集",
+      "cancelEdit": "編集をキャンセル",
+      "discard": "破棄",
+      "saving": "保存中...",
+      "saveChanges": "変更を保存"
+    },
+    "planNotes": "プランメモ",
+    "meta": {
+      "created": "作成",
+      "start": "開始",
+      "due": "期限",
+      "completed": "完了",
+      "timeSpent": "所要時間"
+    },
+    "form": {
+      "title": "タイトル",
+      "status": "ステータス",
+      "start": "開始",
+      "due": "期限",
+      "description": "説明",
+      "timeSpent": "所要時間（分）"
+    },
+    "labels": {
+      "notAvailable": "--"
+    },
+    "status": {
+      "notStarted": "未開始",
+      "inProgress": "進行中",
+      "cancelled": "中止",
+      "completed": "完了"
+    },
+    "timeSpentLabel": "{{count}} 分"
   }
 }
