@@ -244,10 +244,38 @@ function AppContent() {
           profileService.getProfileById(authUserId).catch(() => null),
         ])
 
-        const profileMap = new Map((profileList || []).map(profile => [profile.userId, profile]))
+      const profileMap = new Map()
+      ;(profileList || []).forEach(profile => {
+        const id =
+          typeof profile.userId === 'object'
+            ? profile.userId?._id || profile.userId?.id
+            : profile.userId
+        if (id) {
+          profileMap.set(String(id), profile)
+        }
+      })
+      if (currentProfile?.userId) {
+        profileMap.set(String(currentProfile.userId), currentProfile)
+      }
 
-        if (currentProfile) {
-          profileMap.set(currentProfile.userId, currentProfile)
+        const fallbackAuthors = new Map()
+        if (authUserId) {
+          fallbackAuthors.set(String(authUserId), {
+            id: authUserId,
+            name:
+              currentProfile?.name ||
+              user?.name ||
+              user?.username ||
+              user?.email?.split('@')[0] ||
+              '',
+            username:
+              currentProfile?.username ||
+              user?.username ||
+              user?.name ||
+              user?.email?.split('@')[0] ||
+              '',
+            profileImage: currentProfile?.profileImage || user?.profileImage || '',
+          })
         }
 
         const postsWithAuthors = publicPosts.map(post => {
@@ -255,7 +283,10 @@ function AppContent() {
             return post
           }
 
-          const authorProfile = profileMap.get(post.userId)
+          const postUserId =
+            typeof post.userId === 'object' ? post.userId?._id || post.userId?.id : post.userId
+          const authorProfile =
+            profileMap.get(String(postUserId)) || fallbackAuthors.get(String(postUserId))
           return {
             ...post,
             author: authorProfile ?? post.author ?? null,

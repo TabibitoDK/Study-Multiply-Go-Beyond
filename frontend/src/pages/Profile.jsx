@@ -235,7 +235,18 @@ export default function Profile({
           postsData = postsProp
         }
 
-        setPosts(postsData)
+        const authorProfile = profileData
+          ? {
+              id: profileData.id,
+              name: profileData.name || profileData.username || '',
+              username: profileData.username || profileData.name || '',
+              profileImage: profileData.profileImage || '',
+            }
+          : null
+
+        setPosts(
+          postsData.map(post => (post.author ? post : { ...post, author: authorProfile })),
+        )
         setError(null)
       } catch (err) {
         console.error('Error fetching profile data:', err)
@@ -254,7 +265,15 @@ export default function Profile({
     
     try {
       const postsData = await postService.getPostsByUser(resolvedProfile.id)
-      setPosts(postsData)
+      const authorProfile = {
+        id: resolvedProfile.id,
+        name: resolvedProfile.name || resolvedProfile.username || '',
+        username: resolvedProfile.username || resolvedProfile.name || '',
+        profileImage: resolvedProfile.profileImage || '',
+      }
+      setPosts(
+        postsData.map(post => (post.author ? post : { ...post, author: authorProfile })),
+      )
     } catch (err) {
       console.error('Error refreshing posts:', err)
       setError('Failed to refresh posts. Please try again later.')
