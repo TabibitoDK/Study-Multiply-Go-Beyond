@@ -1,5 +1,7 @@
 import api from '../lib/api.js'
 
+const FALLBACK_BOOK_COVER = 'https://via.placeholder.com/120x180?text=Book'
+
 const normalizeId = value => {
   if (!value) return null
   if (typeof value === 'string') return value
@@ -25,7 +27,23 @@ const normalizePost = post => {
 
   const books = Array.isArray(post.books)
     ? post.books
-        .map(book => (typeof book === 'string' ? book : normalizeId(book)))
+        .map(book => {
+          if (!book) return null
+          if (typeof book === 'string') {
+            return { id: book }
+          }
+          const id = normalizeId(book)
+          return {
+            id,
+            title: book.title || book.name || '',
+            author:
+              book.author ||
+              (Array.isArray(book.authors) ? book.authors.join(', ') : '') ||
+              book.writer ||
+              '',
+            cover: book.cover || book.image || book.thumbnail || FALLBACK_BOOK_COVER,
+          }
+        })
         .filter(Boolean)
     : []
 

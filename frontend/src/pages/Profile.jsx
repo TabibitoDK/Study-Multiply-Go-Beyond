@@ -270,11 +270,23 @@ export default function Profile({
 
   async function handleSubmit(draft) {
     try {
-      if (typeof onCreatePost === "function") {
+      if (typeof onCreatePost === 'function') {
         onCreatePost(draft)
       } else {
-        // Create post via API if no handler provided
-        await postService.createPost(draft)
+        const segments = []
+        const text = draft.text?.trim()
+        if (text) segments.push(text)
+        if (draft.duration?.trim()) segments.push(`Duration: ${draft.duration.trim()}`)
+
+        const tags = draft.subject?.trim() ? [draft.subject.trim()] : []
+        const payload = {
+          content: segments.join('\n\n') || 'Shared a new update.',
+          tags,
+          books: draft.bookId ? [draft.bookId] : [],
+          visibility: 'public',
+        }
+
+        await postService.createPost(payload)
         await refreshPosts()
       }
       setIsModalOpen(false)

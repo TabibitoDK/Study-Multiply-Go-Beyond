@@ -92,16 +92,27 @@ export default function SocialPage({ currentUser, posts, onCreatePost, onSelectP
       } else {
         const segments = []
         if (draft.text?.trim()) segments.push(draft.text.trim())
-        if (draft.book?.trim()) segments.push(`Book: ${draft.book.trim()}`)
         if (draft.duration?.trim()) segments.push(`Duration: ${draft.duration.trim()}`)
 
         const tags = draft.subject?.trim() ? [draft.subject.trim()] : []
         const payload = {
           content: segments.join('\n\n') || 'Shared a new update.',
           tags,
-          books: [],
+          books: draft.bookId ? [draft.bookId] : [],
           visibility: 'public',
         }
+
+        const optimisticBooks =
+          draft.bookId && (draft.bookTitle || draft.bookAuthor || draft.bookCover)
+            ? [
+                {
+                  id: draft.bookId,
+                  title: draft.bookTitle || '',
+                  author: draft.bookAuthor || '',
+                  cover: draft.bookCover || '',
+                },
+              ]
+            : []
 
         const createdPost = await postService.createPost(payload)
         const authorProfile = currentUser
@@ -116,6 +127,7 @@ export default function SocialPage({ currentUser, posts, onCreatePost, onSelectP
         setFeed(prev => [
           {
             ...createdPost,
+            books: optimisticBooks.length ? optimisticBooks : createdPost.books ?? [],
             author: authorProfile ?? createdPost.author ?? null,
           },
           ...prev,

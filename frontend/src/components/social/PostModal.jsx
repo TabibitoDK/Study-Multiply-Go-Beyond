@@ -1,31 +1,83 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PenLine } from 'lucide-react'
 import dayjs from 'dayjs'
 import { useI18nFormats } from '../../lib/i18n-format.js'
+import bookService from '../../services/bookService.js'
 
 export default function PostModal({ open, onClose, onSubmit }) {
   const [text, setText] = useState('')
-  const [book, setBook] = useState('')
+  const [selectedBookId, setSelectedBookId] = useState('')
+  const [bookOptions, setBookOptions] = useState([])
+  const [booksLoading, setBooksLoading] = useState(false)
+  const [booksError, setBooksError] = useState(null)
   const [duration, setDuration] = useState('')
   const [subject, setSubject] = useState('')
   const { t } = useTranslation()
   const { formatNumber } = useI18nFormats()
 
+  useEffect(() => {
+    if (!open || bookOptions.length) {
+      return undefined
+    }
+
+    let cancelled = false
+
+    const loadBooks = async () => {
+      setBooksLoading(true)
+      setBooksError(null)
+      try {
+        const books = await bookService.getAllBooks()
+        if (!cancelled) {
+          setBookOptions(books)
+        }
+      } catch (error) {
+        console.error('Failed to load books for post modal:', error)
+        if (!cancelled) {
+          setBooksError(
+            t('social.postModal.errors.books', {
+              defaultValue: 'Failed to load library resources. You can still post without linking a book.',
+            }),
+          )
+        }
+      } finally {
+        if (!cancelled) {
+          setBooksLoading(false)
+        }
+      }
+    }
+
+    loadBooks()
+
+    return () => {
+      cancelled = true
+    }
+  }, [open, bookOptions.length, t])
+
+  const selectedBook = useMemo(
+    () => bookOptions.find(option => option.id === selectedBookId) || null,
+    [bookOptions, selectedBookId],
+  )
+
   const charactersUsed = text.trim().length
   const canSubmit = useMemo(() => {
-    return charactersUsed > 0 || book.trim() || duration.trim() || subject.trim()
-  }, [charactersUsed, book, duration, subject])
+    return charactersUsed > 0 || selectedBookId || duration.trim() || subject.trim()
+  }, [charactersUsed, selectedBookId, duration, subject])
 
   function handleSubmit(e) {
     e.preventDefault()
     if (!canSubmit) return
+    const bookTitle = selectedBook?.title?.trim() || ''
     const post = {
       id: crypto.randomUUID(),
       authorName: 'Nickname',
       authorHandle: 'username',
       text: text.trim(),
-      book: book.trim() || null,
+      book: bookTitle || null,
+      bookId: selectedBookId || null,
+      bookTitle,
+      bookAuthor: selectedBook?.author || '',
+      bookCover: selectedBook?.cover || '',
       duration: duration.trim() || null,
       subject: subject.trim() || null,
       images: [],
@@ -33,7 +85,7 @@ export default function PostModal({ open, onClose, onSubmit }) {
     }
     onSubmit(post)
     setText('')
-    setBook('')
+    setSelectedBookId('')
     setDuration('')
     setSubject('')
     onClose()
@@ -91,15 +143,25 @@ export default function PostModal({ open, onClose, onSubmit }) {
 
           <div className="post-modal__grid">
             <label className="post-modal__field">
-              <span>{t('social.postModal.fields.book', { defaultValue: 'Book / Resource' })}</span>
-              <input
+              <span>{t('social.postModal.fields.book', { defaultValue: '教材 / リソース' })}</span>
+              <select
                 className="input"
-                placeholder={t('social.postModal.placeholders.book', {
-                  defaultValue: 'e.g. Essential Calculus, lecture slides',
-                })}
-                value={book}
-                onChange={event => setBook(event.target.value)}
-              />
+                value={selectedBookId}
+                onChange={event => setSelectedBookId(event.target.value)}
+                disabled={booksLoading || (!!booksError && !bookOptions.length)}
+              >
+                <option value="">
+                  {t('social.postModal.bookOptions.none', { defaultValue: 'なし（本をリンクしない）' })}
+                </option>
+                {bookOptions.map(option => (
+                  <option key={option.id} value={option.id}>
+                    {option.title || option.name || t('social.postModal.bookOptions.untitled', { defaultValue: 'Untitled book' })}
+                  </option>
+                ))}
+              </select>
+              {booksError && (
+                <span className="post-modal__helper post-modal__helper--error">{booksError}</span>
+              )}
             </label>
 
             <label className="post-modal__field">

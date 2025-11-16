@@ -20,26 +20,106 @@ export default function PostCard({ post, onSelectProfile }) {
 
   const { author, content, books, likes, comments, timestamp, tags } = post
 
+  const FALLBACK_COVER = 'https://via.placeholder.com/120x180?text=Book'
+
+  const normalizeBookEntry = entry => {
+    if (!entry) return null
+    if (typeof entry === 'string') {
+      return { id: entry, needsFetch: true }
+    }
+    if (typeof entry === 'object') {
+      const id = entry._id || entry.id || entry.bookId || null
+      const title = entry.title || entry.name || ''
+      const author =
+        entry.author ||
+        entry.authors?.join?.(', ') ||
+        entry.writer ||
+        entry.creator ||
+        ''
+      const cover = entry.cover || entry.image || entry.thumbnail || FALLBACK_COVER
+
+      return {
+        id,
+        needsFetch: !(id && title),
+        data: title
+          ? {
+              id,
+              title,
+              author,
+              cover,
+            }
+          : null,
+      }
+    }
+    return null
+  }
+
   // Fetch book details when component mounts or books change
   useEffect(() => {
-    const fetchBookDetails = async () => {
-      if (Array.isArray(books) && books.length > 0) {
-        const details = {}
-        
-        for (const bookId of books) {
-          try {
-            const book = await bookService.getBookById(bookId)
-            details[bookId] = book
-          } catch (err) {
-            console.error(`Error fetching book ${bookId}:`, err)
+    let cancelled = false
+
+    const safeBooks = Array.isArray(books) ? books.filter(Boolean) : []
+    if (!safeBooks.length) {
+      setBookDetails({})
+      return undefined
+    }
+
+    const initialDetails = {}
+    const idsToFetch = []
+
+    safeBooks.forEach(entry => {
+      const normalized = normalizeBookEntry(entry)
+      if (!normalized || !normalized.id) {
+        return
+      }
+      if (normalized.data) {
+        initialDetails[normalized.id] = normalized.data
+      }
+      if (normalized.needsFetch) {
+        idsToFetch.push(normalized.id)
+      }
+    })
+
+    if (Object.keys(initialDetails).length) {
+      setBookDetails(prev => ({ ...prev, ...initialDetails }))
+    }
+
+    if (!idsToFetch.length) {
+      return undefined
+    }
+
+    const fetchMissingBooks = async () => {
+      const fetched = {}
+      for (const bookId of idsToFetch) {
+        try {
+          const book = await bookService.getBookById(bookId)
+          if (book) {
+            fetched[bookId] = {
+              id: book.id || book._id || bookId,
+              title: book.title || '',
+              author:
+                book.author ||
+                book.authors?.join?.(', ') ||
+                book.writer ||
+                book.creator ||
+                '',
+              cover: book.cover || book.image || FALLBACK_COVER,
+            }
           }
+        } catch (err) {
+          console.error(`Error fetching book ${bookId}:`, err)
         }
-        
-        setBookDetails(details)
+      }
+      if (!cancelled && Object.keys(fetched).length) {
+        setBookDetails(prev => ({ ...prev, ...fetched }))
       }
     }
 
-    fetchBookDetails()
+    fetchMissingBooks()
+
+    return () => {
+      cancelled = true
+    }
   }, [books])
 
   const authorId = author?.id
@@ -121,16 +201,26 @@ export default function PostCard({ post, onSelectProfile }) {
 
         {Array.isArray(books) && books.length > 0 && (
           <div className="post-book-references">
-            {books.map(bookId => {
-              const book = bookDetails[bookId]
+            {books.map(entry => {
+              const normalized = normalizeBookEntry(entry)
+              const bookId = normalized?.id || (typeof entry === 'string' ? entry : null)
+              const book =
+                (bookId && bookDetails[bookId]) ||
+                normalized?.data ||
+                null
+
               if (!book) return null
 
               return (
                 <button
-                  key={bookId}
+                  key={bookId || book.title}
                   type="button"
                   className="book-reference-box"
-                  onClick={() => navigate(`/library/${bookId}`, { state: { from: 'social' } })}
+                  onClick={() =>
+                    bookId
+                      ? navigate(`/library/${bookId}`, { state: { from: 'social' } })
+                      : undefined
+                  }
                   aria-label={t('profile.posts.viewBook', {
                     defaultValue: 'View {{title}}',
                     title: book.title,

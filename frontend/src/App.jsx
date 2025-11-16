@@ -277,33 +277,51 @@ function AppContent() {
   async function handleCreatePost(draft) {
     if (!draft) return
 
-    try {
+    const buildContentSegments = () => {
       const segments = []
-      if (draft.text?.trim()) segments.push(draft.text.trim())
-      if (draft.book?.trim()) segments.push('Book: ' + draft.book.trim())
-      if (draft.duration?.trim()) segments.push('Duration: ' + draft.duration.trim())
-      const tags = draft.subject?.trim() ? [draft.subject.trim()] : []
-
-      const payload = {
-        content: segments.join('\n\n') || 'Shared a new update.',
-        tags,
-        books: [],
-        visibility: 'public',
+      const text = draft.text?.trim()
+      if (text) segments.push(text)
+      if (draft.duration?.trim()) {
+        segments.push(`Duration: ${draft.duration.trim()}`)
       }
+      return segments
+    }
 
+    const tags = draft.subject?.trim() ? [draft.subject.trim()] : []
+    const payload = {
+      content: buildContentSegments().join('\n\n') || 'Shared a new update.',
+      tags,
+      books: draft.bookId ? [draft.bookId] : [],
+      visibility: 'public',
+    }
+
+    const authorProfile = currentUser
+      ? {
+          id: currentUser.id,
+          name: currentUser.name || currentUser.username || currentUser.email,
+          username: currentUser.username || currentUser.name || '',
+          profileImage: currentUser.profileImage || '',
+        }
+      : null
+
+    const optimisticBooks =
+      draft.bookId && (draft.bookTitle || draft.bookAuthor || draft.bookCover)
+        ? [
+            {
+              id: draft.bookId,
+              title: draft.bookTitle || '',
+              author: draft.bookAuthor || '',
+              cover: draft.bookCover || '',
+            },
+          ]
+        : []
+
+    try {
       const createdPost = await postService.createPost(payload)
-      const authorProfile = currentUser
-        ? {
-            id: currentUser.id,
-            name: currentUser.name || currentUser.username || currentUser.email,
-            username: currentUser.username || currentUser.name || '',
-            profileImage: currentUser.profileImage || '',
-          }
-        : null
-
       setPosts(prev => [
         {
           ...createdPost,
+          books: optimisticBooks.length ? optimisticBooks : createdPost.books ?? [],
           author: authorProfile ?? createdPost.author ?? null,
         },
         ...prev,
@@ -311,30 +329,18 @@ function AppContent() {
     } catch (error) {
       console.error('Error creating post:', error)
       const fallbackId = 'local-' + Date.now()
-      const segments = []
-      if (draft.text?.trim()) segments.push(draft.text.trim())
-      if (draft.book?.trim()) segments.push('Book: ' + draft.book.trim())
-      if (draft.duration?.trim()) segments.push('Duration: ' + draft.duration.trim())
-      const tags = draft.subject?.trim() ? [draft.subject.trim()] : []
 
       setPosts(prev => [
         {
           id: fallbackId,
           userId: currentUser?.id,
-          content: segments.join('\n\n') || 'Shared a new update.',
+          content: payload.content,
           tags,
-          books: [],
+          books: optimisticBooks,
           likes: 0,
           comments: 0,
           timestamp: new Date().toISOString(),
-          author: currentUser
-            ? {
-                id: currentUser.id,
-                name: currentUser.name || currentUser.username || currentUser.email,
-                username: currentUser.username || currentUser.name || '',
-                profileImage: currentUser.profileImage || '',
-              }
-            : null,
+          author: authorProfile,
         },
         ...prev,
       ])
