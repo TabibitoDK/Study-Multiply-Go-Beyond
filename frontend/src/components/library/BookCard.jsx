@@ -1,4 +1,8 @@
+import { useTranslation } from 'react-i18next'
+
 export default function BookCard({ book, onBookClick }) {
+  const { t } = useTranslation()
+
   const handleClick = () => {
     onBookClick?.(book.id)
   }
@@ -8,7 +12,7 @@ export default function BookCard({ book, onBookClick }) {
       type="button"
       className="book-card-simple"
       onClick={handleClick}
-      aria-label={`View ${book.title}`}
+      aria-label={t('bookCard.aria.view', { title: book.title })}
     >
       <div className="book-card-image">
         <img src={book.cover} alt={book.title} />

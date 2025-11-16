@@ -14,13 +14,14 @@ const TOOL_ROUTES = {
 }
 
 const SAME_TAB_TOOLS = new Set(['calendar', 'immerse', 'flashcards', 'chat', 'stream', 'aichat'])
+const HIDDEN_TOOLS = new Set(['stream'])
 
 export default function Tools() {
   const { t } = useTranslation()
 
   const tools = useMemo(
     () =>
-      TOOL_IDS.map(id => {
+      TOOL_IDS.filter(id => !HIDDEN_TOOLS.has(id)).map(id => {
         const copy = getToolCopy(t, id)
         return {
           id,

@@ -13,12 +13,7 @@ import {
 } from 'lucide-react'
 import bookService from '../services/bookService.js'
 import BookModal from '../components/library/BookModal.jsx'
-
-const statusLabels = {
-  'want-to-read': 'Want to Read',
-  'reading': 'Currently Reading',
-  'completed': 'Finished',
-}
+import { useTranslation } from 'react-i18next'
 
 const statusColors = {
   'want-to-read': '#f59e0b',
@@ -30,6 +25,7 @@ export default function BookDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useTranslation()
   const [book, setBook] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -41,7 +37,7 @@ export default function BookDetails() {
   // Determine back navigation based on where user came from
   const fromSocial = location.state?.from === 'social'
   const backPath = fromSocial ? '/social' : '/library'
-  const backText = fromSocial ? 'Back to Social' : 'Back to Library'
+  const backText = fromSocial ? t('bookDetails.backToSocial') : t('bookDetails.backToLibrary')
 
   // Fetch book data
   useEffect(() => {
@@ -61,7 +57,7 @@ export default function BookDetails() {
         setError(null)
       } catch (err) {
         console.error('Error fetching book details:', err)
-        setError('Failed to load book details. Please try again later.')
+        setError(t('bookDetails.errors.load'))
       } finally {
         setLoading(false)
       }
@@ -84,7 +80,7 @@ export default function BookDetails() {
       <div className="book-details">
         <div className="loading-container">
           <div className="spinner"></div>
-          <p>Loading book details...</p>
+          <p>{t('bookDetails.loading')}</p>
         </div>
       </div>
     )
@@ -95,7 +91,9 @@ export default function BookDetails() {
       <div className="book-details">
         <div className="error-container">
           <p>{error}</p>
-          <button onClick={() => window.location.reload()} className="btn">Retry</button>
+          <button onClick={() => window.location.reload()} className="btn">
+            {t('buttons.retry')}
+          </button>
         </div>
       </div>
     )
@@ -112,7 +110,7 @@ export default function BookDetails() {
       setShowModal(false)
     } catch (err) {
       console.error('Error saving book:', err)
-      setError('Failed to save book. Please try again.')
+      setError(t('bookDetails.errors.save'))
     }
   }
 
@@ -122,7 +120,7 @@ export default function BookDetails() {
       navigate(backPath)
     } catch (err) {
       console.error('Error deleting book:', err)
-      setError('Failed to delete book. Please try again.')
+      setError(t('bookDetails.errors.delete'))
     }
   }
 
@@ -133,7 +131,7 @@ export default function BookDetails() {
       setBook(updatedBook)
     } catch (err) {
       console.error('Error toggling visibility:', err)
-      setError('Failed to update visibility. Please try again.')
+      setError(t('bookDetails.errors.visibility'))
     }
   }
 
@@ -156,7 +154,9 @@ export default function BookDetails() {
           type="button"
           className="back-btn"
           onClick={() => navigate(backPath)}
-          aria-label={`Go back to ${fromSocial ? 'social' : 'library'}`}
+          aria-label={t('bookDetails.aria.back', {
+            destination: fromSocial ? t('nav.social') : t('nav.library'),
+          })}
         >
           <ArrowLeft size={20} />
           {backText}
@@ -167,7 +167,11 @@ export default function BookDetails() {
             type="button"
             className="icon-btn"
             onClick={handleToggleVisibility}
-            title={book.visibility === 'public' ? 'Make private' : 'Make public'}
+            title={
+              book.visibility === 'public'
+                ? t('bookDetails.visibility.makePrivate')
+                : t('bookDetails.visibility.makePublic')
+            }
           >
             {book.visibility === 'private' ? (
               <Lock size={20} />
@@ -181,7 +185,7 @@ export default function BookDetails() {
               type="button"
               className="icon-btn"
               onClick={() => setShowMenu(!showMenu)}
-              aria-label="More options"
+              aria-label={t('bookDetails.aria.moreOptions')}
             >
               <MoreVertical size={20} />
             </button>
@@ -197,7 +201,7 @@ export default function BookDetails() {
                   }}
                 >
                   <Edit2 size={16} />
-                  Edit Book
+                  {t('bookDetails.buttons.edit')}
                 </button>
                 <button
                   type="button"
@@ -208,7 +212,7 @@ export default function BookDetails() {
                   }}
                 >
                   <Trash2 size={16} />
-                  Delete Book
+                  {t('bookDetails.buttons.delete')}
                 </button>
               </div>
             )}
@@ -227,7 +231,7 @@ export default function BookDetails() {
           <div className="book-info-section">
             <div className="book-header-info">
               <h1 className="book-details-title">{book.title}</h1>
-              <p className="book-details-author">by {book.author}</p>
+              <p className="book-details-author">{t('bookLabels.byAuthor', { author: book.author })}</p>
             </div>
 
             <div className="book-rating-section">
@@ -235,7 +239,7 @@ export default function BookDetails() {
                 {renderStars(book.rating)}
               </div>
               <span className="book-rating-text">
-                {book.rating} ratings
+                {t('bookDetails.rating.label', { value: book.rating })}
               </span>
             </div>
 
@@ -248,19 +252,19 @@ export default function BookDetails() {
                     state: { from: location.pathname },
                   })
                 }
-              >
-                Related Posts
+                >
+                {t('bookDetails.buttons.relatedPosts')}
               </button>
               <div className="visibility-badge">
                 {book.visibility === 'private' ? (
                   <>
                     <Lock size={14} />
-                    Private
+                    {t('bookVisibility.private')}
                   </>
                 ) : (
                   <>
                     <Globe size={14} />
-                    Public
+                    {t('bookVisibility.public')}
                   </>
                 )}
               </div>
@@ -270,13 +274,13 @@ export default function BookDetails() {
               {book.pages && (
                 <div className="metadata-item">
                   <BookOpen size={16} />
-                  <span><strong>{book.pages}</strong> pages</span>
+                  <span>{t('bookLabels.pages', { count: book.pages })}</span>
                 </div>
               )}
               {book.year && (
                 <div className="metadata-item">
                   <Calendar size={16} />
-                  <span>Published <strong>{book.year}</strong></span>
+                  <span>{t('bookLabels.published', { year: book.year })}</span>
                 </div>
               )}
               {book.language && (
@@ -288,20 +292,20 @@ export default function BookDetails() {
 
             {book.publisher && (
               <div className="book-publisher">
-                <strong>Publisher:</strong> {book.publisher}
+                <strong>{t('bookLabels.publisher')}:</strong> {book.publisher}
               </div>
             )}
 
             {book.description && (
               <div className="book-description">
-                <h3>Description</h3>
+                <h3>{t('bookDetails.sections.description')}</h3>
                 <p>{book.description}</p>
               </div>
             )}
 
             {book.tags && book.tags.length > 0 && (
               <div className="book-tags-section">
-                <h3>Tags</h3>
+                <h3>{t('bookDetails.sections.tags')}</h3>
                 <div className="book-tags">
                   {book.tags.map(tag => (
                     <span key={tag} className="book-tag">
@@ -316,7 +320,11 @@ export default function BookDetails() {
 
         {otherBooks.length > 0 && (
           <div className="book-related-section">
-            <h3>Other Books by {book.author.split(' ')[0]}</h3>
+            <h3>
+              {t('bookDetails.sections.otherBooks', {
+                name: book.author.split(' ')[0] || book.author,
+              })}
+            </h3>
             <div className="related-books-grid">
               {otherBooks.map(relatedBook => (
                 <button
@@ -344,24 +352,22 @@ export default function BookDetails() {
             className="modal delete-confirm-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="modal-title">Delete Book?</h2>
-            <p>
-              Are you sure you want to delete "{book.title}"? This action cannot be undone.
-            </p>
+            <h2 className="modal-title">{t('bookDetails.modal.delete.title')}</h2>
+            <p>{t('bookDetails.modal.delete.body', { title: book.title })}</p>
             <div className="modal-actions">
               <button
                 type="button"
                 className="btn ghost"
                 onClick={() => setShowDeleteConfirm(false)}
               >
-                Cancel
+                {t('buttons.cancel')}
               </button>
               <button
                 type="button"
                 className="btn danger"
                 onClick={handleDeleteBook}
               >
-                Delete
+                {t('buttons.delete')}
               </button>
             </div>
           </div>

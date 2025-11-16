@@ -6442,12 +6442,54 @@ body {
   display: inline-flex;
   align-items: flex-end;
   justify-content: center;
+  position: relative;
   border-radius: 28px;
   transition: transform 0.25s ease, filter 0.25s ease;
   background: transparent;
   border: none;
   box-shadow: none;
   filter: drop-shadow(0 16px 28px rgba(15, 23, 42, 0.18));
+}
+
+.cat-peek-spot .cat-peek-animation::after,
+.cat-peek-spot .cat-peek-animation::before {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 2;
+}
+
+.cat-peek-spot .cat-peek-animation::after {
+  content: '勉強頑張ってください';
+  right: calc(100% + 20px);
+  bottom: 56%;
+  transform: translate(8px, 8px) scale(0.98);
+  background: #fff;
+  border-radius: 18px;
+  border: 2px solid rgba(15, 23, 42, 0.1);
+  padding: 12px 18px;
+  min-width: 220px;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #0f172a;
+  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.16);
+  filter: drop-shadow(0 2px 8px rgba(15, 23, 42, 0.12));
+}
+
+.cat-peek-spot .cat-peek-animation::before {
+  content: '';
+  right: calc(100% + 8px);
+  bottom: 35%;
+  transform: translateY(8px) scale(0.98);
+  width: 0;
+  height: 0;
+  border: 12px solid transparent;
+  border-left-color: #fff;
+  filter: drop-shadow(-2px 2px 4px rgba(15, 23, 42, 0.12));
 }
 
 .cat-peek-spot .cat-peek-animation:focus-visible {
@@ -6459,6 +6501,14 @@ body {
 .cat-peek-spot .cat-peek-animation:focus-visible {
   transform: translateY(-4px);
   filter: drop-shadow(0 20px 34px rgba(15, 23, 42, 0.22));
+}
+
+.cat-peek-spot .cat-peek-animation:hover::after,
+.cat-peek-spot .cat-peek-animation:hover::before,
+.cat-peek-spot .cat-peek-animation:focus-visible::after,
+.cat-peek-spot .cat-peek-animation:focus-visible::before {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
 }
 
 .cat-peek-animation canvas {

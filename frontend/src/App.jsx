@@ -71,7 +71,6 @@ function AppContent() {
   const [, setDataLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
   const [currentTask, setCurrentTask] = useState(null)
-  const [lastCompletedTask, setLastCompletedTask] = useState(null)
 
   const buildFriendProfiles = useCallback((currentProfile, profileMap) => {
     if (!currentProfile?.followingIds?.length) {
@@ -481,13 +480,8 @@ function AppContent() {
     })
   }
 
-  function handleCompleteTask(taskTitle, timeSpent) {
+  function handleCompleteTask(taskTitle) {
     if (!taskTitle) return
-    setLastCompletedTask({
-      title: taskTitle,
-      timeSpent: timeSpent ?? null,
-      completedAt: new Date().toISOString(),
-    })
     setCurrentTask(prev => {
       if (!prev) return null
       return prev.title === taskTitle ? null : prev
@@ -503,7 +497,7 @@ function AppContent() {
           ) : isToolPage ? (
             <ToolTopbar toolId={toolId} />
           ) : (
-            <Navbar currentTask={currentTask} lastCompletedTask={lastCompletedTask} />
+            <Navbar />
           ))}
 
         <main className={mainClassName}>

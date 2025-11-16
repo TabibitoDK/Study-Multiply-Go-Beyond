@@ -211,12 +211,12 @@ function FloatingEdge({ id, source, target, markerEnd, style, selected }) {
   )
 }
 
-const nodeTypes = {
+const NODE_TYPES = Object.freeze({
   task: FlowTaskNode,
-}
-const edgeTypes = {
+})
+const EDGE_TYPES = Object.freeze({
   floating: FloatingEdge,
-}
+})
 
 function sanitizeEdgesForStorage(edges) {
   return edges.map(({ markerEnd: _markerEnd, ...rest }) => rest)
@@ -275,6 +275,8 @@ export default function FlowView() {
   const navigate = useNavigate()
   const { planId } = useParams()
   const { plans } = useTaskManager()
+  const nodeTypes = useMemo(() => NODE_TYPES, [])
+  const edgeTypes = useMemo(() => EDGE_TYPES, [])
   const [edgeContextMenu, setEdgeContextMenu] = useState(null)
 
   const plan = useMemo(

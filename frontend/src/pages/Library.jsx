@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import BookCard from '../components/library/BookCard.jsx'
 import BookModal from '../components/library/BookModal.jsx'
 import bookService from '../services/bookService.js'
@@ -16,6 +17,7 @@ const collectTags = books =>
 
 export default function Library() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -37,7 +39,7 @@ export default function Library() {
         setError(null)
       } catch (err) {
         console.error('Error fetching library data:', err)
-        setError('Failed to load the shared library. Please try again later.')
+        setError(t('libraryPage.errors.load'))
       } finally {
         setLoading(false)
       }
@@ -54,7 +56,7 @@ export default function Library() {
       setAllTags(collectTags(booksData))
     } catch (err) {
       console.error('Error refreshing books:', err)
-      setError('Failed to refresh books. Please try again later.')
+      setError(t('libraryPage.errors.refresh'))
     }
   }
 
@@ -124,7 +126,7 @@ export default function Library() {
       setEditingBook(null)
     } catch (err) {
       console.error('Error saving book:', err)
-      setError('Failed to save book. Please try again.')
+      setError(t('libraryPage.errors.save'))
     }
   }
 
@@ -162,7 +164,9 @@ export default function Library() {
       <div className="library-page">
         <div className="error-container">
           <p>{error}</p>
-          <button onClick={refreshBooks} className="btn">Retry</button>
+          <button onClick={refreshBooks} className="btn">
+            {t('buttons.retry')}
+          </button>
         </div>
       </div>
     )
@@ -172,15 +176,15 @@ export default function Library() {
     <div className="library-page">
       <header className="library-header">
         <div className="library-header-top">
-          <h1 className="library-title">Library</h1>
-          <p className="library-subtitle">Explore the shared community library</p>
+          <h1 className="library-title">{t('libraryPage.title')}</h1>
+          <p className="library-subtitle">{t('libraryPage.subtitle')}</p>
         </div>
 
         <div className="library-controls">
           <div className="search-bar">
             <input
               type="text"
-              placeholder="Search by title, author, or tags..."
+              placeholder={t('libraryPage.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="search-input"
@@ -193,7 +197,7 @@ export default function Library() {
             onClick={handleAddBook}
           >
             <Plus size={18} />
-            Add Book
+            {t('libraryPage.buttons.add')}
           </button>
         </div>
       </header>
@@ -205,14 +209,14 @@ export default function Library() {
             className="filter-reset"
             onClick={resetFilters}
           >
-            Reset
+            {t('libraryPage.buttons.reset')}
           </button>
         </div>
       )}
 
       {allTags.length > 0 && (
         <div className="library-tags-section">
-          <p className="tags-label">Filter by tags:</p>
+          <p className="tags-label">{t('libraryPage.filters.tags')}</p>
           <div className="tags-container">
             {allTags.map(tag => (
               <button
@@ -232,18 +236,18 @@ export default function Library() {
 
       <div className="library-stats">
         <span className="stat">
-          {filteredAndSearchedBooks.length} book{filteredAndSearchedBooks.length !== 1 ? 's' : ''}
+          {t('libraryPage.stats.books', { count: filteredAndSearchedBooks.length })}
         </span>
       </div>
 
       {filteredAndSearchedBooks.length === 0 ? (
         <div className="library-empty">
           <div className="empty-content">
-            <h2>No books found</h2>
+            <h2>{t('libraryPage.empty.title')}</h2>
             <p>
               {hasActiveFilters
-                ? 'Try adjusting your search or filters.'
-                : "Start building your library by adding your first book!"}
+                ? t('libraryPage.empty.filters')
+                : t('libraryPage.empty.start')}
             </p>
             {!hasActiveFilters && (
               <button
@@ -251,7 +255,7 @@ export default function Library() {
                 className="btn"
                 onClick={handleAddBook}
               >
-                Add Your First Book
+                {t('libraryPage.buttons.addFirst')}
               </button>
             )}
           </div>

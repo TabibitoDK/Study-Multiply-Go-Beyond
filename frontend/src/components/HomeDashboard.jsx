@@ -23,24 +23,6 @@ const TASK_STATUS_OPTIONS = ['not-started', 'in-progress', 'cancelled', 'complet
 
 const LONG_TERM_STATUS_OPTIONS = ['not-started', 'in-progress', 'cancelled', 'completed']
 
-const PROGRESS_PRIMARY_TABS = [
-  { id: 'today', labelKey: 'home.progress.tabs.today', defaultLabel: 'Today', icon: 'calendar-day' },
-  {
-    id: 'yesterday',
-    labelKey: 'home.progress.tabs.yesterday',
-    defaultLabel: 'Yesterday',
-    icon: 'clock-rotate',
-  },
-  { id: 'days', labelKey: 'home.progress.tabs.days', defaultLabel: 'Days', icon: 'list' },
-  { id: 'tags', labelKey: 'home.progress.tabs.tags', defaultLabel: 'Tags', icon: 'tag' },
-  {
-    id: 'database',
-    labelKey: 'home.progress.tabs.database',
-    defaultLabel: 'Database',
-    icon: 'database',
-  },
-]
-
 const PROGRESS_SUMMARY_RANGES = [
   { id: 'today', labelKey: 'home.progress.summary.today', defaultLabel: 'Today' },
   { id: 'week', labelKey: 'home.progress.summary.week', defaultLabel: 'This Week' },
@@ -63,103 +45,6 @@ const PROGRESS_SEGMENT_COLORS = {
   violet: '#f97316',
   amber: '#f43f5e',
   slate: '#facc15',
-}
-
-function ProgressFilterIcon({ type }) {
-  switch (type) {
-    case 'calendar-day':
-      return (
-        <svg
-          className="progress-filter__icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <rect x="4" y="5" width="16" height="15" rx="2" />
-          <line x1="8" y1="3" x2="8" y2="7" />
-          <line x1="16" y1="3" x2="16" y2="7" />
-          <path d="M4 10h16" />
-          <path d="M10 14h4" />
-        </svg>
-      )
-    case 'clock-rotate':
-      return (
-        <svg
-          className="progress-filter__icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="8.5" />
-          <polyline points="12 7 12 12 16 13.5" />
-          <polyline points="11 4 12 4 12 7 9 7" />
-        </svg>
-      )
-    case 'list':
-      return (
-        <svg
-          className="progress-filter__icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <line x1="9" y1="7" x2="19" y2="7" />
-          <line x1="9" y1="12" x2="19" y2="12" />
-          <line x1="9" y1="17" x2="19" y2="17" />
-          <circle cx="5" cy="7" r="1.5" />
-          <circle cx="5" cy="12" r="1.5" />
-          <circle cx="5" cy="17" r="1.5" />
-        </svg>
-      )
-    case 'tag':
-      return (
-        <svg
-          className="progress-filter__icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M4 10V5a1 1 0 0 1 1-1h5l10 10-6 6L4 10z" />
-          <circle cx="9" cy="8" r="1.5" />
-        </svg>
-      )
-    case 'database':
-      return (
-        <svg
-          className="progress-filter__icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <ellipse cx="12" cy="6.5" rx="7" ry="3" />
-          <path d="M5 6.5v9c0 1.66 3.13 3 7 3s7-1.34 7-3v-9" />
-          <path d="M5 11.5c0 1.66 3.13 3 7 3s7-1.34 7-3" />
-          <path d="M5 15.5c0 1.66 3.13 3 7 3s7-1.34 7-3" />
-        </svg>
-      )
-    default:
-      return null
-  }
 }
 
 
@@ -267,9 +152,6 @@ export default function HomeDashboard({
   )
   const [taskStatusFilter, setTaskStatusFilter] = useState('all')
   const [taskSearchQuery, setTaskSearchQuery] = useState('')
-  const [progressPrimaryFilter, setProgressPrimaryFilter] = useState(
-    PROGRESS_PRIMARY_TABS[0]?.id ?? 'today',
-  )
   const [progressSummaryRange, setProgressSummaryRange] = useState(
     PROGRESS_SUMMARY_RANGES[0]?.id ?? 'today',
   )
@@ -284,15 +166,6 @@ export default function HomeDashboard({
           t(key, { defaultValue: STATUS_DEFAULT_LABELS[status] ?? status }),
         ]),
       ),
-    [t],
-  )
-
-  const progressPrimaryTabs = useMemo(
-    () =>
-      PROGRESS_PRIMARY_TABS.map(tab => ({
-        ...tab,
-        label: t(tab.labelKey, { defaultValue: tab.defaultLabel }),
-      })),
     [t],
   )
 
@@ -1198,29 +1071,6 @@ export default function HomeDashboard({
             aria-label={t('home.dashboard.progress.panelAria', { defaultValue: 'Progress tab' })}
           >
             <div className="progress-panel__main">
-              <div
-                className="progress-panel__tabs"
-                role="tablist"
-                aria-label={t('home.dashboard.progress.viewsAria', { defaultValue: 'Focus views' })}
-              >
-                {progressPrimaryTabs.map(filter => {
-                  const isActive = progressPrimaryFilter === filter.id
-                  return (
-                    <button
-                      key={filter.id}
-                      type="button"
-                      className={`progress-tab${isActive ? ' is-active' : ''}`}
-                      onClick={() => setProgressPrimaryFilter(filter.id)}
-                      role="tab"
-                      aria-selected={isActive}
-                    >
-                      <ProgressFilterIcon type={filter.icon} />
-                      <span className="progress-tab__label">{filter.label}</span>
-                    </button>
-                  )
-                })}
-              </div>
-
               <h2 className="progress-panel__title">
                 {t('home.dashboard.progress.title', { defaultValue: 'Focus Time Tracker Database' })}
               </h2>

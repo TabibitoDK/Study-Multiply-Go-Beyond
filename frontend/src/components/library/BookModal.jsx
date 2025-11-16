@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function BookModal({ book, allTags, onSave, onClose }) {
+  const { t } = useTranslation()
   const [formData, setFormData] = useState({
     title: '',
     author: '',
@@ -59,8 +61,8 @@ export default function BookModal({ book, allTags, onSave, onClose }) {
 
   const validateForm = () => {
     const newErrors = {}
-    if (!formData.title.trim()) newErrors.title = 'Title is required'
-    if (!formData.author.trim()) newErrors.author = 'Author is required'
+    if (!formData.title.trim()) newErrors.title = t('bookModal.errors.titleRequired')
+    if (!formData.author.trim()) newErrors.author = t('bookModal.errors.authorRequired')
     return newErrors
   }
 
@@ -86,13 +88,13 @@ export default function BookModal({ book, allTags, onSave, onClose }) {
       <div className="modal book-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">
-            {book ? 'Edit Book' : 'Add New Book'}
+            {book ? t('bookModal.title.edit') : t('bookModal.title.create')}
           </h2>
           <button
             type="button"
             className="modal-close-btn"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('bookModal.aria.close')}
           >
             <X size={20} />
           </button>
@@ -101,28 +103,28 @@ export default function BookModal({ book, allTags, onSave, onClose }) {
         <form onSubmit={handleSubmit} className="book-modal-form">
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="title">Title *</label>
+              <label htmlFor="title">{t('bookModal.labels.title')} *</label>
               <input
                 id="title"
                 type="text"
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                placeholder="Book title"
+                placeholder={t('bookModal.placeholders.title')}
                 className={errors.title ? 'input-error' : ''}
               />
               {errors.title && <span className="form-error">{errors.title}</span>}
             </div>
 
             <div className="form-group">
-              <label htmlFor="author">Author *</label>
+              <label htmlFor="author">{t('bookModal.labels.author')} *</label>
               <input
                 id="author"
                 type="text"
                 name="author"
                 value={formData.author}
                 onChange={handleChange}
-                placeholder="Author name"
+                placeholder={t('bookModal.placeholders.author')}
                 className={errors.author ? 'input-error' : ''}
               />
               {errors.author && <span className="form-error">{errors.author}</span>}
@@ -131,82 +133,82 @@ export default function BookModal({ book, allTags, onSave, onClose }) {
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="year">Year</label>
+              <label htmlFor="year">{t('bookModal.labels.year')}</label>
               <input
                 id="year"
                 type="number"
                 name="year"
                 value={formData.year}
                 onChange={handleChange}
-                placeholder="2024"
+                placeholder={t('bookModal.placeholders.year')}
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="pages">Pages</label>
+              <label htmlFor="pages">{t('bookModal.labels.pages')}</label>
               <input
                 id="pages"
                 type="number"
                 name="pages"
                 value={formData.pages}
                 onChange={handleChange}
-                placeholder="Number of pages"
+                placeholder={t('bookModal.placeholders.pages')}
               />
             </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="cover">Cover Image URL</label>
+            <label htmlFor="cover">{t('bookModal.labels.cover')}</label>
             <input
               id="cover"
               type="url"
               name="cover"
               value={formData.cover}
               onChange={handleChange}
-              placeholder="https://example.com/cover.jpg"
+              placeholder={t('bookModal.placeholders.cover')}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="publisher">Publisher</label>
+            <label htmlFor="publisher">{t('bookModal.labels.publisher')}</label>
             <input
               id="publisher"
               type="text"
               name="publisher"
               value={formData.publisher}
               onChange={handleChange}
-              placeholder="Publisher name"
+              placeholder={t('bookModal.placeholders.publisher')}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="description">Description</label>
+            <label htmlFor="description">{t('bookModal.labels.description')}</label>
             <textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Book description..."
+              placeholder={t('bookModal.placeholders.description')}
               rows="4"
             />
           </div>
 
           <div className="form-group">
-            <label>Tags</label>
+            <label>{t('bookModal.labels.tags')}</label>
             <div className="tag-input-container">
               <input
                 type="text"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Add tags and press Enter"
+                placeholder={t('bookModal.placeholders.tags')}
               />
               <button
                 type="button"
                 onClick={() => handleAddTag(tagInput.trim())}
                 className="tag-add-btn"
               >
-                Add
+                {t('bookModal.buttons.addTag')}
               </button>
             </div>
             {allTags.length > 0 && (
@@ -237,9 +239,9 @@ export default function BookModal({ book, allTags, onSave, onClose }) {
                     <button
                       type="button"
                       onClick={() => handleRemoveTag(tag)}
-                      aria-label={`Remove ${tag}`}
+                      aria-label={t('bookModal.aria.removeTag', { tag })}
                     >
-                      ×
+                      ÁE
                     </button>
                   </span>
                 ))}
@@ -249,21 +251,21 @@ export default function BookModal({ book, allTags, onSave, onClose }) {
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="status">Status</label>
+            <label htmlFor="status">{t('bookModal.labels.status')}</label>
               <select
                 id="status"
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
               >
-                <option value="want-to-read">Want to Read</option>
-                <option value="reading">Reading</option>
-                <option value="completed">Completed</option>
+                <option value="want-to-read">{t('bookStatus.wantToRead')}</option>
+                <option value="reading">{t('bookStatus.reading')}</option>
+                <option value="completed">{t('bookStatus.completed')}</option>
               </select>
             </div>
 
             <div className="form-group">
-              <label htmlFor="rating">Rating</label>
+              <label htmlFor="rating">{t('bookModal.labels.rating')}</label>
               <div className="rating-selector">
                 <select
                   id="rating"
@@ -271,26 +273,37 @@ export default function BookModal({ book, allTags, onSave, onClose }) {
                   value={formData.rating}
                   onChange={handleChange}
                 >
-                  <option value="0">0 - Not rated</option>
-                  <option value="1">1 - Poor</option>
-                  <option value="2">2 - Fair</option>
-                  <option value="3">3 - Good</option>
-                  <option value="4">4 - Very Good</option>
-                  <option value="5">5 - Excellent</option>
+                  {[0, 1, 2, 3, 4, 5].map(value => (
+                    <option key={value} value={value}>
+                      {t('bookModal.rating.option', {
+                        value,
+                        label: t(
+                          {
+                            0: 'bookModal.rating.notRated',
+                            1: 'bookModal.rating.poor',
+                            2: 'bookModal.rating.fair',
+                            3: 'bookModal.rating.good',
+                            4: 'bookModal.rating.veryGood',
+                            5: 'bookModal.rating.excellent',
+                          }[value],
+                        ),
+                      })}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="language">Language</label>
+            <label htmlFor="language">{t('bookModal.labels.language')}</label>
             <input
               id="language"
               type="text"
               name="language"
               value={formData.language}
               onChange={handleChange}
-              placeholder="Language"
+              placeholder={t('bookModal.placeholders.language')}
             />
           </div>
 
@@ -308,16 +321,16 @@ export default function BookModal({ book, allTags, onSave, onClose }) {
                   }))
                 }}
               />
-              <span>Make this book private</span>
+              <span>{t('bookModal.labels.visibility')}</span>
             </label>
           </div>
 
           <div className="modal-actions">
             <button type="button" className="btn ghost" onClick={onClose}>
-              Cancel
+              {t('buttons.cancel')}
             </button>
             <button type="submit" className="btn">
-              {book ? 'Save Changes' : 'Add Book'}
+              {book ? t('bookModal.buttons.save') : t('bookModal.buttons.add')}
             </button>
           </div>
         </form>

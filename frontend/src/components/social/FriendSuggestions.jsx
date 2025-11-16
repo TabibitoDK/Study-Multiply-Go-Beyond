@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Search, Users, FileText, UserPlus, UserCheck, Loader, AlertCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import profileService from '../../services/profileService.js'
 import postService from '../../services/postService.js'
 import { useAuth } from '../../context/AuthContext.jsx'
@@ -74,6 +75,7 @@ export default function FriendSuggestions({
   onGroupJoin = () => {},
 }) {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const isGuest = Boolean(user?.isGuest)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState('friends')
@@ -151,7 +153,7 @@ export default function FriendSuggestions({
       setFollowing(followingIds)
     } catch (err) {
       console.error('Error fetching friend suggestions:', err)
-      setError('Failed to load friend suggestions. Please try again later.')
+      setError(t('friendSuggestions.errors.load'))
       
       // Fallback to mock data when API fails
       const mockSuggestions = [
@@ -273,16 +275,16 @@ export default function FriendSuggestions({
       })
     } catch (err) {
       console.error('Error searching:', err)
-      setError('Failed to search. Please try again later.')
+      setError(t('friendSuggestions.errors.search'))
       
       // Fallback to mock data when API fails
       setSearchResults({
         friends: searchQuery ? [
           {
             id: '4',
-            name: 'Search Result User',
+            name: t('friendSuggestions.mock.userName'),
             username: 'searchuser',
-            bio: 'This is a mock search result',
+            bio: t('friendSuggestions.mock.userBio'),
             profileImage: '',
             isFollowing: false
           }
@@ -290,7 +292,7 @@ export default function FriendSuggestions({
         posts: searchQuery ? [
           {
             id: '1',
-            content: `Mock post containing "${searchQuery}"`,
+            content: t('friendSuggestions.mock.post', { query: searchQuery }),
             author: {
               name: 'Mock Author',
               username: 'mockauthor'
@@ -322,7 +324,7 @@ export default function FriendSuggestions({
       null
 
     if (!targetUser) {
-      setError('Unable to find this learner. Please try again.')
+      setError(t('friendSuggestions.errors.missingUser'))
       return
     }
 
@@ -357,22 +359,22 @@ export default function FriendSuggestions({
       } else {
         onFriendFollow({
           id: targetUser.id,
-          name: targetUser.name || targetUser.username || 'New friend',
+          name: targetUser.name || targetUser.username || t('friendSuggestions.fallback.newFriend'),
           username: targetUser.username || targetUser.name || '',
           profileImage: targetUser.profileImage || '',
           status: 'online',
-          activity: targetUser.bio || 'Ready to study',
+          activity: targetUser.bio || t('friendSuggestions.fallback.readyToStudy'),
         })
       }
     }
 
     const friendPayload = {
       id: targetUser.id,
-      name: targetUser.name || targetUser.username || 'New friend',
+      name: targetUser.name || targetUser.username || t('friendSuggestions.fallback.newFriend'),
       username: targetUser.username || targetUser.name || '',
       profileImage: targetUser.profileImage || '',
       status: 'online',
-      activity: targetUser.bio || 'Ready to study',
+      activity: targetUser.bio || t('friendSuggestions.fallback.readyToStudy'),
     }
 
     if (isGuest) {
@@ -396,7 +398,7 @@ export default function FriendSuggestions({
       syncPanels()
     } catch (err) {
       console.error('Error toggling follow:', err)
-      setError(err.message || 'Unable to update follow status. Please try again later.')
+      setError(err.message || t('friendSuggestions.errors.follow'))
     }
   }
 
@@ -406,7 +408,7 @@ export default function FriendSuggestions({
         <Search size={18} className="search-icon" />
         <input
           type="text"
-          placeholder="Search friends or posts..."
+          placeholder={t('friendSuggestions.searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="search-input"
@@ -423,7 +425,7 @@ export default function FriendSuggestions({
               onClick={() => setActiveTab('friends')}
             >
               <Users size={16} />
-              Friends
+              {t('friendSuggestions.tabs.friends')}
             </button>
             <button
               type="button"
@@ -431,7 +433,7 @@ export default function FriendSuggestions({
               onClick={() => setActiveTab('posts')}
             >
               <FileText size={16} />
-              Posts
+              {t('friendSuggestions.tabs.posts')}
             </button>
           </div>
 
@@ -439,7 +441,7 @@ export default function FriendSuggestions({
             {loading ? (
               <div className="loading-state">
                 <Loader size={20} className="spinner" />
-                <span>Searching...</span>
+                <span>{t('friendSuggestions.loading.search')}</span>
               </div>
             ) : error ? (
               <div className="error-state">
@@ -451,7 +453,7 @@ export default function FriendSuggestions({
                 {searchResults.friends.length === 0 ? (
                   <div className="empty-state">
                     <Users size={24} />
-                    <span>No friends found</span>
+                    <span>{t('friendSuggestions.empty.friends')}</span>
                   </div>
                 ) : (
                   searchResults.friends.map(user => (
@@ -469,7 +471,7 @@ export default function FriendSuggestions({
                 {searchResults.posts.length === 0 ? (
                   <div className="empty-state">
                     <FileText size={24} />
-                    <span>No posts found</span>
+                    <span>{t('friendSuggestions.empty.posts')}</span>
                   </div>
                 ) : (
                   searchResults.posts.map(post => (
@@ -485,13 +487,13 @@ export default function FriendSuggestions({
           <div className="suggestions-section">
             <div className="section-header">
               <Users size={20} />
-              <h3>Suggested Friends</h3>
+              <h3>{t('friendSuggestions.headers.friends')}</h3>
             </div>
             
             {loading ? (
               <div className="loading-state">
                 <Loader size={20} className="spinner" />
-                <span>Loading suggestions...</span>
+                <span>{t('friendSuggestions.loading.suggestions')}</span>
               </div>
             ) : error ? (
               <div className="error-state">
@@ -503,7 +505,7 @@ export default function FriendSuggestions({
                 {suggestions.length === 0 ? (
                   <div className="empty-state">
                     <Users size={24} />
-                    <span>No suggestions available</span>
+                    <span>{t('friendSuggestions.empty.suggestions')}</span>
                   </div>
                 ) : (
                   suggestions.map(user => (
@@ -522,7 +524,7 @@ export default function FriendSuggestions({
           <div className="suggestions-section group-suggestions-section">
             <div className="section-header">
               <Users size={20} />
-              <h3>Suggested Groups</h3>
+              <h3>{t('friendSuggestions.headers.groups')}</h3>
             </div>
             <div className="suggestions-list">
               {groupSuggestions.map(group => (
@@ -543,6 +545,7 @@ export default function FriendSuggestions({
 
 // Friend suggestion item component
 function FriendSuggestionItem({ user, isFollowing, onFollowToggle }) {
+  const { t } = useTranslation()
   return (
     <div className="friend-suggestion-item">
       <div className="friend-info">
@@ -560,17 +563,19 @@ function FriendSuggestionItem({ user, isFollowing, onFollowToggle }) {
         type="button"
         className={`follow-button ${isFollowing ? 'following' : ''}`}
         onClick={onFollowToggle}
-        aria-label={isFollowing ? 'Unfollow' : 'Follow'}
+        aria-label={
+          isFollowing ? t('friendSuggestions.aria.unfollow') : t('friendSuggestions.aria.follow')
+        }
       >
         {isFollowing ? (
           <>
             <UserCheck size={16} />
-            Following
+            {t('friendSuggestions.buttons.following')}
           </>
         ) : (
           <>
             <UserPlus size={16} />
-            Follow
+            {t('friendSuggestions.buttons.follow')}
           </>
         )}
       </button>
@@ -579,6 +584,7 @@ function FriendSuggestionItem({ user, isFollowing, onFollowToggle }) {
 }
 
 function GroupSuggestionItem({ group, isJoined, onJoin }) {
+  const { t } = useTranslation()
   const initials = group.name
     .split(' ')
     .map(part => part[0])
@@ -596,12 +602,12 @@ function GroupSuggestionItem({ group, isJoined, onJoin }) {
         >
           {!group.image && <span>{initials || '?'}</span>}
         </div>
-        <div className="group-details">
-          <div className="group-name">{group.name}</div>
-          <div className="group-topic">{group.topic}</div>
-          <div className="group-meta">{group.memberCount} members</div>
-          <p className="group-description">{group.description}</p>
-        </div>
+          <div className="group-details">
+            <div className="group-name">{group.name}</div>
+            <div className="group-topic">{group.topic}</div>
+            <div className="group-meta">{t('labels.members', { count: group.memberCount })}</div>
+            <p className="group-description">{group.description}</p>
+          </div>
       </div>
       <button
         type="button"
@@ -609,7 +615,7 @@ function GroupSuggestionItem({ group, isJoined, onJoin }) {
         onClick={onJoin}
         disabled={isJoined}
       >
-        {isJoined ? 'Joined' : 'Join'}
+        {isJoined ? t('friendSuggestions.buttons.joined') : t('friendSuggestions.buttons.join')}
       </button>
     </div>
   )

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { ChevronDown, ChevronRight, Send, Image, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 // Sample demo data
 const demoFriends = [
@@ -94,6 +95,7 @@ const demoMessages = {
 }
 
 export default function DemoFriends() {
+  const { t } = useTranslation()
   const [selectedChat, setSelectedChat] = useState(null)
   const [messageText, setMessageText] = useState('')
   const [messages, setMessages] = useState([])
@@ -205,10 +207,12 @@ export default function DemoFriends() {
         <div className="friend-card__body">
           <div className="friend-card__top">
             <span className="friend-card__name">{friend.name}</span>
-            <span className="friend-card__chip">{isOnline ? friend.activity : 'Offline'}</span>
+            <span className="friend-card__chip">
+              {isOnline ? friend.activity : t('presence.offline')}
+            </span>
           </div>
           <span className="friend-card__status">
-            {isOnline ? 'Online' : 'Offline'}
+            {isOnline ? t('presence.online') : t('presence.offline')}
           </span>
         </div>
         <svg
@@ -251,7 +255,7 @@ export default function DemoFriends() {
         <div className="group-card__body">
           <span className="group-card__name">{group.name}</span>
           <span className="group-card__meta">
-            {group.memberCount} {group.memberCount === 1 ? 'member' : 'members'}
+            {t('labels.members', { count: group.memberCount })}
           </span>
         </div>
         <svg
@@ -299,14 +303,14 @@ export default function DemoFriends() {
       <aside className="panel friends-panel" style={{ width: '320px', flexShrink: 0 }}>
         <header className="friends-panel__header">
           <div className="friends-panel__title">
-            Friends & Groups
+            {t('demoFriends.panel.title')}
           </div>
         </header>
 
         <div className="friends-panel__collapsible-container">
           {/* Friends Section */}
           <section className="friends-panel__section friends-panel__section--primary">
-            {renderSectionHeader('Friends', demoFriends.length, 'friends')}
+            {renderSectionHeader(t('demoFriends.sections.friends'), demoFriends.length, 'friends')}
             
             <div
               id="friends-section-content"
@@ -316,12 +320,12 @@ export default function DemoFriends() {
               <div className="friends-panel__scrollable-wrapper">
                 <div className="friends-panel__subsection">
                   <div className="friends-panel__subsection-heading">
-                    <span className="friends-panel__subsection-title">Online</span>
+                    <span className="friends-panel__subsection-title">{t('demoFriends.subsections.online')}</span>
                     <span className="friends-panel__subsection-count">{onlineFriends.length}</span>
                   </div>
 
                   {onlineFriends.length === 0 ? (
-                    <p className="friends-panel__empty">No one is online</p>
+                    <p className="friends-panel__empty">{t('demoFriends.empty.online')}</p>
                   ) : (
                     <div className="friends-panel__list">
                       {onlineFriends.map(renderFriendCard)}
@@ -331,12 +335,12 @@ export default function DemoFriends() {
 
                 <div className="friends-panel__subsection">
                   <div className="friends-panel__subsection-heading">
-                    <span className="friends-panel__subsection-title">Offline</span>
+                    <span className="friends-panel__subsection-title">{t('demoFriends.subsections.offline')}</span>
                     <span className="friends-panel__subsection-count">{offlineFriends.length}</span>
                   </div>
 
                   {offlineFriends.length === 0 ? (
-                    <p className="friends-panel__empty">No offline friends</p>
+                    <p className="friends-panel__empty">{t('demoFriends.empty.offline')}</p>
                   ) : (
                     <div className="friends-panel__list">
                       {offlineFriends.map(renderFriendCard)}
@@ -349,7 +353,7 @@ export default function DemoFriends() {
 
           {/* Groups Section */}
           <section className="friends-panel__section friends-panel__section--groups">
-            {renderSectionHeader('Groups', demoGroups.length, 'groups')}
+            {renderSectionHeader(t('demoFriends.sections.groups'), demoGroups.length, 'groups')}
             
             <div
               id="groups-section-content"
@@ -358,7 +362,7 @@ export default function DemoFriends() {
             >
               <div className="friends-panel__scrollable-wrapper groups-scrollable-wrapper">
                 {demoGroups.length === 0 ? (
-                  <p className="friends-panel__empty">No groups yet</p>
+                  <p className="friends-panel__empty">{t('demoFriends.empty.groups')}</p>
                 ) : (
                   <div className="friends-panel__list">
                     {demoGroups.map(renderGroupCard)}
@@ -387,18 +391,20 @@ export default function DemoFriends() {
                 <div className="chat-header-name">{selectedChat.name}</div>
                 {selectedChat.status ? (
                   <div className="chat-header-status">
-                    {selectedChat.status === 'online' ? 'Online' : 'Offline'}
+                    {selectedChat.status === 'online' ? t('presence.online') : t('presence.offline')}
                     {selectedChat.activity && ` - ${selectedChat.activity}`}
                   </div>
                 ) : (
-                  <div className="chat-header-status">{selectedChat.memberCount} members</div>
+                  <div className="chat-header-status">
+                    {t('labels.members', { count: selectedChat.memberCount })}
+                  </div>
                 )}
               </div>
             </div>
 
             <div className="chat-messages">
               {messages.length === 0 ? (
-                <div className="chat-placeholder">No messages yet. Say hi!</div>
+                <div className="chat-placeholder">{t('chatPage.empty.messages')}</div>
               ) : (
                 messages.map(message => (
                   <div key={message.id} className={`chat-message ${message.isOwn ? 'own' : 'other'}`}>
@@ -421,8 +427,13 @@ export default function DemoFriends() {
             <form className="chat-input-form" onSubmit={handleSendMessage}>
               {selectedImage && (
                 <div className="chat-image-preview">
-                  <img src={selectedImage} alt="Preview" />
-                  <button type="button" className="chat-image-remove" onClick={handleRemoveImage}>
+                  <img src={selectedImage} alt={t('chatPage.aria.previewImage')} />
+                  <button
+                    type="button"
+                    className="chat-image-remove"
+                    onClick={handleRemoveImage}
+                    aria-label={t('chatPage.actions.removeImage')}
+                  >
                     <X size={16} />
                   </button>
                 </div>
@@ -435,27 +446,33 @@ export default function DemoFriends() {
                   onChange={handleImageSelect}
                   style={{ display: 'none' }}
                 />
-                <button type="button" className="icon-btn" onClick={() => fileInputRef.current?.click()} title="Attach image">
+                <button
+                  type="button"
+                  className="icon-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                  title={t('chatPage.actions.attachImage')}
+                  aria-label={t('chatPage.actions.attachImage')}
+                >
                   <Image size={20} />
                 </button>
                 <input
                   type="text"
                   className="chat-input"
-                  placeholder="Type a message..."
+                  placeholder={t('chatPage.actions.placeholder')}
                   value={messageText}
                   onChange={e => setMessageText(e.target.value)}
                 />
                 <button type="submit" className="btn" disabled={!messageText.trim() && !selectedImage}>
                   <Send size={16} style={{ marginRight: '4px' }} />
-                  Send
+                  {t('buttons.send')}
                 </button>
               </div>
             </form>
           </>
         ) : (
           <div className="chat-error" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <h2>Select a chat to start messaging</h2>
-            <p>Choose a friend or group from the sidebar to begin your conversation</p>
+            <h2>{t('demoFriends.idle.title')}</h2>
+            <p>{t('demoFriends.idle.description')}</p>
           </div>
         )}
       </div>

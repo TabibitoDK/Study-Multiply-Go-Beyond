@@ -1,6 +1,7 @@
 {
   "brand": {
-    "title": "Nyacademy"
+    "title": "Nyacademy",
+    "tagline": "Study Multiply, Go Beyond."
   },
   "navbar": {
     "logoAlt": "Nyacademy logo",
@@ -26,7 +27,10 @@
     "exitEdit": "Done editing",
     "today": "Today",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "retry": "Retry",
+    "delete": "Delete",
+    "send": "Send"
   },
   "rightPanel": {
     "guest": "Guest",
@@ -61,6 +65,35 @@
       "en": "English",
       "ja": "Japanese"
     }
+  },
+  "presence": {
+    "online": "Online",
+    "offline": "Offline"
+  },
+  "bookStatus": {
+    "wantToRead": "Want to Read",
+    "reading": "Currently Reading",
+    "completed": "Finished"
+  },
+  "bookVisibility": {
+    "public": "Public",
+    "private": "Private"
+  },
+  "bookLabels": {
+    "pages": "{{count}} pages",
+    "published": "Published {{year}}",
+    "publisher": "Publisher",
+    "language": "Language",
+    "status": "Status",
+    "visibility": "Visibility",
+    "description": "Description",
+    "tags": "Tags",
+    "byAuthor": "by {{author}}"
+  },
+  "labels": {
+    "members_one": "{{count}} member",
+    "members_other": "{{count}} members",
+    "minutes": "{{count}} min"
   },
   "calendar": {
     "aria": {
@@ -278,6 +311,120 @@
       }
     }
   },
+  "flashcards": {
+    "languages": {
+      "en": "English",
+      "es": "Spanish",
+      "fr": "French",
+      "de": "German",
+      "ja": "Japanese"
+    },
+    "actions": {
+      "create": "Create",
+      "delete": "Delete",
+      "close": "Close"
+    },
+    "home": {
+      "title": "Flashcards",
+      "subtitle": "Build decks for every subject and let AI draft fresh flashcards in seconds.",
+      "summary": {
+        "groups": "Groups: {{count}}",
+        "cards": "Cards: {{count}}",
+        "categories": "Categories: {{count}}"
+      },
+      "createLabel": "Create a new group",
+      "createPlaceholder": "e.g. Physics formulas",
+      "groupsTitle": "Groups ({{count}})",
+      "empty": "No groups yet. Start by creating one above.",
+      "groupMeta": "{{count}} cards",
+      "actions": {
+        "study": "Study"
+      }
+    },
+    "addForm": {
+      "title": "Add Card",
+      "category": "Category",
+      "categoryHint": "Select an existing category",
+      "categoryPlaceholder": "Or create a new category",
+      "question": "Question",
+      "questionPlaceholder": "e.g. What problem does React solve?",
+      "answer": "Answer",
+      "answerPlaceholder": "e.g. It manages complex state transitions in UI.",
+      "submit": "Add Card",
+      "validation": {
+        "required": "Please provide a question, answer, and category before adding the card."
+      }
+    },
+    "study": {
+      "back": "← Back to groups",
+      "hideForm": "Hide form",
+      "addCard": "Add card",
+      "categoryLabel": "Category",
+      "filters": {
+        "all": "All"
+      },
+      "cardCount": "Cards: {{count}}",
+      "markedEasyTotal": "Marked easy: {{count}}",
+      "emptyCategory": "No cards available in this category yet.",
+      "complete": "You're all caught up for this category!",
+      "restart": "Restart session",
+      "actions": {
+        "reviewAgain": "Review again",
+        "gotIt": "Got it"
+      },
+      "hint": "Click the card to reveal the answer.",
+      "card": {
+        "question": "Question",
+        "answer": "Answer",
+        "questionSide": "Question side",
+        "answerSide": "Answer side",
+        "uncategorized": "Uncategorised",
+        "markedEasy": "Marked easy: {{count}}"
+      }
+    },
+    "generator": {
+      "title": "AI Flashcard Generator",
+      "beta": "Beta",
+      "topicLabel": "Topic",
+      "topicPlaceholder": "e.g. React component patterns",
+      "detailLabel": "Focus (optional)",
+      "detailPlaceholder": "e.g. Hooks, state management, testing",
+      "countLabel": "Number of cards",
+      "countOption": "{{count}} cards",
+      "languageLabel": "Flashcard language",
+      "mode": {
+        "new": "Create new group",
+        "existing": "Add to existing group"
+      },
+      "newGroupLabel": "Group name",
+      "newGroupPlaceholder": "e.g. React Basics (AI)",
+      "newGroupHint": "If left blank we will use \"{{name}}\".",
+      "defaultGroupName": "New AI Group",
+      "existingGroupLabel": "Target group",
+      "existingGroupPlaceholder": "Choose a group",
+      "generating": "Generating...",
+      "submit": "Generate Cards",
+      "result": "Added {{count}} cards to {{group}}.",
+      "resultTopic": "Topic: {{topic}}",
+      "resultDetail": "- Focus: {{detail}}",
+      "resultLanguage": "- Language: {{language}}",
+      "errors": {
+        "envKey": "Add VITE_GEMINI_API_KEY to your project .env file to enable AI flashcard generation.",
+        "apiKey": "Please provide a Gemini API key in the AI settings.",
+        "topicRequired": "Enter a topic before generating cards.",
+        "groupRequired": "Select a group to append the generated cards.",
+        "groupMissing": "The selected group could not be found. Please refresh and try again.",
+        "noCards": "The AI did not return any cards. Try again with more detail.",
+        "noFlashcards": "No flashcards were generated. Try again with more context.",
+        "networkHint": "Please check your network connection.",
+        "network": "Failed to reach Gemini. {{detail}}",
+        "unreadable": "Gemini returned an unreadable response.",
+        "requestFailed": "Gemini request failed.",
+        "emptyResponse": "Gemini returned an empty response.",
+        "default": "Something went wrong while generating flashcards. Please try again."
+      }
+    }
+  },
   "tools": {
     "title": "Tools hub",
     "subtitle": "Launch study helpers quickly and keep everything in one place.",
@@ -486,5 +633,398 @@
       "characters_other": "{{formattedCount}} characters",
       "submit": "Post"
     }
+  },
+  "socialPage": {
+    "errors": {
+      "loadFeed": "Failed to load social feed. Please try again later.",
+      "createPost": "Failed to create post. Please try again."
+    },
+    "loading": {
+      "feed": "Loading social feed..."
+    },
+    "empty": {
+      "title": "No posts yet",
+      "description": "Be the first to share something with the community!"
+    },
+    "aria": {
+      "composePost": "Create a new post"
+    },
+    "post": {
+      "duration": "Duration: {{value}}",
+      "defaultContent": "Shared a new update."
+    }
+  },
+  "friendSuggestions": {
+    "searchPlaceholder": "Search friends or posts...",
+    "tabs": {
+      "friends": "Friends",
+      "posts": "Posts"
+    },
+    "loading": {
+      "search": "Searching...",
+      "suggestions": "Loading suggestions..."
+    },
+    "empty": {
+      "friends": "No friends found",
+      "posts": "No posts found",
+      "suggestions": "No suggestions available"
+    },
+    "headers": {
+      "friends": "Suggested Friends",
+      "groups": "Suggested Groups"
+    },
+    "errors": {
+      "load": "Failed to load friend suggestions. Please try again later.",
+      "search": "Failed to search. Please try again later.",
+      "missingUser": "Unable to find this learner. Please try again.",
+      "follow": "Unable to update follow status. Please try again later."
+    },
+    "buttons": {
+      "follow": "Follow",
+      "following": "Following",
+      "join": "Join",
+      "joined": "Joined"
+    },
+    "aria": {
+      "follow": "Follow",
+      "unfollow": "Unfollow"
+    },
+    "fallback": {
+      "newFriend": "New friend",
+      "readyToStudy": "Ready to study"
+    },
+    "mock": {
+      "post": "Mock post containing \"{{query}}\"",
+      "userName": "Search Result User",
+      "userBio": "This is a mock search result"
+    }
+  },
+  "libraryPage": {
+    "title": "Library",
+    "subtitle": "Explore the shared community library",
+    "searchPlaceholder": "Search by title, author, or tags...",
+    "buttons": {
+      "add": "Add Book",
+      "addFirst": "Add Your First Book",
+      "reset": "Reset"
+    },
+    "filters": {
+      "tags": "Filter by tags:"
+    },
+    "stats": {
+      "books_one": "{{count}} book",
+      "books_other": "{{count}} books"
+    },
+    "empty": {
+      "title": "No books found",
+      "filters": "Try adjusting your search or filters.",
+      "start": "Start building your library by adding your first book!"
+    },
+    "errors": {
+      "load": "Failed to load the shared library. Please try again later.",
+      "refresh": "Failed to refresh books. Please try again later.",
+      "save": "Failed to save book. Please try again."
+    }
+  },
+  "bookDetails": {
+    "backToSocial": "Back to Social",
+    "backToLibrary": "Back to Library",
+    "loading": "Loading book details...",
+    "errors": {
+      "load": "Failed to load book details. Please try again later.",
+      "save": "Failed to save book. Please try again.",
+      "delete": "Failed to delete book. Please try again.",
+      "visibility": "Failed to update visibility. Please try again."
+    },
+    "buttons": {
+      "relatedPosts": "Related Posts",
+      "edit": "Edit Book",
+      "delete": "Delete Book"
+    },
+    "visibility": {
+      "makePrivate": "Make private",
+      "makePublic": "Make public"
+    },
+    "rating": {
+      "label": "{{value}} ratings"
+    },
+    "sections": {
+      "description": "Description",
+      "tags": "Tags",
+      "otherBooks": "Other Books by {{name}}"
+    },
+    "modal": {
+      "delete": {
+        "title": "Delete Book?",
+        "body": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone."
+      }
+    },
+    "aria": {
+      "back": "Go back to {{destination}}",
+      "moreOptions": "More options"
+    }
+  },
+  "bookPosts": {
+    "errors": {
+      "noSelection": "No book selected.",
+      "loadBook": "Unable to load book information. Please try again later.",
+      "loadPosts": "Unable to load related posts right now."
+    },
+    "loading": {
+      "book": "Loading book information...",
+      "posts": "Loading related posts..."
+    },
+    "buttons": {
+      "backToLibrary": "Back to Library",
+      "backToBook": "Back to Book"
+    },
+    "headers": {
+      "eyebrow": "Community posts",
+      "title": "Posts mentioning {{title}}",
+      "featured": "Featured book",
+      "related": "Related posts",
+      "details": "Book details",
+      "tags": "Tags"
+    },
+    "empty": {
+      "posts": "No posts mention this book yet. Share one from the social page!"
+    },
+    "counts": {
+      "posts_one": "{{count}} post",
+      "posts_other": "{{count}} posts"
+    },
+    "aria": {
+      "backToDetails": "Back to book details"
+    }
+  },
+  "bookModal": {
+    "title": {
+      "edit": "Edit Book",
+      "create": "Add New Book"
+    },
+    "labels": {
+      "title": "Title",
+      "author": "Author",
+      "year": "Year",
+      "pages": "Pages",
+      "cover": "Cover Image URL",
+      "publisher": "Publisher",
+      "description": "Description",
+      "tags": "Tags",
+      "language": "Language",
+      "status": "Status",
+      "rating": "Rating",
+      "visibility": "Make this book private"
+    },
+    "placeholders": {
+      "title": "Book title",
+      "author": "Author name",
+      "year": "2024",
+      "pages": "Number of pages",
+      "cover": "https://example.com/cover.jpg",
+      "publisher": "Publisher name",
+      "description": "Book description...",
+      "language": "Language",
+      "tags": "Add tags and press Enter"
+    },
+    "errors": {
+      "titleRequired": "Title is required",
+      "authorRequired": "Author is required"
+    },
+    "buttons": {
+      "addTag": "Add",
+      "save": "Save Changes",
+      "add": "Add Book"
+    },
+    "aria": {
+      "close": "Close dialog",
+      "removeTag": "Remove {{tag}}"
+    },
+    "rating": {
+      "option": "{{value}} - {{label}}",
+      "notRated": "Not rated",
+      "poor": "Poor",
+      "fair": "Fair",
+      "good": "Good",
+      "veryGood": "Very Good",
+      "excellent": "Excellent"
+    }
+  },
+  "chatPage": {
+    "errors": {
+      "load": "Failed to load chat history. Please try again.",
+      "send": "Could not send message. Please try again."
+    },
+    "empty": {
+      "notFound": "Chat not found",
+      "messages": "No messages yet. Say hi!"
+    },
+    "loading": "Loading conversation...",
+    "actions": {
+      "goBack": "Go back",
+      "placeholder": "Type a message...",
+      "attachImage": "Attach image",
+      "removeImage": "Remove image"
+    },
+    "aria": {
+      "previewImage": "Selected image preview",
+      "sharedImage": "Shared image"
+    },
+    "labels": {
+      "you": "You"
+    }
+  },
+  "demoFriends": {
+    "panel": {
+      "title": "Friends & Groups"
+    },
+    "sections": {
+      "friends": "Friends",
+      "groups": "Groups"
+    },
+    "subsections": {
+      "online": "Online",
+      "offline": "Offline"
+    },
+    "empty": {
+      "online": "No one is online",
+      "offline": "No offline friends",
+      "groups": "No groups yet"
+    },
+    "idle": {
+      "title": "Select a chat to start messaging",
+      "description": "Choose a friend or group from the sidebar to begin your conversation"
+    }
+  },
+  "bookCard": {
+    "aria": {
+      "view": "View {{title}}"
+    }
+  },
+  "loginPage": {
+    "hero": {
+      "copy": "Track your study sessions with a cozy, cat-inspired AI learning community."
+    },
+    "headings": {
+      "login": "Log In",
+      "signup": "Sign Up"
+    },
+    "subtitles": {
+      "login": "Jump back into your saved study plans in seconds.",
+      "signup": "Sync tasks, friends, and tools to accelerate your learning."
+    },
+    "tabs": {
+      "email": "Email",
+      "anonymous": "Guest"
+    },
+    "forms": {
+      "guestLogin": {
+        "title": "Quick guest login",
+        "cta": "Continue as guest"
+      },
+      "guestSignup": {
+        "title": "Try guest mode",
+        "cta": "Explore as guest"
+      },
+      "login": {
+        "title": "Sign in with email",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "name@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Enter your password",
+        "remember": "Keep me signed in",
+        "forgot": "Forgot password?",
+        "submit": "Log in",
+        "submitting": "Signing in..."
+      },
+      "signup": {
+        "title": "Sign up with email",
+        "usernameLabel": "Username",
+        "usernamePlaceholder": "Use letters, numbers, or underscores",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "name@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "At least 8 characters",
+        "confirmLabel": "Confirm password",
+        "confirmPlaceholder": "Re-enter your password",
+        "termsPrefix": "I agree to the ",
+        "termsConnector": " and ",
+        "termsSuffix": ".",
+        "termsTos": "Terms of Service",
+        "termsPrivacy": "Privacy Policy",
+        "submit": "Sign up",
+        "submitting": "Signing up..."
+      }
+    },
+    "notifications": {
+      "missingCredentials": "Enter both email and password.",
+      "loginSuccess": "Login successful. Redirecting to your dashboard...",
+      "loginFailed": "Login failed.",
+      "loginFailedRetry": "Login failed. Please try again.",
+      "usernameRequired": "Choose a username to continue.",
+      "usernameFormat": "Usernames must be 3-30 characters and only use letters, numbers, or underscores.",
+      "emailRequired": "Enter a valid email address.",
+      "passwordLength": "Passwords must be at least 8 characters long.",
+      "passwordMismatch": "Passwords do not match.",
+      "termsRequired": "Please agree to the terms to continue.",
+      "signupSuccess": "Account created. Redirecting to your dashboard...",
+      "signupFailed": "Sign up failed.",
+      "signupFailedRetry": "Sign up failed. Please try again later.",
+      "passwordReset": "Password reset link sent to your email.",
+      "guestLoginSuccess": "Guest login successful. Redirecting...",
+      "guestSignupSuccess": "Guest sign up successful. Redirecting...",
+      "guestFailure": "Unable to start guest session. Please try again.",
+      "guestUnavailable": "Guest access is currently unavailable. Please try again."
+    },
+    "toggle": {
+      "newHere": "New to Nyacademy?",
+      "haveAccount": "Already have an account?",
+      "createAccount": "Create account",
+      "login": "Log in"
+    }
+  },
+  "taskDetails": {
+    "errors": {
+      "save": "Failed to save changes. Please try again.",
+      "unavailableTitle": "Task unavailable",
+      "unavailableDescription": "We couldn't load the details for task #{{id}}. Return to your dashboard and try opening it again."
+    },
+    "buttons": {
+      "back": "Back",
+      "dashboard": "Go to dashboard"
+    },
+    "actions": {
+      "edit": "Edit task",
+      "cancelEdit": "Cancel edit",
+      "discard": "Discard",
+      "saving": "Saving...",
+      "saveChanges": "Save changes"
+    },
+    "planNotes": "Plan notes",
+    "meta": {
+      "created": "Created",
+      "start": "Start",
+      "due": "Due",
+      "completed": "Completed",
+      "timeSpent": "Time spent"
+    },
+    "form": {
+      "title": "Title",
+      "status": "Status",
+      "start": "Start",
+      "due": "Due",
+      "description": "Description",
+      "timeSpent": "Time spent (minutes)"
+    },
+    "labels": {
+      "notAvailable": "--"
+    },
+    "status": {
+      "notStarted": "Not started",
+      "inProgress": "In progress",
+      "cancelled": "Cancelled",
+      "completed": "Completed"
+    },
+    "timeSpentLabel": "{{count}} min"
   }
 }

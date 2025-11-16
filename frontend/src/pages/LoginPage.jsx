@@ -1,5 +1,6 @@
 ﻿import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext.jsx'
 import './LoginPage.css'
 
@@ -19,13 +20,11 @@ const INITIAL_SIGNUP_FORM = {
   terms: false,
 }
 
-const AUTH_TABS = [
-  { key: 'email', label: 'Email' },
-  { key: 'anonymous', label: 'Guest' },
-]
+const AUTH_TABS = ['email', 'anonymous']
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { login, register, guestLogin, loading, error } = useAuth()
   const [authMode, setAuthMode] = useState('login')
   const [loginActiveTab, setLoginActiveTab] = useState('email')
@@ -68,7 +67,7 @@ export default function LoginPage() {
     const password = loginForm.password
 
     if (!email || !password) {
-      showNotification('Enter both email and password.', 'error', 'login')
+      showNotification(t('loginPage.notifications.missingCredentials'), 'error', 'login')
       return
     }
 
@@ -78,15 +77,15 @@ export default function LoginPage() {
       const result = await login(email, password)
 
       if (result.success) {
-        showNotification('Login successful. Redirecting to your dashboard...', 'success', 'login')
+        showNotification(t('loginPage.notifications.loginSuccess'), 'success', 'login')
         setTimeout(() => {
           navigate('/')
         }, 1000)
       } else {
-        showNotification(result.error || 'Login failed.', 'error', 'login')
+        showNotification(result.error || t('loginPage.notifications.loginFailed'), 'error', 'login')
       }
     } catch (error) {
-      showNotification(error.message || 'Login failed. Please try again.', 'error', 'login')
+      showNotification(error.message || t('loginPage.notifications.loginFailedRetry'), 'error', 'login')
     } finally {
       setIsSubmitting(false)
     }
@@ -104,32 +103,32 @@ export default function LoginPage() {
     const normalizedUsername = username.replace(/\s+/g, '_').toLowerCase()
 
     if (!username) {
-      showNotification('Choose a username to continue.', 'error', 'signup')
+      showNotification(t('loginPage.notifications.usernameRequired'), 'error', 'signup')
       return
     }
 
     if (!/^[a-zA-Z0-9_]{3,30}$/.test(normalizedUsername)) {
-      showNotification('Usernames must be 3-30 characters and only use letters, numbers, or underscores.', 'error', 'signup')
+      showNotification(t('loginPage.notifications.usernameFormat'), 'error', 'signup')
       return
     }
 
     if (!email) {
-      showNotification('Enter a valid email address.', 'error', 'signup')
+      showNotification(t('loginPage.notifications.emailRequired'), 'error', 'signup')
       return
     }
 
     if (password.length < 8) {
-      showNotification('Passwords must be at least 8 characters long.', 'error', 'signup')
+      showNotification(t('loginPage.notifications.passwordLength'), 'error', 'signup')
       return
     }
 
     if (password !== confirmPassword) {
-      showNotification('Passwords do not match.', 'error', 'signup')
+      showNotification(t('loginPage.notifications.passwordMismatch'), 'error', 'signup')
       return
     }
 
     if (!signupForm.terms) {
-      showNotification('Please agree to the terms to continue.', 'error', 'signup')
+      showNotification(t('loginPage.notifications.termsRequired'), 'error', 'signup')
       return
     }
 
@@ -139,15 +138,15 @@ export default function LoginPage() {
       const result = await register(normalizedUsername, email, password)
 
       if (result.success) {
-        showNotification('Account created. Redirecting to your dashboard...', 'success', 'signup')
+        showNotification(t('loginPage.notifications.signupSuccess'), 'success', 'signup')
         setTimeout(() => {
           navigate('/')
         }, 1000)
       } else {
-        showNotification(result.error || 'Sign up failed.', 'error', 'signup')
+        showNotification(result.error || t('loginPage.notifications.signupFailed'), 'error', 'signup')
       }
     } catch (error) {
-      showNotification(error.message || 'Sign up failed. Please try again later.', 'error', 'signup')
+      showNotification(error.message || t('loginPage.notifications.signupFailedRetry'), 'error', 'signup')
     } finally {
       setIsSubmitting(false)
     }
@@ -155,7 +154,7 @@ export default function LoginPage() {
 
   const handleForgotPassword = event => {
     event.preventDefault()
-    showNotification('Password reset link sent to your email.', 'info', 'login')
+    showNotification(t('loginPage.notifications.passwordReset'), 'info', 'login')
   }
 
   const handleAnonymousAuth = async mode => {
@@ -168,15 +167,21 @@ export default function LoginPage() {
       const result = await guestLogin()
 
       if (result?.success) {
-        showNotification(`Guest ${action} successful. Redirecting...`, 'success', mode)
+        showNotification(
+          action === 'login'
+            ? t('loginPage.notifications.guestLoginSuccess')
+            : t('loginPage.notifications.guestSignupSuccess'),
+          'success',
+          mode,
+        )
         setTimeout(() => {
           navigate('/')
         }, 1000)
       } else {
-        showNotification(result?.error || 'Unable to start guest session. Please try again.', 'error', mode)
+        showNotification(result?.error || t('loginPage.notifications.guestFailure'), 'error', mode)
       }
     } catch (error) {
-      showNotification('Guest access is currently unavailable. Please try again.', 'error', mode)
+      showNotification(t('loginPage.notifications.guestUnavailable'), 'error', mode)
     } finally {
       setIsSubmitting(false)
     }
@@ -204,10 +209,10 @@ export default function LoginPage() {
     if (loginActiveTab === 'anonymous') {
       return (
         <div className="method-card">
-          <h3 className="method-title">Quick guest login</h3>
+          <h3 className="method-title">{t('loginPage.forms.guestLogin.title')}</h3>
           <div className="method-actions">
             <button type="button" className="btn btn-secondary" onClick={() => handleAnonymousAuth('login')}>
-              Continue as guest
+              {t('loginPage.forms.guestLogin.cta')}
             </button>
           </div>
         </div>
@@ -216,16 +221,16 @@ export default function LoginPage() {
 
     return (
       <form onSubmit={handleLoginSubmit} className="method-card stack-gap">
-        <h3 className="method-title">Sign in with email</h3>
+        <h3 className="method-title">{t('loginPage.forms.login.title')}</h3>
         <div className="form-group">
           <label className="form-label" htmlFor="login-email">
-            Email address
+            {t('loginPage.forms.login.emailLabel')}
           </label>
           <input
             id="login-email"
             type="email"
             className="form-input"
-            placeholder="name@example.com"
+            placeholder={t('loginPage.forms.login.emailPlaceholder')}
             value={loginForm.email}
             onChange={handleLoginChange('email')}
             required
@@ -233,13 +238,13 @@ export default function LoginPage() {
         </div>
         <div className="form-group">
           <label className="form-label" htmlFor="login-password">
-            Password
+            {t('loginPage.forms.login.passwordLabel')}
           </label>
           <input
             id="login-password"
             type="password"
             className="form-input"
-            placeholder="Enter your password"
+            placeholder={t('loginPage.forms.login.passwordPlaceholder')}
             value={loginForm.password}
             onChange={handleLoginChange('password')}
             required
@@ -248,15 +253,17 @@ export default function LoginPage() {
         <div className="helper-row">
           <label className="remember-checkbox">
             <input type="checkbox" checked={loginForm.remember} onChange={handleLoginChange('remember')} />
-            <span>Keep me signed in</span>
+            <span>{t('loginPage.forms.login.remember')}</span>
           </label>
           <a href="#" onClick={handleForgotPassword}>
-            Forgot password?
+            {t('loginPage.forms.login.forgot')}
           </a>
         </div>
         <div className="method-actions">
           <button type="submit" className="btn btn-primary" disabled={isSubmitting || loading}>
-            {isSubmitting || loading ? 'Signing in...' : 'Log in'}
+            {isSubmitting || loading
+              ? t('loginPage.forms.login.submitting')
+              : t('loginPage.forms.login.submit')}
           </button>
         </div>
       </form>
@@ -267,10 +274,10 @@ export default function LoginPage() {
     if (signupActiveTab === 'anonymous') {
       return (
         <div className="method-card">
-          <h3 className="method-title">Try guest mode</h3>
+          <h3 className="method-title">{t('loginPage.forms.guestSignup.title')}</h3>
           <div className="method-actions">
             <button type="button" className="btn btn-secondary" onClick={() => handleAnonymousAuth('signup')}>
-              Explore as guest
+              {t('loginPage.forms.guestSignup.cta')}
             </button>
           </div>
         </div>
@@ -279,16 +286,16 @@ export default function LoginPage() {
 
     return (
       <form onSubmit={handleSignupSubmit} className="method-card stack-gap">
-        <h3 className="method-title">Sign up with email</h3>
+        <h3 className="method-title">{t('loginPage.forms.signup.title')}</h3>
         <div className="form-group">
           <label className="form-label" htmlFor="signup-username">
-            Username
+            {t('loginPage.forms.signup.usernameLabel')}
           </label>
           <input
             id="signup-username"
             type="text"
             className="form-input"
-            placeholder="Use letters, numbers, or underscores"
+            placeholder={t('loginPage.forms.signup.usernamePlaceholder')}
             value={signupForm.username}
             onChange={handleSignupChange('username')}
             required
@@ -296,13 +303,13 @@ export default function LoginPage() {
         </div>
         <div className="form-group">
           <label className="form-label" htmlFor="signup-email">
-            Email address
+            {t('loginPage.forms.signup.emailLabel')}
           </label>
           <input
             id="signup-email"
             type="email"
             className="form-input"
-            placeholder="name@example.com"
+            placeholder={t('loginPage.forms.signup.emailPlaceholder')}
             value={signupForm.email}
             onChange={handleSignupChange('email')}
             required
@@ -310,13 +317,13 @@ export default function LoginPage() {
         </div>
         <div className="form-group">
           <label className="form-label" htmlFor="signup-password">
-            Password
+            {t('loginPage.forms.signup.passwordLabel')}
           </label>
           <input
             id="signup-password"
             type="password"
             className="form-input"
-            placeholder="At least 8 characters"
+            placeholder={t('loginPage.forms.signup.passwordPlaceholder')}
             value={signupForm.password}
             onChange={handleSignupChange('password')}
             required
@@ -327,13 +334,13 @@ export default function LoginPage() {
         </div>
         <div className="form-group">
           <label className="form-label" htmlFor="signup-confirm">
-            Confirm password
+            {t('loginPage.forms.signup.confirmLabel')}
           </label>
           <input
             id="signup-confirm"
             type="password"
             className="form-input"
-            placeholder="Re-enter your password"
+            placeholder={t('loginPage.forms.signup.confirmPlaceholder')}
             value={signupForm.confirmPassword}
             onChange={handleSignupChange('confirmPassword')}
             required
@@ -342,12 +349,18 @@ export default function LoginPage() {
         <label className="terms">
           <input type="checkbox" checked={signupForm.terms} onChange={handleSignupChange('terms')} />
           <span>
-            I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+            {t('loginPage.forms.signup.termsPrefix')}
+            <a href="#">{t('loginPage.forms.signup.termsTos')}</a>
+            {t('loginPage.forms.signup.termsConnector')}
+            <a href="#">{t('loginPage.forms.signup.termsPrivacy')}</a>
+            {t('loginPage.forms.signup.termsSuffix')}
           </span>
         </label>
         <div className="method-actions">
           <button type="submit" className="btn btn-primary" disabled={isSubmitting || loading}>
-            {isSubmitting || loading ? 'Signing up...' : 'Sign up'}
+            {isSubmitting || loading
+              ? t('loginPage.forms.signup.submitting')
+              : t('loginPage.forms.signup.submit')}
           </button>
         </div>
       </form>
@@ -360,14 +373,14 @@ export default function LoginPage() {
         <section className="left-section">
           <div className="left-content">
             <div className="logo">
-              <img src={HERO_IMAGE} alt="Nyacademy Logo" className="logo-icon" />
+              <img src={HERO_IMAGE} alt={t('navbar.logoAlt')} className="logo-icon" />
               <div>
-                <p className="logo-badge">Nyacademy</p>
-                <p className="logo-subtitle">Study Multiply, Go Beyond.</p>
+                <p className="logo-badge">{t('brand.title')}</p>
+                <p className="logo-subtitle">{t('brand.tagline')}</p>
               </div>
             </div>
             <p className="tagline">
-              Track your study sessions with a cozy, cat-inspired AI learning community.
+              {t('loginPage.hero.copy')}
             </p>
           </div>
         </section>
@@ -375,29 +388,30 @@ export default function LoginPage() {
         <section className="right-section">
           <div className="form-container">
             <div className="form-header">
-              <h2 className="form-title">{authMode === 'login' ? 'Log In' : 'Sign Up'}</h2>
+              <h2 className="form-title">
+                {authMode === 'login' ? t('loginPage.headings.login') : t('loginPage.headings.signup')}
+              </h2>
               <p className="form-subtitle">
                 {authMode === 'login'
-                  ? 'Jump back into your saved study plans in seconds.'
-                  : 'Sync tasks, friends, and tools to accelerate your learning.'
-                }
+                  ? t('loginPage.subtitles.login')
+                  : t('loginPage.subtitles.signup')}
               </p>
             </div>
 
             <div className="access-block">
               <div className="auth-tabs">
-                {AUTH_TABS.map(tab => {
-                  const isActive = authMode === 'login' ? loginActiveTab === tab.key : signupActiveTab === tab.key
+                {AUTH_TABS.map(tabKey => {
+                  const isActive = authMode === 'login' ? loginActiveTab === tabKey : signupActiveTab === tabKey
                   return (
                     <button
-                      key={tab.key}
+                      key={tabKey}
                       type="button"
                       className={isActive ? 'auth-tab active' : 'auth-tab'}
                       onClick={() =>
-                        authMode === 'login' ? setLoginActiveTab(tab.key) : setSignupActiveTab(tab.key)
+                        authMode === 'login' ? setLoginActiveTab(tabKey) : setSignupActiveTab(tabKey)
                       }
                     >
-                      {tab.label}
+                      {t(`loginPage.tabs.${tabKey}`)}
                     </button>
                   )
                 })}
@@ -418,16 +432,16 @@ export default function LoginPage() {
             <div className="auth-toggle">
               {authMode === 'login' ? (
                 <>
-                  New to Nyacademy?{' '}
+                  {t('loginPage.toggle.newHere')}{' '}
                   <button type="button" className="link-button" onClick={() => setAuthMode('signup')}>
-                    Create account
+                    {t('loginPage.toggle.createAccount')}
                   </button>
                 </>
               ) : (
                 <>
-                  Already have an account?{' '}
+                  {t('loginPage.toggle.haveAccount')}{' '}
                   <button type="button" className="link-button" onClick={() => setAuthMode('login')}>
-                    Log in
+                    {t('loginPage.toggle.login')}
                   </button>
                 </>
               )}

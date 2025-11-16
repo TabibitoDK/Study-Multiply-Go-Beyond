@@ -1,6 +1,7 @@
 ﻿import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookOpen } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import PostCard from './PostCard.jsx'
 import PostModal from './PostModal.jsx'
 import ProfileSidebar from './ProfileSidebar.jsx'
@@ -20,6 +21,7 @@ export default function SocialPage({
   onGroupJoin = () => {},
 }) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [feed, setFeed] = useState([])
   const [loading, setLoading] = useState(true)
@@ -70,13 +72,13 @@ export default function SocialPage({
       setError(null)
     } catch (err) {
       console.error('Error fetching feed data:', err)
-      setError('Failed to load social feed. Please try again later.')
+      setError(t('socialPage.errors.loadFeed'))
     } finally {
       if (withSpinner) {
         setLoading(false)
       }
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     if (Array.isArray(posts) && posts.length > 0) {
@@ -100,11 +102,13 @@ export default function SocialPage({
       } else {
         const segments = []
         if (draft.text?.trim()) segments.push(draft.text.trim())
-        if (draft.duration?.trim()) segments.push(`Duration: ${draft.duration.trim()}`)
+        if (draft.duration?.trim()) {
+          segments.push(t('socialPage.post.duration', { value: draft.duration.trim() }))
+        }
 
         const tags = draft.subject?.trim() ? [draft.subject.trim()] : []
         const payload = {
-          content: segments.join('\n\n') || 'Shared a new update.',
+          content: segments.join('\n\n') || t('socialPage.post.defaultContent'),
           tags,
           books: draft.bookId ? [draft.bookId] : [],
           visibility: 'public',
@@ -145,7 +149,7 @@ export default function SocialPage({
       setIsModalOpen(false)
     } catch (err) {
       console.error('Error creating post:', err)
-      setError('Failed to create post. Please try again.')
+      setError(t('socialPage.errors.createPost'))
     }
   }
 
@@ -154,7 +158,7 @@ export default function SocialPage({
       <div className="social-wrap">
         <div className="loading-container">
           <div className="spinner" />
-          <p>Loading social feed...</p>
+          <p>{t('socialPage.loading.feed')}</p>
         </div>
       </div>
     )
@@ -165,7 +169,9 @@ export default function SocialPage({
       <div className="social-wrap">
         <div className="error-container">
           <p>{error}</p>
-          <button onClick={refreshFeed} className="btn">Retry</button>
+          <button onClick={refreshFeed} className="btn">
+            {t('buttons.retry')}
+          </button>
         </div>
       </div>
     )
@@ -182,13 +188,13 @@ export default function SocialPage({
         <div className="feed-header">
           <button type="button" className="btn library-access-btn" onClick={() => navigate('/library')}>
             <BookOpen size={18} />
-            Library
+            {t('nav.library')}
           </button>
         </div>
         {feed.length === 0 ? (
           <div className="feed-empty">
-            <h2>No posts yet</h2>
-            <p>Be the first to share something with the community!</p>
+            <h2>{t('socialPage.empty.title')}</h2>
+            <p>{t('socialPage.empty.description')}</p>
           </div>
         ) : (
           feed.map(post => (
@@ -211,7 +217,7 @@ export default function SocialPage({
         type="button"
         className="fab fab-social"
         onClick={() => setIsModalOpen(true)}
-        aria-label="Create a new post"
+        aria-label={t('socialPage.aria.composePost')}
       >
         +
       </button>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import initialGroupData from './initialGroups.json';
 import './flashcards.css';
 
@@ -295,21 +296,31 @@ const loadAiSettings = () => {
   }
 };
 
-const CardFace = ({ content, isFront, category, easyCount }) => (
-  <div
-    className={`flashcard-face ${isFront ? 'flashcard-face--front' : 'flashcard-face--back'}`}
-    aria-label={isFront ? 'Question side' : 'Answer side'}
-  >
-    <span className="flashcard-face__badge">{isFront ? 'Question' : 'Answer'}</span>
-    <p className="flashcard-face__category">{category || 'Uncategorised'}</p>
-    <p className="flashcard-face__content">{content}</p>
-    {!isFront && (
-      <span className="flashcard-face__meta">Marked easy: {easyCount}</span>
-    )}
-  </div>
-);
+const CardFace = ({ content, isFront, category, easyCount }) => {
+  const { i18n } = useTranslation();
+  const isJa = i18n.language?.startsWith('ja');
+  const badge = isFront ? (isJa ? '質問' : 'Question') : isJa ? '回答' : 'Answer';
+  const aria = isFront ? (isJa ? '問題面' : 'Question side') : isJa ? '解答面' : 'Answer side';
+  const fallbackCategory = isJa ? '未分類' : 'Uncategorised';
+  const metaLabel = isJa ? '「かんたん」印' : 'Marked easy';
+
+  return (
+    <div
+      className={`flashcard-face ${isFront ? 'flashcard-face--front' : 'flashcard-face--back'}`}
+      aria-label={aria}
+    >
+      <span className="flashcard-face__badge">{badge}</span>
+      <p className="flashcard-face__category">{category || fallbackCategory}</p>
+      <p className="flashcard-face__content">{content}</p>
+      {!isFront && <span className="flashcard-face__meta">{metaLabel}: {easyCount}</span>}
+    </div>
+  );
+};
 
 function AddCardForm({ categories, onAddCard, onToggle }) {
+  const { t, i18n } = useTranslation();
+  const isJa = i18n.language?.startsWith('ja');
+  const defaultText = (en, ja) => (isJa ? ja : en);
   const [formData, setFormData] = useState({
     category:
       categories.length > 1
@@ -336,7 +347,10 @@ function AddCardForm({ categories, onAddCard, onToggle }) {
 
     if (!formData.question.trim() || !formData.answer.trim() || !categoryToUse) {
       setFormError(
-        'Please provide a question, answer, and category before adding the card.',
+        defaultText(
+          'Please provide a question, answer, and category before adding the card.',
+          'カードを追加する前に質問・回答・カテゴリを入力してください。',
+        ),
       );
       return;
     }
@@ -361,13 +375,17 @@ function AddCardForm({ categories, onAddCard, onToggle }) {
   return (
     <div className="panel">
       <div className="panel-header">
-        <h3 className="panel-title">Add Card</h3>
+        <h3 className="panel-title">
+          {t('flashcards.addForm.title', { defaultValue: defaultText('Add Card', 'カードを追加') })}
+        </h3>
         <button className="button button--ghost" onClick={onToggle} type="button">
-          Close
+          {t('flashcards.actions.close', { defaultValue: defaultText('Close', '閉じる') })}
         </button>
       </div>
       <form className="stack-form" onSubmit={handleSubmit}>
-        <label className="form-label">Category</label>
+        <label className="form-label">
+          {t('flashcards.addForm.category', { defaultValue: defaultText('Category', 'カテゴリ') })}
+        </label>
         <select
           className="form-control"
           name="category"
@@ -375,7 +393,11 @@ function AddCardForm({ categories, onAddCard, onToggle }) {
           value={formData.category}
           disabled={Boolean(formData.newCategory.trim())}
         >
-          <option value="">--- Select an existing category ---</option>
+          <option value="">
+            {t('flashcards.addForm.categoryHint', {
+              defaultValue: defaultText('Select an existing category', '既存のカテゴリを選択'),
+            })}
+          </option>
           {existingCategories.map((cat) => (
             <option key={cat} value={cat}>
               {cat}
@@ -386,34 +408,46 @@ function AddCardForm({ categories, onAddCard, onToggle }) {
           className="form-control"
           name="newCategory"
           onChange={handleChange}
-          placeholder="Or create a new category"
+          placeholder={t('flashcards.addForm.categoryPlaceholder', {
+            defaultValue: defaultText('Or create a new category', 'または新しいカテゴリを作成'),
+          })}
           type="text"
           value={formData.newCategory}
         />
 
         <label className="form-label" htmlFor="question">
-          Question
+          {t('flashcards.addForm.question', { defaultValue: defaultText('Question', '質問') })}
         </label>
         <textarea
           className="form-control"
           id="question"
           name="question"
           onChange={handleChange}
-          placeholder="e.g. What problem does React solve?"
+          placeholder={t('flashcards.addForm.questionPlaceholder', {
+            defaultValue: defaultText(
+              'e.g. What problem does React solve?',
+              '例: React はどんな課題を解決しますか？',
+            ),
+          })}
           required
           rows={3}
           value={formData.question}
         />
 
         <label className="form-label" htmlFor="answer">
-          Answer
+          {t('flashcards.addForm.answer', { defaultValue: defaultText('Answer', '回答') })}
         </label>
         <textarea
           className="form-control"
           id="answer"
           name="answer"
           onChange={handleChange}
-          placeholder="e.g. It manages complex state transitions in UI."
+          placeholder={t('flashcards.addForm.answerPlaceholder', {
+            defaultValue: defaultText(
+              'e.g. It manages complex state transitions in UI.',
+              '例: 複雑な UI 状態遷移を管理します。',
+            ),
+          })}
           required
           rows={3}
           value={formData.answer}
@@ -422,7 +456,7 @@ function AddCardForm({ categories, onAddCard, onToggle }) {
         {formError && <p className="form-error">{formError}</p>}
 
         <button className="button button--primary" type="submit">
-          Add Card
+          {t('flashcards.addForm.submit', { defaultValue: defaultText('Add Card', 'カードを追加') })}
         </button>
       </form>
     </div>
@@ -438,6 +472,67 @@ function AiFlashcardGenerator({
   settings,
   onSettingsChange,
 }) {
+  const { i18n } = useTranslation();
+  const isJa = i18n.language?.startsWith('ja');
+  const copy = isJa
+    ? {
+        title: 'AI フラッシュカード生成',
+        beta: 'ベータ',
+        topicLabel: 'トピック',
+        topicPlaceholder: '例: React コンポーネントのパターン',
+        detailLabel: '重点（任意）',
+        detailPlaceholder: '例: フック、状態管理、テスト',
+        countLabel: 'カード枚数',
+        countOption: count => `${count} 枚`,
+        languageLabel: 'カードの言語',
+        languageNames: { en: '英語', es: 'スペイン語', fr: 'フランス語', de: 'ドイツ語', ja: '日本語' },
+        modeNew: '新しいグループを作成',
+        modeExisting: '既存グループに追加',
+        newGroupLabel: 'グループ名',
+        newGroupPlaceholder: '例: React 基礎 (AI)',
+        defaultGroupName: 'AI 新規グループ',
+        newGroupHint: name => `未入力の場合は「${name}」を使用します。`,
+        existingGroupLabel: '追加先のグループ',
+        existingGroupPlaceholder: 'グループを選択',
+        envError: 'AI フラッシュカード機能を使うには .env に VITE_GEMINI_API_KEY を設定してください。',
+        topicRequired: 'カードを生成する前にトピックを入力してください。',
+        groupRequired: '追加先のグループを選択してください。',
+        submit: 'カードを生成',
+        generating: '生成中…',
+        result: (count, group) => `${group} に ${count} 枚のカードを追加しました。`,
+        resultTopic: topic => `トピック: ${topic}`,
+        resultDetail: detail => ` - フォーカス: ${detail}`,
+        resultLanguage: label => ` - 言語: ${label}`,
+      }
+    : {
+        title: 'AI Flashcard Generator',
+        beta: 'Beta',
+        topicLabel: 'Topic',
+        topicPlaceholder: 'e.g. React component patterns',
+        detailLabel: 'Focus (optional)',
+        detailPlaceholder: 'e.g. Hooks, state management, testing',
+        countLabel: 'Number of cards',
+        countOption: count => `${count} cards`,
+        languageLabel: 'Flashcard language',
+        languageNames: { en: 'English', es: 'Spanish', fr: 'French', de: 'German', ja: 'Japanese' },
+        modeNew: 'Create new group',
+        modeExisting: 'Add to existing group',
+        newGroupLabel: 'Group name',
+        newGroupPlaceholder: 'e.g. React Basics (AI)',
+        defaultGroupName: 'New AI Group',
+        newGroupHint: name => `If left blank we will use "${name}".`,
+        existingGroupLabel: 'Target group',
+        existingGroupPlaceholder: 'Choose a group',
+        envError: 'Add VITE_GEMINI_API_KEY to your project .env file to enable AI flashcard generation.',
+        topicRequired: 'Enter a topic before generating cards.',
+        groupRequired: 'Select a group to append the generated cards.',
+        submit: 'Generate Cards',
+        generating: 'Generating...',
+        result: (count, group) => `Added ${count} cards to ${group}.`,
+        resultTopic: topic => `Topic: ${topic}`,
+        resultDetail: detail => ` - Focus: ${detail}`,
+        resultLanguage: label => ` - Language: ${label}`,
+      };
   const [mode, setMode] = useState('new');
   const generatorSettings = settings ?? { language: DEFAULT_FLASHCARD_LANGUAGE };
   const updateSettings = onSettingsChange ?? (() => {});
@@ -489,12 +584,12 @@ function AiFlashcardGenerator({
   return (
     <div className="stack">
       <div className="stack-header">
-        <h2 className="panel-title">AI Flashcard Generator</h2>
-        <span className="tag">Beta</span>
+        <h2 className="panel-title">{copy.title}</h2>
+        <span className="tag">{copy.beta}</span>
       </div>
       <form className="stack-form" onSubmit={handleSubmit}>
         <label className="form-label" htmlFor="ai-topic">
-          Topic
+          {copy.topicLabel}
         </label>
         <input
           autoComplete="off"
@@ -502,13 +597,13 @@ function AiFlashcardGenerator({
           id="ai-topic"
           name="topic"
           onChange={handleChange}
-          placeholder="e.g. React component patterns"
+          placeholder={copy.topicPlaceholder}
           required
           value={formData.topic}
         />
 
         <label className="form-label" htmlFor="ai-detail">
-          Focus (optional)
+          {copy.detailLabel}
         </label>
         <input
           autoComplete="off"
@@ -516,12 +611,12 @@ function AiFlashcardGenerator({
           id="ai-detail"
           name="detail"
           onChange={handleChange}
-          placeholder="e.g. Hooks, state management, testing"
+          placeholder={copy.detailPlaceholder}
           value={formData.detail}
         />
 
         <label className="form-label" htmlFor="ai-count">
-          Number of cards
+          {copy.countLabel}
         </label>
         <select
           className="form-control"
@@ -530,14 +625,15 @@ function AiFlashcardGenerator({
           onChange={handleChange}
           value={formData.count}
         >
-          <option value={3}>3 cards</option>
-          <option value={5}>5 cards</option>
-          <option value={8}>8 cards</option>
-          <option value={10}>10 cards</option>
+          {[3, 5, 8, 10].map(count => (
+            <option key={count} value={count}>
+              {copy.countOption(count)}
+            </option>
+          ))}
         </select>
 
         <label className="form-label" htmlFor="ai-language">
-          Flashcard language
+          {copy.languageLabel}
         </label>
         <select
           className="form-control"
@@ -546,9 +642,9 @@ function AiFlashcardGenerator({
           onChange={(event) => updateSettings({ language: event.target.value })}
           value={generatorSettings.language}
         >
-          {LANGUAGE_OPTIONS.map((option) => (
+          {LANGUAGE_OPTIONS.map(option => (
             <option key={option.value} value={option.value}>
-              {option.label}
+              {copy.languageNames[option.value] || option.label}
             </option>
           ))}
         </select>
@@ -561,7 +657,7 @@ function AiFlashcardGenerator({
               onChange={() => setMode('new')}
               type="radio"
             />
-            Create new group
+            {copy.modeNew}
           </label>
           <label className="radio-option">
             <input
@@ -570,31 +666,31 @@ function AiFlashcardGenerator({
               onChange={() => setMode('existing')}
               type="radio"
             />
-            Add to existing group
+            {copy.modeExisting}
           </label>
         </div>
 
         {mode === 'new' ? (
           <>
             <label className="form-label" htmlFor="ai-new-group">
-              Group name
+              {copy.newGroupLabel}
             </label>
             <input
               className="form-control"
               id="ai-new-group"
               name="newGroupName"
               onChange={handleChange}
-              placeholder="e.g. React Basics (AI)"
+              placeholder={copy.newGroupPlaceholder}
               value={formData.newGroupName}
             />
             <span className="hint">
-              If left blank we will use "{suggestedGroupName || 'New AI Group'}".
+              {copy.newGroupHint(suggestedGroupName || copy.defaultGroupName)}
             </span>
           </>
         ) : (
           <>
             <label className="form-label" htmlFor="ai-existing-group">
-              Target group
+              {copy.existingGroupLabel}
             </label>
             <select
               className="form-control"
@@ -604,7 +700,7 @@ function AiFlashcardGenerator({
               required={mode === 'existing'}
               value={formData.targetGroupId}
             >
-              <option value="">--- Choose a group ---</option>
+              <option value="">{copy.existingGroupPlaceholder}</option>
               {existingGroupOptions.map((group) => (
                 <option key={group.id} value={group.id}>
                   {group.name}
@@ -614,11 +710,7 @@ function AiFlashcardGenerator({
           </>
         )}
 
-        {apiKeyMissing && !error && (
-          <p className="form-error">
-            Add VITE_GEMINI_API_KEY to your project .env file to enable AI flashcard generation.
-          </p>
-        )}
+        {apiKeyMissing && !error && <p className="form-error">{copy.envError}</p>}
 
         {error && <p className="form-error">{error}</p>}
 
@@ -627,17 +719,17 @@ function AiFlashcardGenerator({
           disabled={isGenerating || apiKeyMissing}
           type="submit"
         >
-          {isGenerating ? 'Generating...' : 'Generate Cards'}
+          {isGenerating ? copy.generating : copy.submit}
         </button>
       </form>
 
       {lastResult ? (
         <div className="result">
-          <p>Added {lastResult.cardCount} cards to {lastResult.groupName}.</p>
+          <p>{copy.result(lastResult.cardCount, lastResult.groupName)}</p>
           <p>
-            Topic: {lastResult.topic}
-            {lastResult.detail ? ` - Focus: ${lastResult.detail}` : ''}
-            {lastResult.languageLabel ? ` - Language: ${lastResult.languageLabel}` : ''}
+            {copy.resultTopic(lastResult.topic)}
+            {lastResult.detail ? copy.resultDetail(lastResult.detail) : ''}
+            {lastResult.languageLabel ? copy.resultLanguage(lastResult.languageLabel) : ''}
           </p>
         </div>
       ) : null}
@@ -646,6 +738,39 @@ function AiFlashcardGenerator({
 }
 
 function StudyScreen({ group, setGroup, setScreen, nextCardId, setNextCardId }) {
+  const { i18n } = useTranslation();
+  const isJa = i18n.language?.startsWith('ja');
+  const copy = isJa
+    ? {
+        back: '← グループ一覧へ戻る',
+        addCard: 'カードを追加',
+        hideForm: 'フォームを閉じる',
+        categoryLabel: 'カテゴリ',
+        filterAll: 'すべて',
+        cardsLabel: count => `カード: ${count}`,
+        markedEasy: count => `「かんたん」印: ${count}`,
+        emptyCategory: 'このカテゴリのカードはまだありません。',
+        complete: 'このカテゴリはすべて学習済みです！',
+        restart: 'もう一度行う',
+        reviewAgain: 'もう一度見る',
+        gotIt: '理解した',
+        hint: 'カードをクリックして答えを表示しましょう。',
+      }
+    : {
+        back: '← Back to groups',
+        addCard: 'Add card',
+        hideForm: 'Hide form',
+        categoryLabel: 'Category',
+        filterAll: 'All',
+        cardsLabel: count => `Cards: ${count}`,
+        markedEasy: count => `Marked easy: ${count}`,
+        emptyCategory: 'No cards available in this category yet.',
+        complete: "You're all caught up for this category!",
+        restart: 'Restart session',
+        reviewAgain: 'Review again',
+        gotIt: 'Got it',
+        hint: 'Click the card to reveal the answer.',
+      };
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -848,6 +973,43 @@ function HomeScreen({
   aiSettings,
   onUpdateAiSettings,
 }) {
+  const { i18n } = useTranslation();
+  const isJa = i18n.language?.startsWith('ja');
+  const copy = isJa
+    ? {
+        title: 'フラッシュカード',
+        subtitle: '科目ごとにデッキを作り、AI が数秒で新しいカードを提案します。',
+        summary: {
+          groups: count => `グループ: ${count}`,
+          cards: count => `カード: ${count}`,
+          categories: count => `カテゴリ: ${count}`,
+        },
+        createLabel: '新しいグループを作成',
+        createPlaceholder: '例: 物理の公式',
+        createButton: '作成',
+        groupsTitle: count => `グループ (${count})`,
+        empty: 'まだグループがありません。まずは上で作成しましょう。',
+        groupMeta: count => `${count} 枚`,
+        study: '学習',
+        delete: '削除',
+      }
+    : {
+        title: 'Flashcards',
+        subtitle: 'Build decks for every subject and let AI draft fresh flashcards in seconds.',
+        summary: {
+          groups: count => `Groups: ${count}`,
+          cards: count => `Cards: ${count}`,
+          categories: count => `Categories: ${count}`,
+        },
+        createLabel: 'Create a new group',
+        createPlaceholder: 'e.g. Physics formulas',
+        createButton: 'Create',
+        groupsTitle: count => `Groups (${count})`,
+        empty: 'No groups yet. Start by creating one above.',
+        groupMeta: count => `${count} cards`,
+        study: 'Study',
+        delete: 'Delete',
+      };
   const groupList = Object.values(groups);
   const [newGroupName, setNewGroupName] = useState('');
 
@@ -898,14 +1060,12 @@ function HomeScreen({
     <div className="screen">
       <header className="home-header">
         <div className="home-hero">
-          <h1 className="screen-title">Flashcards</h1>
-          <p className="home-subtitle">
-            Build decks for every subject and let AI draft fresh flashcards in seconds.
-          </p>
+          <h1 className="screen-title">{copy.title}</h1>
+          <p className="home-subtitle">{copy.subtitle}</p>
           <div className="home-summary">
-            <span>Groups: {groupList.length}</span>
-            <span>Cards: {totalCards}</span>
-            <span>Categories: {totalCategories}</span>
+            <span>{copy.summary.groups(groupList.length)}</span>
+            <span>{copy.summary.cards(totalCards)}</span>
+            <span>{copy.summary.categories(totalCategories)}</span>
           </div>
         </div>
         <div className="home-actions">
@@ -946,36 +1106,36 @@ function HomeScreen({
       <section className="panel">
         <form className="form" onSubmit={handleCreateGroup}>
           <label className="form-label" htmlFor="new-group">
-            Create a new group
+            {copy.createLabel}
           </label>
           <div className="form-row">
             <input
               className="form-control"
               id="new-group"
               onChange={(event) => setNewGroupName(event.target.value)}
-              placeholder="e.g. Physics formulas"
+              placeholder={copy.createPlaceholder}
               required
               type="text"
               value={newGroupName}
             />
             <button className="button button--secondary" type="submit">
-              Create
+              {copy.createButton}
             </button>
           </div>
         </form>
       </section>
 
       <section className="panel">
-        <h2 className="panel-title">Groups ({groupList.length})</h2>
+        <h2 className="panel-title">{copy.groupsTitle(groupList.length)}</h2>
         {groupList.length === 0 ? (
-          <p className="panel-text">No groups yet. Start by creating one above.</p>
+          <p className="panel-text">{copy.empty}</p>
         ) : (
           <ul className="group-list">
             {groupList.map((group) => (
               <li className="group-card" key={group.id}>
                 <div>
                   <p className="group-name">{group.name}</p>
-                  <span className="group-meta">{group.cards.length} cards</span>
+                  <span className="group-meta">{copy.groupMeta(group.cards.length)}</span>
                 </div>
                 <div className="group-actions">
                   <button
@@ -983,14 +1143,14 @@ function HomeScreen({
                     onClick={() => onSelectGroup(group.id)}
                     type="button"
                   >
-                    Study
+                    {copy.study}
                   </button>
                   <button
                     className="button button--ghost"
                     onClick={() => handleDeleteGroup(group.id)}
                     type="button"
                   >
-                    Delete
+                    {copy.delete}
                   </button>
                 </div>
               </li>
@@ -1127,7 +1287,7 @@ const handleGenerateAiCards = async ({
     setAiState({
       status: 'error',
       lastResult: null,
-      error: 'Enter a topic before generating cards.',
+      error: copy.topicRequired,
     });
     return;
   }
@@ -1136,7 +1296,7 @@ const handleGenerateAiCards = async ({
     setAiState({
       status: 'error',
       lastResult: null,
-      error: 'Add VITE_GEMINI_API_KEY to your project .env file before generating flashcards.',
+      error: copy.envError,
     });
     return;
   }
@@ -1145,7 +1305,7 @@ const handleGenerateAiCards = async ({
     setAiState({
       status: 'error',
       lastResult: null,
-      error: 'Select a group to append the generated cards.',
+      error: copy.groupRequired,
     });
     return;
   }

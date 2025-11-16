@@ -11,7 +11,7 @@ const TABS = [
   { key: 'tools', labelKey: 'nav.tools', path: '/tools' },
 ]
 
-export default function Navbar({ currentTask, lastCompletedTask }) {
+export default function Navbar() {
   const { t } = useTranslation()
   const { user, logout } = useAuth()
   const [showUserMenu, setShowUserMenu] = useState(false)
@@ -52,23 +52,6 @@ export default function Navbar({ currentTask, lastCompletedTask }) {
       </div>
 
       <div className="nav-actions">
-        <div className="current-task-display" aria-live="polite">
-          <span className="current-task-label">
-            {t('nav.currentTaskLabel', { defaultValue: 'Current task:' })}
-          </span>
-          <span className={currentTask?.title ? 'current-task-value' : 'current-task-value is-empty'}>
-            {currentTask?.title ?? t('nav.currentTaskNone', { defaultValue: 'None' })}
-          </span>
-          {lastCompletedTask?.timeSpent && (
-            <span className="current-task-last">
-              {t('nav.lastTaskSummary', {
-                defaultValue: 'Last: {{time}}',
-                time: lastCompletedTask.timeSpent,
-              })}
-            </span>
-          )}
-        </div>
-        
         {user && (
           <div className="user-menu">
             <button

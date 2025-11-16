@@ -2,20 +2,21 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { useTaskManager } from '../context/TaskManagerContext.jsx'
+import { useTranslation } from 'react-i18next'
 
 const TASK_STATUS_OPTIONS = ['not-started', 'in-progress', 'cancelled', 'completed']
 
-const STATUS_LABELS = {
-  'not-started': 'Not started',
-  'in-progress': 'In progress',
-  cancelled: 'Cancelled',
-  completed: 'Completed',
+const STATUS_LABEL_KEYS = {
+  'not-started': 'taskDetails.status.notStarted',
+  'in-progress': 'taskDetails.status.inProgress',
+  cancelled: 'taskDetails.status.cancelled',
+  completed: 'taskDetails.status.completed',
 }
 
-function formatDateLabel(value) {
-  if (!value) return '—'
+function formatDateLabel(value, fallback, formatString) {
+  if (!value) return fallback
   const parsed = dayjs(value)
-  return parsed.isValid() ? parsed.format('MMMM D, YYYY h:mm A') : '—'
+  return parsed.isValid() ? parsed.format(formatString) : fallback
 }
 
 function toDateTimeLocal(value) {
@@ -53,6 +54,7 @@ export default function TaskDetails() {
   const location = useLocation()
   const { taskId } = useParams()
   const { plans, updateTask } = useTaskManager()
+  const { t, i18n } = useTranslation()
 
   const planFromState = location.state?.plan ?? null
   const taskFromState = location.state?.task ?? null
@@ -87,6 +89,8 @@ export default function TaskDetails() {
   const [formState, setFormState] = useState(() => buildTaskFormState(task))
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState(null)
+  const emptyLabel = t('taskDetails.labels.notAvailable')
+  const dateFormat = i18n.language?.startsWith('ja') ? 'YYYY年M月D日 HH:mm' : 'MMMM D, YYYY h:mm A'
 
   useEffect(() => {
     if (!task) {
@@ -98,16 +102,18 @@ export default function TaskDetails() {
     }
   }, [task?.id, task?.trackedMinutes, isEditing])
 
-  const createdLabel = task ? formatDateLabel(task.createdAt) : '—'
-  const startLabel = task ? formatDateLabel(task.startAt) : '—'
-  const completedLabel = task ? formatDateLabel(task.completedAt) : '—'
-  const dueLabel = task ? formatDateLabel(task.dueDate) : '—'
+  const createdLabel = task ? formatDateLabel(task.createdAt, emptyLabel, dateFormat) : emptyLabel
+  const startLabel = task ? formatDateLabel(task.startAt, emptyLabel, dateFormat) : emptyLabel
+  const completedLabel = task ? formatDateLabel(task.completedAt, emptyLabel, dateFormat) : emptyLabel
+  const dueLabel = task ? formatDateLabel(task.dueDate, emptyLabel, dateFormat) : emptyLabel
   const statusLabel =
-    task && task.status ? STATUS_LABELS[task.status] ?? STATUS_LABELS['not-started'] : 'Not started'
+    task && task.status
+      ? t(STATUS_LABEL_KEYS[task.status] ?? STATUS_LABEL_KEYS['not-started'])
+      : t(STATUS_LABEL_KEYS['not-started'])
   const timeSpentLabel =
     typeof task?.trackedMinutes === 'number' && task.trackedMinutes >= 0
-      ? `${task.trackedMinutes} min`
-      : '0 min'
+      ? t('taskDetails.timeSpentLabel', { count: task.trackedMinutes })
+      : t('taskDetails.timeSpentLabel', { count: 0 })
 
   function handleBack() {
     if (typeof window !== 'undefined' && window.history.length > 1) {
@@ -158,7 +164,7 @@ export default function TaskDetails() {
       setFormState(buildTaskFormState(updated ?? { ...task, ...payload }))
     } catch (error) {
       console.error('Failed to update task', error)
-      setFormError('Failed to save changes. Please try again.')
+      setFormError(t('taskDetails.errors.save'))
     } finally {
       setSaving(false)
     }
@@ -169,17 +175,15 @@ export default function TaskDetails() {
       <div className="task-detail-page">
         <div className="task-detail__left">
           <button type="button" className="task-detail__back-btn" onClick={handleBack}>
-            ← Back
+            <span aria-hidden="true">&larr;</span> {t('taskDetails.buttons.back')}
           </button>
           <div className="task-detail__content">
-            <h1 className="task-detail__title">Task unavailable</h1>
+            <h1 className="task-detail__title">{t('taskDetails.errors.unavailableTitle')}</h1>
             <p className="task-detail__description">
-              We couldn't load the details for task&nbsp;
-              <span className="task-detail__code">#{taskId}</span>. Return to your dashboard and try
-              opening it again.
+              {t('taskDetails.errors.unavailableDescription', { id: taskId })}
             </p>
             <button type="button" className="btn cat-primary" onClick={() => navigate('/')}>
-              Go to dashboard
+              {t('taskDetails.buttons.dashboard')}
             </button>
           </div>
         </div>
@@ -192,7 +196,7 @@ export default function TaskDetails() {
     <div className="task-detail-page">
       <div className="task-detail__left">
         <button type="button" className="task-detail__back-btn" onClick={handleBack}>
-          ← Back
+          <span aria-hidden="true">&larr;</span> {t('taskDetails.buttons.back')}
         </button>
 
         <section className="task-detail__content" aria-labelledby="task-detail-title">
@@ -207,11 +211,11 @@ export default function TaskDetails() {
           <div className="task-detail__actions">
             {!isEditing ? (
               <button type="button" className="btn ghost" onClick={handleEditToggle}>
-                Edit task
+                {t('taskDetails.actions.edit')}
               </button>
             ) : (
               <button type="button" className="btn ghost" onClick={handleCancelEdit}>
-                Cancel edit
+                {t('taskDetails.actions.cancelEdit')}
               </button>
             )}
           </div>
@@ -222,30 +226,30 @@ export default function TaskDetails() {
 
           {plan.description && (
             <div className="task-detail__plan-notes">
-              <h2>Plan notes</h2>
+              <h2>{t('taskDetails.planNotes')}</h2>
               <p>{plan.description}</p>
             </div>
           )}
 
           <dl className="task-detail__meta">
             <div>
-              <dt>Created</dt>
+              <dt>{t('taskDetails.meta.created')}</dt>
               <dd>{createdLabel}</dd>
             </div>
             <div>
-              <dt>Start</dt>
+              <dt>{t('taskDetails.meta.start')}</dt>
               <dd>{startLabel}</dd>
             </div>
             <div>
-              <dt>Due</dt>
+              <dt>{t('taskDetails.meta.due')}</dt>
               <dd>{dueLabel}</dd>
             </div>
             <div>
-              <dt>Completed</dt>
+              <dt>{t('taskDetails.meta.completed')}</dt>
               <dd>{completedLabel}</dd>
             </div>
             <div>
-              <dt>Time spent</dt>
+              <dt>{t('taskDetails.meta.timeSpent')}</dt>
               <dd>{timeSpentLabel}</dd>
             </div>
           </dl>
@@ -254,7 +258,7 @@ export default function TaskDetails() {
             <form className="task-detail__form" onSubmit={handleSubmit}>
               <div className="task-detail__form-grid">
                 <label className="task-detail__form-field">
-                  <span>Title</span>
+                  <span>{t('taskDetails.form.title')}</span>
                   <input
                     type="text"
                     name="title"
@@ -266,7 +270,7 @@ export default function TaskDetails() {
                 </label>
 
                 <label className="task-detail__form-field">
-                  <span>Status</span>
+                  <span>{t('taskDetails.form.status')}</span>
                   <select
                     name="status"
                     className="input"
@@ -275,14 +279,14 @@ export default function TaskDetails() {
                   >
                     {TASK_STATUS_OPTIONS.map(option => (
                       <option key={option} value={option}>
-                        {STATUS_LABELS[option]}
+                        {t(STATUS_LABEL_KEYS[option])}
                       </option>
                     ))}
                   </select>
                 </label>
 
                 <label className="task-detail__form-field">
-                  <span>Start</span>
+                  <span>{t('taskDetails.form.start')}</span>
                   <input
                     type="datetime-local"
                     name="startAt"
@@ -293,7 +297,7 @@ export default function TaskDetails() {
                 </label>
 
                 <label className="task-detail__form-field">
-                  <span>Due</span>
+                  <span>{t('taskDetails.form.due')}</span>
                   <input
                     type="datetime-local"
                     name="dueDate"
@@ -304,7 +308,7 @@ export default function TaskDetails() {
                 </label>
 
                 <label className="task-detail__form-field task-detail__form-field--full">
-                  <span>Description</span>
+                  <span>{t('taskDetails.form.description')}</span>
                   <textarea
                     name="description"
                     className="input"
@@ -315,7 +319,7 @@ export default function TaskDetails() {
                 </label>
 
                 <label className="task-detail__form-field">
-                  <span>Time spent (minutes)</span>
+                  <span>{t('taskDetails.form.timeSpent')}</span>
                   <input
                     type="number"
                     min="0"
@@ -336,10 +340,10 @@ export default function TaskDetails() {
                   onClick={handleCancelEdit}
                   disabled={saving}
                 >
-                  Discard
+                  {t('taskDetails.actions.discard')}
                 </button>
                 <button type="submit" className="btn cat-primary" disabled={saving}>
-                  {saving ? 'Saving...' : 'Save changes'}
+                  {saving ? t('taskDetails.actions.saving') : t('taskDetails.actions.saveChanges')}
                 </button>
               </div>
             </form>
