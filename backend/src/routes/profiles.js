@@ -10,6 +10,41 @@ import {
 
 const router = express.Router();
 
+const sanitizeDisplayName = value => {
+  if (typeof value !== 'string') return ''
+  return value.trim()
+}
+
+const buildUserSyncPayload = body => {
+  const updates = {}
+  if (!body) return updates
+
+  const displayName = sanitizeDisplayName(body.name)
+  if (displayName) {
+    updates.name = displayName
+  }
+
+  if (typeof body.username === 'string' && body.username.trim()) {
+    updates.username = body.username.trim()
+  }
+
+  if (typeof body.profileImage === 'string') {
+    updates.profileImage = body.profileImage
+  }
+
+  return updates
+}
+
+const syncUserWithProfile = async (userId, body = {}) => {
+  if (!userId) return null
+  const updates = buildUserSyncPayload(body)
+  if (!Object.keys(updates).length) {
+    return null
+  }
+  updates.updatedAt = new Date()
+  return User.findByIdAndUpdate(userId, updates, { new: true })
+}
+
 // GET /api/profiles - Get all public profiles (with pagination)
 router.get('/', validatePagination, async (req, res, next) => {
   try {
@@ -152,6 +187,11 @@ router.post('/',
       });
       
       await newProfile.save();
+      await syncUserWithProfile(req.user.id, {
+        name: newProfile.name || name,
+        username: newProfile.username || username,
+        profileImage: newProfile.profileImage,
+      });
       
       // Populate references for response
       await newProfile.populate('userId', 'username email');
@@ -213,6 +253,11 @@ router.put('/:id',
       ).populate('userId', 'username email')
        .populate('followers', 'username')
        .populate('following', 'username');
+      await syncUserWithProfile(existingProfile.userId, {
+        name: updatedProfile?.name ?? req.body.name,
+        username: updatedProfile?.username ?? req.body.username,
+        profileImage: updatedProfile?.profileImage ?? req.body.profileImage,
+      });
       
       res.json({
         message: 'Profile updated successfully',

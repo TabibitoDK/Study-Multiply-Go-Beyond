@@ -108,6 +108,7 @@ router.post('/',
       const newUser = new User({
         username,
         email,
+        name: preferences?.displayName?.trim?.() || username,
         passwordHash,
         preferences: {
           language: preferences?.language || 'en',
@@ -141,7 +142,7 @@ router.put('/:id',
   validateUsername,
   async (req, res, next) => {
     try {
-      const { username, email, preferences, isActive } = req.body;
+      const { username, email, preferences, isActive, name } = req.body;
       
       // Check if username or email is already taken by another user
       if (username || email) {
@@ -164,6 +165,7 @@ router.put('/:id',
       const updateData = {};
       if (username) updateData.username = username;
       if (email) updateData.email = email;
+      if (name && typeof name === 'string' && name.trim()) updateData.name = name.trim();
       if (preferences) updateData.preferences = { ...preferences };
       if (isActive !== undefined) updateData.isActive = isActive;
       
@@ -259,6 +261,9 @@ router.post('/login', async (req, res, next) => {
     
     // Return user without password hash
     const userResponse = user.toObject();
+    if (!userResponse.name && userResponse.username) {
+      userResponse.name = userResponse.username;
+    }
     delete userResponse.passwordHash;
     
     res.json({

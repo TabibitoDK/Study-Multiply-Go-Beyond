@@ -24,8 +24,6 @@ const AUTH_TABS = [
   { key: 'anonymous', label: 'Guest' },
 ]
 
-const randomGuestId = () => `guest_${Math.random().toString(36).slice(2, 9)}`
-
 export default function LoginPage() {
   const navigate = useNavigate()
   const { login, register, guestLogin, loading, error } = useAuth()
@@ -59,16 +57,6 @@ export default function LoginPage() {
   const handleSignupChange = field => event => {
     const value = field === 'terms' ? event.target.checked : event.target.value
     setSignupForm(prev => ({ ...prev, [field]: value }))
-  }
-
-  const persistGuestId = id => {
-    try {
-      if (typeof window === 'undefined' || !window.localStorage) return
-      const guestId = id || randomGuestId()
-      window.localStorage.setItem('nyacademy_guest_id', guestId)
-    } catch (error) {
-      console.warn('Unable to store guest id', error)
-    }
   }
 
   const handleLoginSubmit = async event => {
@@ -170,14 +158,14 @@ export default function LoginPage() {
     showNotification('Password reset link sent to your email.', 'info', 'login')
   }
 
-  const handleAnonymousAuth = mode => {
-    try {
-      const result = guestLogin()
-      const action = mode === 'login' ? 'login' : 'signup'
+  const handleAnonymousAuth = async mode => {
+    if (isSubmitting) return
 
-      if (result?.user?._id) {
-        persistGuestId(result.user._id)
-      }
+    setIsSubmitting(true)
+    const action = mode === 'login' ? 'login' : 'signup'
+
+    try {
+      const result = await guestLogin()
 
       if (result?.success) {
         showNotification(`Guest ${action} successful. Redirecting...`, 'success', mode)
@@ -185,10 +173,12 @@ export default function LoginPage() {
           navigate('/')
         }, 1000)
       } else {
-        showNotification('Unable to start guest session. Please try again.', 'error', mode)
+        showNotification(result?.error || 'Unable to start guest session. Please try again.', 'error', mode)
       }
     } catch (error) {
       showNotification('Guest access is currently unavailable. Please try again.', 'error', mode)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 

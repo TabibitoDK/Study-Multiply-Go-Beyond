@@ -354,3 +354,135 @@
     padding: 12px;
   }
 }
+
+.profile-basics-modal {
+  max-width: 560px;
+}
+
+.profile-basics-form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.profile-basics-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profile-basics-avatar-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+}
+
+.profile-basics-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 2px solid var(--ring);
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+}
+
+.profile-basics-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-basics-avatar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-basics-upload-btn,
+.profile-basics-reset-btn {
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  padding: 12px 18px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-basics-upload-btn {
+  background: var(--accent);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-basics-upload-btn input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.profile-basics-upload-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.profile-basics-reset-btn {
+  background: #fee2e2;
+  color: #b45309;
+}
+
+.profile-basics-reset-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(244, 63, 94, 0.2);
+}
+
+.profile-basics-hint {
+  font-size: 0.85rem;
+  color: var(--subtext);
+  margin: 0;
+}
+
+.profile-basics-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-basics-field-label {
+  font-weight: 600;
+  color: var(--subtext);
+}
+
+.profile-basics-input {
+  border: 2px solid var(--ring);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 1rem;
+  background: var(--bg);
+  color: var(--text);
+  transition: border-color 0.2s ease;
+}
+
+.profile-basics-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.profile-basics-error {
+  background: #fee2e2;
+  color: #b91c1c;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+}

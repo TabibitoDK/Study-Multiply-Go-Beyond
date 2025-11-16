@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import dayjs from 'dayjs'
 import { Edit3, Globe, Lock } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -6,12 +6,37 @@ import './Profile.css'
 import PostCard from '../components/social/PostCard.jsx'
 import PostModal from '../components/social/PostModal.jsx'
 import ProfileEditModal from '../components/ProfileEditModal.jsx'
+import ProfileBasicsModal from '../components/ProfileBasicsModal.jsx'
 import profileService from '../services/profileService.js'
 import postService from '../services/postService.js'
+import { api } from '../lib/api.js'
 import { useI18nFormats } from '../lib/i18n-format.js'
 import { useAuth } from '../context/AuthContext.jsx'
 
 const GOALS_STORAGE_KEY = 'smgb-user-goals-v1'
+const mapTagsToInterests = tags =>
+  Array.isArray(tags)
+    ? tags
+        .map(tag => {
+          if (typeof tag === 'string') return { text: tag, isPublic: true }
+          if (tag && typeof tag === 'object' && 'text' in tag) {
+            return { text: tag.text, isPublic: tag.isPublic !== false }
+          }
+          return null
+        })
+        .filter(Boolean)
+    : []
+
+const toTagStrings = tags =>
+  Array.isArray(tags)
+    ? tags
+        .map(tag => {
+          if (typeof tag === 'string') return tag
+          if (tag && typeof tag === 'object' && 'text' in tag) return tag.text
+          return null
+        })
+        .filter(Boolean)
+    : []
 
 export default function Profile({
   profileId = null,
@@ -46,6 +71,7 @@ export default function Profile({
     : resolvedProfile.joined
 
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [basicsModalOpen, setBasicsModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editModalType, setEditModalType] = useState(null)
   const [editModalValue, setEditModalValue] = useState(null)
@@ -67,7 +93,48 @@ export default function Profile({
       return defaultGoals
     }
   })
-  const { user: authUser } = useAuth()
+  const { user: authUser, updateUser } = useAuth()
+  const applyProfileUpdate = useCallback(
+    nextProfile => {
+      if (!nextProfile) return null
+      setResolvedProfile(nextProfile)
+      setBio(nextProfile.bio || '')
+      setBioPrivacy(nextProfile.bioPrivacy !== false)
+      setInterests(mapTagsToInterests(nextProfile.tags))
+      if (typeof updateUser === 'function') {
+        updateUser(current => ({
+          ...current,
+          name: nextProfile.name || current?.name,
+          username: nextProfile.username || current?.username,
+          profileImage: nextProfile.profileImage ?? current?.profileImage,
+        }))
+      }
+      return nextProfile
+    },
+    [updateUser],
+  )
+
+  const syncUserRecord = useCallback(
+    async ({ name: displayName, profileImage }) => {
+      if (!authUser?.id || authUser?.isGuest) return
+      const payload = {}
+      if (displayName && displayName.trim()) {
+        payload.name = displayName.trim()
+      }
+      if (typeof profileImage === 'string') {
+        payload.profileImage = profileImage
+      }
+      if (!Object.keys(payload).length) {
+        return
+      }
+      try {
+        await api.updateUser(authUser.id, payload)
+      } catch (syncError) {
+        console.warn('Failed to sync user account record:', syncError)
+      }
+    },
+    [authUser],
+  )
 
   const buildFallbackProfile = () => {
     const fallbackId = profileId || currentUserId || authUser?._id || authUser?.id || null
@@ -96,6 +163,19 @@ export default function Profile({
       followingIds: [],
       posts: 0,
     }
+  }
+
+  const deriveUsername = value => {
+    const normalized = (value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+
+    if (normalized.length >= 3) {
+      return normalized.slice(0, 30)
+    }
+
+    return `user_${Math.random().toString(36).slice(2, 8)}`
   }
 
   // Fetch profile and posts data
@@ -132,11 +212,7 @@ export default function Profile({
         // Initialize state with profile data
         setBio(profileData.bio || '')
         setBioPrivacy(profileData.bioPrivacy !== false) // Default to true
-        setInterests(
-          Array.isArray(profileData.tags)
-            ? profileData.tags.map(tag => ({ text: tag, isPublic: true }))
-            : []
-        )
+        setInterests(mapTagsToInterests(profileData.tags))
         
         // Fetch posts for this profile
         const postsData = Array.isArray(postsProp)
@@ -219,6 +295,84 @@ export default function Profile({
     } catch (err) {
       console.error('Error updating profile:', err)
       setError('Failed to update profile. Please try again.')
+    }
+  }
+
+  async function handleBasicsSave(basics) {
+    const trimmedName = (basics?.name || '').trim()
+    if (!trimmedName) {
+      throw new Error('Display name is required')
+    }
+
+    const nextImage =
+      typeof basics?.profileImage === 'string'
+        ? basics.profileImage
+        : resolvedProfile?.profileImage || ''
+
+    const usernameToUse =
+      resolvedProfile?.username && resolvedProfile.username.length > 0
+        ? resolvedProfile.username
+        : deriveUsername(trimmedName)
+
+    const buildLocalProfile = () => {
+      const baseProfile = resolvedProfile ?? buildFallbackProfile()
+      const sourceTags =
+        (Array.isArray(baseProfile.tags) && baseProfile.tags.length > 0)
+          ? baseProfile.tags
+          : interests
+      return {
+        ...baseProfile,
+        name: trimmedName,
+        username: usernameToUse,
+        profileImage: nextImage,
+        tags: toTagStrings(sourceTags),
+      }
+    }
+
+    const persistLocally = async () => {
+      const profileSnapshot = applyProfileUpdate(buildLocalProfile())
+      await syncUserRecord({ name: trimmedName, profileImage: nextImage })
+      return profileSnapshot
+    }
+
+    if (!authUser || authUser.isGuest) {
+      return persistLocally()
+    }
+
+    const payload = {
+      name: trimmedName,
+      profileImage: nextImage,
+      username: usernameToUse,
+    }
+
+    try {
+      let updatedProfileData
+      if (resolvedProfile?.profileId) {
+        updatedProfileData = await profileService.updateProfile(resolvedProfile.profileId, payload)
+      } else {
+        updatedProfileData = await profileService.upsertProfile(payload)
+      }
+
+      if (!updatedProfileData) {
+        throw new Error('Profile update failed. Please try again.')
+      }
+
+      const finalProfile = applyProfileUpdate(updatedProfileData)
+      await syncUserRecord({ name: trimmedName, profileImage: nextImage })
+      return finalProfile
+    } catch (err) {
+      const shouldFallback =
+        err?.status === 401 ||
+        err?.status === 403 ||
+        err?.status === 404 ||
+        (typeof err?.message === 'string' && err.message.toLowerCase().includes('user not found'))
+
+      if (shouldFallback) {
+        return persistLocally()
+      }
+
+      console.error('Failed to save profile info:', err)
+      throw err
     }
   }
 
@@ -312,20 +466,27 @@ export default function Profile({
           </div>
         </div>
 
-        <button
-          type="button"
-          className="edit-btn"
-          onClick={() => {
-            if (!isCurrentUser && typeof onSelectProfile === "function") {
-              onSelectProfile(currentUserId)
-            }
-          }}
-          disabled={isCurrentUser}
-        >
-          {isCurrentUser
-            ? t('profile.actions.current', { defaultValue: 'Your Profile' })
-            : t('profile.actions.viewMine', { defaultValue: 'View My Profile' })}
-        </button>
+        {isCurrentUser ? (
+          <button
+            type="button"
+            className="edit-btn"
+            onClick={() => setBasicsModalOpen(true)}
+          >
+            {t('profile.actions.editProfile', { defaultValue: 'Edit Profile' })}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="edit-btn"
+            onClick={() => {
+              if (typeof onSelectProfile === 'function') {
+                onSelectProfile(currentUserId)
+              }
+            }}
+          >
+            {t('profile.actions.viewMine', { defaultValue: 'View My Profile' })}
+          </button>
+        )}
       </div>
 
       <hr className="divider" />
@@ -494,6 +655,13 @@ export default function Profile({
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
+      />
+
+      <ProfileBasicsModal
+        open={basicsModalOpen}
+        onClose={() => setBasicsModalOpen(false)}
+        initialProfile={resolvedProfile}
+        onSubmit={handleBasicsSave}
       />
 
       <ProfileEditModal

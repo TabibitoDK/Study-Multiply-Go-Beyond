@@ -42,12 +42,28 @@ export const normalizeGroup = group => {
   }
 }
 
+const dedupeGroups = groups => {
+  if (!Array.isArray(groups)) return []
+  const seen = new Set()
+  return groups.filter(group => {
+    if (!group) return false
+    const fallbackKey = `${(group.name || '').toLowerCase()}::${(group.topic || '').toLowerCase()}`
+    const key = group.id || fallbackKey
+    if (seen.has(key)) {
+      return false
+    }
+    seen.add(key)
+    return true
+  })
+}
+
 export const groupService = {
   getMyGroups: async () => {
     try {
       const response = await api.get('/study-groups')
       const list = Array.isArray(response) ? response : []
-      return list.map(normalizeGroup).filter(Boolean)
+      const normalized = list.map(normalizeGroup).filter(Boolean)
+      return dedupeGroups(normalized)
     } catch (error) {
       console.error('Error fetching study groups:', error)
       throw error

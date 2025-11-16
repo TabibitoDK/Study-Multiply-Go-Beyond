@@ -135,7 +135,8 @@ export const profileService = {
   upsertProfile: async (profileData) => {
     try {
       const response = await api.post('/profiles', profileData)
-      return response
+      const payload = response?.profile ?? response
+      return normalizeProfile(payload)
     } catch (error) {
       console.error('Error creating/updating profile:', error)
       throw error
@@ -146,7 +147,8 @@ export const profileService = {
   updateProfile: async (id, profileData) => {
     try {
       const response = await api.put(`/profiles/${id}`, profileData)
-      return response
+      const payload = response?.profile ?? response
+      return normalizeProfile(payload)
     } catch (error) {
       console.error('Error updating profile:', error)
       throw error

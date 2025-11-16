@@ -3,6 +3,8 @@ import createJsonModel from '../lib/jsonModelFactory.js'
 const User = createJsonModel('User', {
   collectionName: 'users',
   defaults: {
+    name: '',
+    profileImage: '',
     isActive: true,
     preferences: {
       language: 'en',
@@ -10,7 +12,7 @@ const User = createJsonModel('User', {
       timezone: 'UTC'
     }
   },
-  textFields: ['username', 'email']
+  textFields: ['username', 'email', 'name']
 })
 
 export default User
