@@ -10,7 +10,15 @@ import profileService from '../../services/profileService.js'
 import CatPeekAnimation from '../CatPeekAnimation.jsx'
 import './SocialPage.css'
 
-export default function SocialPage({ currentUser, posts, onCreatePost, onSelectProfile }) {
+export default function SocialPage({
+  currentUser,
+  posts,
+  onCreatePost,
+  onSelectProfile,
+  onFriendFollow = () => {},
+  onFriendUnfollow = () => {},
+  onGroupJoin = () => {},
+}) {
   const navigate = useNavigate()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [feed, setFeed] = useState([])
@@ -189,7 +197,11 @@ export default function SocialPage({ currentUser, posts, onCreatePost, onSelectP
         )}
       </div>
 
-      <FriendSuggestions />
+      <FriendSuggestions
+        onFriendFollow={onFriendFollow}
+        onFriendUnfollow={onFriendUnfollow}
+        onGroupJoin={onGroupJoin}
+      />
 
       <div className="cat-peek-spot">
         <CatPeekAnimation size={150} />

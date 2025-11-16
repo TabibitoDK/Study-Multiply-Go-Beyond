@@ -35,7 +35,38 @@ const getGuestSuggestions = () =>
     isFollowing: false,
   }))
 
-export default function FriendSuggestions() {
+const GROUP_SUGGESTIONS = [
+  {
+    id: 'focus-lounge',
+    name: 'Focus Lounge Pomodoro',
+    description: '50-minute deep work sprints with accountability buddies.',
+    topic: 'Productivity',
+    memberCount: 28,
+    image: '',
+  },
+  {
+    id: 'jlpt-crew',
+    name: 'JLPT N2 Night Owls',
+    description: 'Late-night reading drills and grammar lightning rounds.',
+    topic: 'Language',
+    memberCount: 17,
+    image: '',
+  },
+  {
+    id: 'datastruct-daily',
+    name: 'Data Structures Daily',
+    description: 'Interview prep walkthroughs and LeetCode warmups.',
+    topic: 'Engineering',
+    memberCount: 46,
+    image: '',
+  },
+]
+
+export default function FriendSuggestions({
+  onFriendFollow = () => {},
+  onFriendUnfollow = () => {},
+  onGroupJoin = () => {},
+}) {
   const { user } = useAuth()
   const isGuest = Boolean(user?.isGuest)
   const [searchQuery, setSearchQuery] = useState('')
@@ -45,6 +76,8 @@ export default function FriendSuggestions() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [following, setFollowing] = useState(new Set())
+  const [groupSuggestions] = useState(() => GROUP_SUGGESTIONS)
+  const [joinedGroups, setJoinedGroups] = useState(new Set())
 
   // Fetch suggested friends on component mount
   useEffect(() => {
@@ -132,6 +165,28 @@ export default function FriendSuggestions() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleJoinGroup = groupId => {
+    const targetGroup = groupSuggestions.find(group => group.id === groupId)
+    if (!targetGroup || joinedGroups.has(groupId)) {
+      return
+    }
+
+    setJoinedGroups(prev => {
+      const next = new Set(prev)
+      next.add(groupId)
+      return next
+    })
+
+    onGroupJoin({
+      id: targetGroup.id,
+      name: targetGroup.name,
+      memberCount: targetGroup.memberCount,
+      description: targetGroup.description,
+      image: targetGroup.image,
+      topic: targetGroup.topic,
+    })
   }
 
   // Handle search functionality
@@ -228,76 +283,76 @@ export default function FriendSuggestions() {
   }, [searchQuery, isGuest])
 
   // Handle follow/unfollow functionality
-  const handleFollowToggle = async (userId) => {
-    if (isGuest) {
-      setError('Create a free account to follow other learners.')
+  const handleFollowToggle = async userId => {
+    const isCurrentlyFollowing = following.has(userId)
+    const targetUser =
+      suggestions.find(user => user.id === userId) ||
+      searchResults.friends.find(user => user.id === userId) ||
+      null
+
+    if (!targetUser) {
+      setError('Unable to find this learner. Please try again.')
       return
     }
 
-    const isCurrentlyFollowing = following.has(userId)
-    
-    // Validate userId before proceeding
-    if (!userId) {
-      console.error('Invalid userId provided to handleFollowToggle:', userId)
-      setError('Invalid user ID. Please try again.')
+    const updateLocalCollections = () => {
+      setFollowing(prev => {
+        const next = new Set(prev)
+        if (isCurrentlyFollowing) {
+          next.delete(userId)
+        } else {
+          next.add(userId)
+        }
+        return next
+      })
+
+      setSuggestions(prev =>
+        prev.map(user =>
+          user.id === userId ? { ...user, isFollowing: !isCurrentlyFollowing } : user,
+        ),
+      )
+
+      setSearchResults(prev => ({
+        ...prev,
+        friends: prev.friends.map(user =>
+          user.id === userId ? { ...user, isFollowing: !isCurrentlyFollowing } : user,
+        ),
+      }))
+    }
+
+    const syncPanels = () => {
+      if (isCurrentlyFollowing) {
+        onFriendUnfollow(userId)
+      } else {
+        onFriendFollow({
+          id: targetUser.id,
+          name: targetUser.name || targetUser.username || 'New friend',
+          username: targetUser.username || targetUser.name || '',
+          profileImage: targetUser.profileImage || '',
+          status: 'online',
+          activity: targetUser.bio || 'Ready to study',
+        })
+      }
+    }
+
+    if (isGuest) {
+      updateLocalCollections()
+      syncPanels()
       return
     }
-    
-    // Log the ID format for debugging
-    console.log('handleFollowToggle called with userId:', userId, 'type:', typeof userId)
-    
+
     try {
-      // Use profileService with correct endpoints
       if (isCurrentlyFollowing) {
         await profileService.unfollowUser(userId)
       } else {
         await profileService.followUser(userId)
       }
 
-      // Update local state
-      setFollowing(prev => {
-        const newSet = new Set(prev)
-        if (isCurrentlyFollowing) {
-          newSet.delete(userId)
-        } else {
-          newSet.add(userId)
-        }
-        return newSet
-      })
-
-      // Update suggestions if the user is in the suggestions list
-      setSuggestions(prev =>
-        prev.map(user =>
-          user.id === userId
-            ? { ...user, isFollowing: !isCurrentlyFollowing }
-            : user
-        )
-      )
-
-      // Update search results if the user is in the search results
-      setSearchResults(prev => ({
-        ...prev,
-        friends: prev.friends.map(user =>
-          user.id === userId
-            ? { ...user, isFollowing: !isCurrentlyFollowing }
-            : user
-        )
-      }))
+      updateLocalCollections()
+      syncPanels()
     } catch (err) {
       console.error('Error toggling follow:', err)
-      
-      // Provide more descriptive error messages
-      if (err.status === 404) {
-        setError('User profile not found. The user may not have created a profile yet.')
-      } else if (err.status === 403) {
-        setError('Unable to follow this user. They may have restricted who can follow them.')
-      } else if (err.status === 400) {
-        setError(err.message || 'Invalid follow operation. You may already be following this user.')
-      } else if (err.message && err.message.includes('Invalid user ID format')) {
-        setError('Invalid user ID format. Please refresh the page and try again.')
-      } else {
-        setError('Failed to update follow status. Please check your connection and try again.')
-      }
+      setError(err.message || 'Unable to update follow status. Please try again later.')
     }
   }
 
@@ -382,43 +437,61 @@ export default function FriendSuggestions() {
           </div>
         </div>
       ) : (
-        // Friend suggestions view
-        <div className="suggestions-section">
-          <div className="section-header">
-            <Users size={20} />
-            <h3>Suggested Friends</h3>
+        <>
+          <div className="suggestions-section">
+            <div className="section-header">
+              <Users size={20} />
+              <h3>Suggested Friends</h3>
+            </div>
+            
+            {loading ? (
+              <div className="loading-state">
+                <Loader size={20} className="spinner" />
+                <span>Loading suggestions...</span>
+              </div>
+            ) : error ? (
+              <div className="error-state">
+                <AlertCircle size={20} />
+                <span>{error}</span>
+              </div>
+            ) : (
+              <div className="suggestions-list">
+                {suggestions.length === 0 ? (
+                  <div className="empty-state">
+                    <Users size={24} />
+                    <span>No suggestions available</span>
+                  </div>
+                ) : (
+                  suggestions.map(user => (
+                    <FriendSuggestionItem
+                      key={user.id}
+                      user={user}
+                      isFollowing={following.has(user.id)}
+                      onFollowToggle={() => handleFollowToggle(user.id)}
+                    />
+                  ))
+                )}
+              </div>
+            )}
           </div>
-          
-          {loading ? (
-            <div className="loading-state">
-              <Loader size={20} className="spinner" />
-              <span>Loading suggestions...</span>
+
+          <div className="suggestions-section group-suggestions-section">
+            <div className="section-header">
+              <Users size={20} />
+              <h3>Suggested Groups</h3>
             </div>
-          ) : error ? (
-            <div className="error-state">
-              <AlertCircle size={20} />
-              <span>{error}</span>
-            </div>
-          ) : (
             <div className="suggestions-list">
-              {suggestions.length === 0 ? (
-                <div className="empty-state">
-                  <Users size={24} />
-                  <span>No suggestions available</span>
-                </div>
-              ) : (
-                suggestions.map(user => (
-                  <FriendSuggestionItem
-                    key={user.id}
-                    user={user}
-                    isFollowing={following.has(user.id)}
-                    onFollowToggle={() => handleFollowToggle(user.id)}
-                  />
-                ))
-              )}
+              {groupSuggestions.map(group => (
+                <GroupSuggestionItem
+                  key={group.id}
+                  group={group}
+                  isJoined={joinedGroups.has(group.id)}
+                  onJoin={() => handleJoinGroup(group.id)}
+                />
+              ))}
             </div>
-          )}
-        </div>
+          </div>
+        </>
       )}
     </aside>
   )
@@ -456,6 +529,43 @@ function FriendSuggestionItem({ user, isFollowing, onFollowToggle }) {
             Follow
           </>
         )}
+      </button>
+    </div>
+  )
+}
+
+function GroupSuggestionItem({ group, isJoined, onJoin }) {
+  const initials = group.name
+    .split(' ')
+    .map(part => part[0])
+    .filter(Boolean)
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+
+  return (
+    <div className="group-suggestion-item">
+      <div className="group-info">
+        <div
+          className="group-avatar"
+          style={group.image ? { backgroundImage: `url(${group.image})` } : undefined}
+        >
+          {!group.image && <span>{initials || '?'}</span>}
+        </div>
+        <div className="group-details">
+          <div className="group-name">{group.name}</div>
+          <div className="group-topic">{group.topic}</div>
+          <div className="group-meta">{group.memberCount} members</div>
+          <p className="group-description">{group.description}</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        className={`join-button ${isJoined ? 'joined' : ''}`}
+        onClick={onJoin}
+        disabled={isJoined}
+      >
+        {isJoined ? 'Joined' : 'Join'}
       </button>
     </div>
   )

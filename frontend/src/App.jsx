@@ -126,6 +126,70 @@ function AppContent() {
     }
   }, [user])
 
+  const handleFriendFollowed = useCallback(
+    friend => {
+      if (!friend?.id) {
+        return
+      }
+      if (!user || user.isGuest) {
+        setFriends(prev => {
+          if (prev.some(existing => existing.id === friend.id)) {
+            return prev
+          }
+          return [
+            ...prev,
+            {
+              id: friend.id,
+              name: friend.name || friend.username || 'New friend',
+              username: friend.username || friend.name || '',
+              profileImage: friend.profileImage || '',
+              status: friend.status || 'online',
+              activity: friend.activity || 'Ready to study',
+            },
+          ]
+        })
+      } else {
+        refreshFriends()
+      }
+    },
+    [refreshFriends, user],
+  )
+
+  const handleFriendUnfollowed = useCallback(
+    friendId => {
+      if (!friendId) {
+        return
+      }
+      if (!user || user.isGuest) {
+        setFriends(prev => prev.filter(friend => friend.id !== friendId))
+      } else {
+        refreshFriends()
+      }
+    },
+    [refreshFriends, user],
+  )
+
+  const handleGroupJoined = useCallback(group => {
+    if (!group?.id) {
+      return
+    }
+    setGroups(prev => {
+      if (prev.some(existing => existing.id === group.id)) {
+        return prev
+      }
+      const normalized = {
+        id: group.id,
+        name: group.name || 'Study Group',
+        memberCount:
+          typeof group.memberCount === 'number'
+            ? group.memberCount
+            : group.members?.length || 1,
+        image: group.image || group.coverImage || '',
+      }
+      return [...prev, normalized]
+    })
+  }, [])
+
   // Fetch initial data
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -405,6 +469,9 @@ function AppContent() {
                     posts={posts}
                     onCreatePost={handleCreatePost}
                     onSelectProfile={openProfile}
+                    onFriendFollow={handleFriendFollowed}
+                    onFriendUnfollow={handleFriendUnfollowed}
+                    onGroupJoin={handleGroupJoined}
                   />
                 </ProtectedRoute>
               }
