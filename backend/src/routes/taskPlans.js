@@ -11,6 +11,22 @@ import {
 
 const router = express.Router();
 
+const normalizeId = value => {
+  if (!value) {
+    return '';
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'object') {
+    const nested = value._id || value.id || value.toString?.();
+    if (nested && nested !== value) {
+      return normalizeId(nested);
+    }
+  }
+  return String(value);
+};
+
 // GET /api/task-plans - Get all task plans for authenticated user
 router.get('/', authenticate, validatePagination, async (req, res, next) => {
   try {
@@ -168,7 +184,7 @@ router.put('/:id',
         });
       }
       
-      if (existingTaskPlan.userId.toString() !== req.user.id) {
+      if (normalizeId(existingTaskPlan.userId) !== normalizeId(req.user.id)) {
         return res.status(403).json({
           error: 'Access denied',
           message: 'You can only update your own task plans'
@@ -216,7 +232,7 @@ router.delete('/:id',
         });
       }
       
-      if (existingTaskPlan.userId.toString() !== req.user.id) {
+      if (normalizeId(existingTaskPlan.userId) !== normalizeId(req.user.id)) {
         return res.status(403).json({
           error: 'Access denied',
           message: 'You can only delete your own task plans'
@@ -260,7 +276,7 @@ router.post('/:id/tasks',
         });
       }
       
-      if (taskPlan.userId.toString() !== req.user.id) {
+      if (normalizeId(taskPlan.userId) !== normalizeId(req.user.id)) {
         return res.status(403).json({
           error: 'Access denied',
           message: 'You can only add tasks to your own task plans'
@@ -321,7 +337,7 @@ router.put('/:id/tasks/:taskId',
         });
       }
       
-      if (taskPlan.userId.toString() !== req.user.id) {
+      if (normalizeId(taskPlan.userId) !== normalizeId(req.user.id)) {
         return res.status(403).json({
           error: 'Access denied',
           message: 'You can only update tasks in your own task plans'
@@ -381,7 +397,7 @@ router.delete('/:id/tasks/:taskId',
         });
       }
       
-      if (taskPlan.userId.toString() !== req.user.id) {
+      if (normalizeId(taskPlan.userId) !== normalizeId(req.user.id)) {
         return res.status(403).json({
           error: 'Access denied',
           message: 'You can only delete tasks from your own task plans'
@@ -438,7 +454,7 @@ router.post('/:id/tasks/:taskId/subtasks',
         });
       }
       
-      if (taskPlan.userId.toString() !== req.user.id) {
+      if (normalizeId(taskPlan.userId) !== normalizeId(req.user.id)) {
         return res.status(403).json({
           error: 'Access denied',
           message: 'You can only add subtasks to your own task plans'
@@ -499,7 +515,7 @@ router.put('/:id/tasks/:taskId/subtasks/:subtaskId',
         });
       }
       
-      if (taskPlan.userId.toString() !== req.user.id) {
+      if (normalizeId(taskPlan.userId) !== normalizeId(req.user.id)) {
         return res.status(403).json({
           error: 'Access denied',
           message: 'You can only update subtasks in your own task plans'
@@ -571,7 +587,7 @@ router.delete('/:id/tasks/:taskId/subtasks/:subtaskId',
         });
       }
       
-      if (taskPlan.userId.toString() !== req.user.id) {
+      if (normalizeId(taskPlan.userId) !== normalizeId(req.user.id)) {
         return res.status(403).json({
           error: 'Access denied',
           message: 'You can only delete subtasks from your own task plans'

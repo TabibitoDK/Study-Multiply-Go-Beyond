@@ -735,21 +735,27 @@ export default function HomeDashboard({
     setTaskSearchQuery('')
   }
 
-  function handleAddLongTerm(event) {
+  async function handleAddLongTerm(event) {
     event.preventDefault()
     const title = newLongTermTitle.trim()
     if (!title) return
 
-    const plan = addPlan({
-      title,
-      description: newLongTermDescription.trim(),
-      dueDate: newLongTermDueDate || null,
-    })
-    setSelectedLongTermId(plan.id)
-    closeAddLongTerm()
+    try {
+      const plan = await addPlan({
+        title,
+        description: newLongTermDescription.trim(),
+        dueDate: newLongTermDueDate || null,
+      })
+      if (plan?.id) {
+        setSelectedLongTermId(plan.id)
+      }
+      closeAddLongTerm()
+    } catch (error) {
+      console.error('Failed to create task plan', error)
+    }
   }
 
-  function handleAddShortTask(event) {
+  async function handleAddShortTask(event) {
     event.preventDefault()
     if (!selectedLongTerm) return
 
@@ -767,33 +773,44 @@ export default function HomeDashboard({
       dueDate = startAt
     }
 
-    addTask(selectedLongTerm.id, {
-      title,
-      description,
-      createdAt,
-      startAt,
-      dueDate,
-    })
-
-    closeAddShortTask()
-  }
-
-  function handleLongTermStatusChange(longTermId, status) {
-    updatePlanStatus(longTermId, status)
-  }
-
-  function handleTaskStatusChange(taskId, status) {
-    if (!selectedLongTerm) return
-    const result = updateTaskStatus(selectedLongTerm.id, taskId, status)
-    const nextTask = result?.nextTask ?? null
-    if (!nextTask) return
-
-    if (status === 'in-progress' && typeof onSetCurrentTask === 'function') {
-      onSetCurrentTask(nextTask.title)
+    try {
+      await addTask(selectedLongTerm.id, {
+        title,
+        description,
+        createdAt,
+        startAt,
+        dueDate,
+      })
+      closeAddShortTask()
+    } catch (error) {
+      console.error('Failed to add task', error)
     }
+  }
 
-    if (status === 'completed' && typeof onCompleteTask === 'function') {
-      onCompleteTask(nextTask.title)
+  async function handleLongTermStatusChange(longTermId, status) {
+    try {
+      await updatePlanStatus(longTermId, status)
+    } catch (error) {
+      console.error('Failed to update plan status', error)
+    }
+  }
+
+  async function handleTaskStatusChange(taskId, status) {
+    if (!selectedLongTerm) return
+    try {
+      const result = await updateTaskStatus(selectedLongTerm.id, taskId, status)
+      const nextTask = result?.nextTask ?? null
+      if (!nextTask) return
+
+      if (status === 'in-progress' && typeof onSetCurrentTask === 'function') {
+        onSetCurrentTask(nextTask.title)
+      }
+
+      if (status === 'completed' && typeof onCompleteTask === 'function') {
+        onCompleteTask(nextTask.title)
+      }
+    } catch (error) {
+      console.error('Failed to update task status', error)
     }
   }
 

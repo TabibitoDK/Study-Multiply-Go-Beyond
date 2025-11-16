@@ -330,7 +330,7 @@ export default function CalendarPage() {
     setModalDueAt(now.add(2, 'hour').format('YYYY-MM-DDTHH:mm'))
   }
 
-  function handleSaveEvent(event) {
+  async function handleSaveEvent(event) {
     event.preventDefault()
     if (!modalDate || !modalPlanId) return
     const name = modalTaskName.trim()
@@ -351,26 +351,30 @@ export default function CalendarPage() {
       dueDate = startAt
     }
 
-    addTask(modalPlanId, {
-      title: name,
-      description,
-      createdAt,
-      startAt,
-      dueDate,
-    })
-
-    if (modalDateKey) {
-      setEvents(prev => {
-        const next = { ...prev }
-        const existing = Array.isArray(next[modalDateKey]) ? next[modalDateKey] : []
-        const planTitle = plans.find(plan => plan.id === modalPlanId)?.title ?? ''
-        const entryLabel = planTitle ? `${name} · ${planTitle}` : name
-        next[modalDateKey] = [...existing, entryLabel]
-        return next
+    try {
+      await addTask(modalPlanId, {
+        title: name,
+        description,
+        createdAt,
+        startAt,
+        dueDate,
       })
-    }
 
-    closeModal()
+      if (modalDateKey) {
+        setEvents(prev => {
+          const next = { ...prev }
+          const existing = Array.isArray(next[modalDateKey]) ? next[modalDateKey] : []
+          const planTitle = plans.find(plan => plan.id === modalPlanId)?.title ?? ''
+          const entryLabel = planTitle ? `${name} · ${planTitle}` : name
+          next[modalDateKey] = [...existing, entryLabel]
+          return next
+        })
+      }
+
+      closeModal()
+    } catch (error) {
+      console.error('Failed to schedule task', error)
+    }
   }
 
   function handleQuickAdd(event) {

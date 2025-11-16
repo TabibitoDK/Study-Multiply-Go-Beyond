@@ -284,11 +284,13 @@ export function AuthProvider({ children }) {
       setLoading(true)
       setError(null)
 
-      try {
-        await api.register(identity.username, identity.email, identity.password)
-      } catch (registerError) {
-        if (registerError?.status !== 409) {
-          throw registerError
+      if (!identity.userId) {
+        try {
+          await api.register(identity.username, identity.email, identity.password)
+        } catch (registerError) {
+          if (registerError?.status !== 409) {
+            throw registerError
+          }
         }
       }
 

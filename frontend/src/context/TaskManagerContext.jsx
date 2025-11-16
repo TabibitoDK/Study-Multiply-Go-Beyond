@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import dayjs from 'dayjs'
 import { useAuth } from './AuthContext.jsx'
+import taskPlanService from '../services/taskPlanService.js'
 
 const TaskManagerContext = createContext(null)
 const ENABLE_SAMPLE_PLANS = false
@@ -42,22 +43,114 @@ function hasOwn(object, key) {
   return Object.prototype.hasOwnProperty.call(object, key)
 }
 
+const normalizePlanId = plan => {
+  if (!plan) return createId('lt')
+  if (plan.id) return String(plan.id)
+  if (plan._id) return String(plan._id)
+  if (plan.planId) return String(plan.planId)
+  return createId('lt')
+}
+
+const normalizeUserId = userRef => {
+  if (!userRef) return null
+  if (typeof userRef === 'string') return String(userRef)
+  if (typeof userRef === 'object') {
+    if (userRef._id) return String(userRef._id)
+    if (userRef.id) return String(userRef.id)
+    if (userRef.userId) return String(userRef.userId)
+  }
+  return null
+}
+
+const normalizeTaskRecord = task => {
+  if (!task) return null
+  const taskId = String(task.id || task._id || createId('task'))
+  const createdAt = toIsoOrNull(task.createdAt) ?? null
+  const startAt = toIsoOrNull(task.startAt) ?? createdAt
+  const dueDate = toIsoOrNull(task.dueDate) ?? startAt ?? createdAt
+  const completedAt = toIsoOrNull(task.completedAt) ?? null
+  const trackedMinutes =
+    typeof task.trackedMinutes === 'number' && task.trackedMinutes >= 0
+      ? Math.round(task.trackedMinutes)
+      : 0
+
+  return {
+    ...task,
+    id: taskId,
+    _id: task._id || taskId,
+    title: task.title ?? '',
+    description: task.description ?? '',
+    status: task.status ?? 'not-started',
+    createdAt,
+    startAt,
+    dueDate,
+    completedAt,
+    trackedMinutes,
+  }
+}
+
+const buildTaskUpdatePayload = updates => {
+  if (!updates) {
+    return {}
+  }
+
+  const payload = {}
+
+  if (hasOwn(updates, 'title')) {
+    payload.title = updates.title ?? ''
+  }
+
+  if (hasOwn(updates, 'description')) {
+    payload.description = updates.description ?? ''
+  }
+
+  if (hasOwn(updates, 'status')) {
+    payload.status = updates.status ?? 'not-started'
+  }
+
+  if (hasOwn(updates, 'priority')) {
+    payload.priority = updates.priority ?? 'medium'
+  }
+
+  if (hasOwn(updates, 'createdAt')) {
+    payload.createdAt = updates.createdAt === null ? null : toIsoOrNull(updates.createdAt)
+  }
+
+  if (hasOwn(updates, 'startAt')) {
+    payload.startAt = updates.startAt === null ? null : toIsoOrNull(updates.startAt)
+  }
+
+  if (hasOwn(updates, 'dueDate')) {
+    payload.dueDate = updates.dueDate === null ? null : toIsoOrNull(updates.dueDate)
+  }
+
+  if (hasOwn(updates, 'completedAt')) {
+    payload.completedAt = updates.completedAt === null ? null : toIsoOrNull(updates.completedAt)
+  }
+
+  if (hasOwn(updates, 'trackedMinutes')) {
+    const parsedMinutes = Number(updates.trackedMinutes)
+    payload.trackedMinutes =
+      Number.isFinite(parsedMinutes) && parsedMinutes >= 0 ? Math.round(parsedMinutes) : 0
+  }
+
+  return payload
+}
+
 function preparePlans(plans) {
   return (plans ?? []).map(plan => {
-    const tasks = Array.isArray(plan.tasks)
-      ? plan.tasks.map(task => ({
-          ...task,
-          dueDate: task.dueDate ?? task.startAt ?? task.createdAt ?? task.completedAt ?? null,
-          trackedMinutes:
-            typeof task.trackedMinutes === 'number' && task.trackedMinutes >= 0
-              ? Math.round(task.trackedMinutes)
-              : 0,
-        }))
+    const normalizedTasks = Array.isArray(plan.tasks)
+      ? plan.tasks.map(normalizeTaskRecord).filter(Boolean)
       : []
+    const planId = normalizePlanId(plan)
+    const userId = normalizeUserId(plan.userId)
     return {
       ...plan,
-      tasks,
-      dueDate: plan.dueDate ?? computePlanDueDate(tasks, null),
+      id: planId,
+      _id: plan._id || planId,
+      userId: userId ?? null,
+      tasks: normalizedTasks,
+      dueDate: plan.dueDate ?? computePlanDueDate(normalizedTasks, null),
     }
   })
 }
@@ -484,240 +577,227 @@ function buildShowcasePlans() {
 export function TaskManagerProvider({ children }) {
   const { user } = useAuth()
   const [plans, setPlans] = useState(() => (ENABLE_SAMPLE_PLANS ? buildDefaultPlans() : []))
-  const lastUserIdRef = useRef(null)
+  const plansRef = useRef(plans)
   const authUserId = user?._id ?? user?.id ?? null
   const username = user?.username ?? ''
 
   useEffect(() => {
-    if (!authUserId) {
-      lastUserIdRef.current = null
-      setPlans([])
-      return
-    }
+    plansRef.current = plans
+  }, [plans])
 
-    if (lastUserIdRef.current === authUserId) {
-      return
-    }
+  useEffect(() => {
+    let cancelled = false
 
-    lastUserIdRef.current = authUserId
-
-    if (username === SHOWCASE_USERNAME) {
-      setPlans(buildShowcasePlans())
-    } else if (ENABLE_SAMPLE_PLANS) {
-      setPlans(buildDefaultPlans())
-    } else {
-      setPlans([])
-    }
-  }, [authUserId, username])
-
-  const addPlan = useCallback(({ title, description, dueDate }) => {
-    const plan = {
-      id: createId('lt'),
-      title,
-      description: description ?? '',
-      status: 'not-started',
-      dueDate: toIsoOrNull(dueDate),
-      tasks: [],
-    }
-    setPlans(prev => [...prev, plan])
-    return plan
-  }, [])
-
-  const updatePlanStatus = useCallback((planId, status) => {
-    setPlans(prev =>
-      prev.map(plan =>
-        plan.id === planId
-          ? {
-              ...plan,
-              status,
-            }
-          : plan,
-      ),
-    )
-  }, [])
-
-  const addTask = useCallback((planId, data) => {
-    const now = dayjs()
-    const status = data.status ?? 'not-started'
-    const createdAt = toIsoOrNull(data.createdAt) ?? now.toISOString()
-    const startAt = toIsoOrNull(data.startAt) ?? createdAt
-    const dueDate = toIsoOrNull(data.dueDate) ?? startAt ?? createdAt
-    const completedAt =
-      status === 'completed'
-        ? toIsoOrNull(data.completedAt) ?? now.toISOString()
-        : null
-    const trackedMinutes =
-      typeof data.trackedMinutes === 'number' && data.trackedMinutes >= 0
-        ? Math.round(data.trackedMinutes)
-        : 0
-
-    const task = {
-      id: createId('task'),
-      title: data.title,
-      description: data.description ?? '',
-      status,
-      createdAt,
-      startAt,
-      dueDate,
-      completedAt,
-      trackedMinutes,
-    }
-
-    setPlans(prev =>
-      prev.map(plan => {
-        if (plan.id !== planId) {
-          return plan
-        }
-        const nextTasks = [task, ...(plan.tasks ?? [])]
-        return {
-          ...plan,
-          tasks: nextTasks,
-          dueDate: computePlanDueDate(nextTasks, plan.dueDate ?? dueDate),
-        }
-      }),
-    )
-
-    return task
-  }, [])
-
-  const updateTaskStatus = useCallback((planId, taskId, status) => {
-    let previousTask = null
-    let nextTask = null
-    const completedAt = status === 'completed' ? dayjs().toISOString() : null
-
-    setPlans(prev =>
-      prev.map(plan => {
-        if (plan.id !== planId) {
-          return plan
-        }
-        const nextTasks = (plan.tasks ?? []).map(task => {
-          if (task.id !== taskId) {
-            return task
-          }
-          previousTask = task
-          nextTask = {
-            ...task,
-            status,
-            completedAt: status === 'completed' ? completedAt : null,
-          }
-          return nextTask
-        })
-        return {
-          ...plan,
-          tasks: nextTasks,
-          dueDate: computePlanDueDate(nextTasks, plan.dueDate),
-        }
-      }),
-    )
-
-    if (!nextTask && previousTask) {
-      nextTask = {
-        ...previousTask,
-        status,
-        completedAt: status === 'completed' ? completedAt : null,
+    const applyFallbackPlans = () => {
+      if (username === SHOWCASE_USERNAME) {
+        setPlans(buildShowcasePlans())
+        return
+      }
+      if (ENABLE_SAMPLE_PLANS) {
+        setPlans(buildDefaultPlans())
+      } else {
+        setPlans([])
       }
     }
 
-    return { previousTask, nextTask }
-  }, [])
+    if (!authUserId) {
+      applyFallbackPlans()
+      return
+    }
 
-  const updateTask = useCallback((planId, taskId, updates) => {
-    let updatedTask = null
-    const payload = updates ?? {}
+    if (username === SHOWCASE_USERNAME) {
+      setPlans(buildShowcasePlans())
+      return
+    }
 
-    setPlans(prev =>
-      prev.map(plan => {
-        if (plan.id !== planId) {
-          return plan
+    const loadPlans = async () => {
+      try {
+        const response = await taskPlanService.list({ page: 1, limit: 100 })
+        if (!cancelled) {
+          setPlans(preparePlans(response))
         }
+      } catch (error) {
+        console.error('Failed to load task plans', error)
+        if (!cancelled) {
+          applyFallbackPlans()
+        }
+      }
+    }
 
-        const nextTasks = (plan.tasks ?? []).map(task => {
-          if (task.id !== taskId) {
-            return task
-          }
+    loadPlans()
 
-          const status = hasOwn(payload, 'status')
-            ? payload.status ?? 'not-started'
-            : task.status ?? 'not-started'
+    return () => {
+      cancelled = true
+    }
+  }, [authUserId, username])
 
-          let createdAt = task.createdAt ?? null
-          if (hasOwn(payload, 'createdAt')) {
-            createdAt =
-              payload.createdAt === null
-                ? null
-                : toIsoOrNull(payload.createdAt) ?? createdAt ?? dayjs().toISOString()
-          }
+  const addPlan = useCallback(
+    async ({ title, description, dueDate, category = 'academic', tags = [] }) => {
+      const payload = {
+        title: (title || '').trim() || 'Untitled plan',
+        description: description?.trim() || '',
+        dueDate: toIsoOrNull(dueDate),
+        status: 'not-started',
+        category,
+        tags: Array.isArray(tags) ? tags : [],
+      }
 
-          let startAt = task.startAt ?? createdAt
-          if (hasOwn(payload, 'startAt')) {
-            startAt =
-              payload.startAt === null
-                ? null
-                : toIsoOrNull(payload.startAt) ?? startAt ?? createdAt
-          }
-
-          let dueDate = task.dueDate ?? startAt ?? createdAt
-          if (hasOwn(payload, 'dueDate')) {
-            dueDate =
-              payload.dueDate === null
-                ? null
-                : toIsoOrNull(payload.dueDate) ?? dueDate ?? startAt ?? createdAt
-          }
-
-          let completedAt = task.completedAt ?? null
-          if (hasOwn(payload, 'completedAt')) {
-            completedAt =
-              payload.completedAt === null
-                ? null
-                : toIsoOrNull(payload.completedAt) ?? completedAt
-          }
-
-          if (status === 'completed' && !completedAt) {
-            completedAt = dayjs().toISOString()
-          }
-
-          if (status !== 'completed') {
-            completedAt = null
-          }
-
-          let trackedMinutes = Number.isFinite(task.trackedMinutes) ? task.trackedMinutes : 0
-          if (hasOwn(payload, 'trackedMinutes')) {
-            const parsedMinutes = Number(payload.trackedMinutes)
-            trackedMinutes =
-              Number.isFinite(parsedMinutes) && parsedMinutes >= 0
-                ? Math.round(parsedMinutes)
-                : 0
-          }
-
-          const nextTask = {
-            ...task,
-            ...payload,
-            title: hasOwn(payload, 'title') ? payload.title ?? '' : task.title,
-            description: hasOwn(payload, 'description')
-              ? payload.description ?? ''
-              : task.description ?? '',
-            status,
-            createdAt,
-            startAt,
-            dueDate,
-            completedAt,
-            trackedMinutes,
-          }
-
-          updatedTask = nextTask
-          return nextTask
+      try {
+        const createdPlan = await taskPlanService.createPlan(payload)
+        const normalized = preparePlans([createdPlan])[0]
+        if (!normalized) {
+          throw new Error('Task plan payload was empty')
+        }
+        setPlans(prev => {
+          const withoutExisting = prev.filter(plan => plan.id !== normalized.id)
+          return [...withoutExisting, normalized]
         })
+        return normalized
+      } catch (error) {
+        console.error('Failed to create task plan', error)
+        throw error
+      }
+    },
+    [],
+  )
 
-        return {
-          ...plan,
-          tasks: nextTasks,
-          dueDate: computePlanDueDate(nextTasks, plan.dueDate),
-        }
-      }),
-    )
-
-    return updatedTask
+  const updatePlanStatus = useCallback(async (planId, status) => {
+    if (!planId) {
+      throw new Error('Plan id is required to update status')
+    }
+    try {
+      const updatedPlan = await taskPlanService.update(planId, { status })
+      const normalized = preparePlans([updatedPlan])[0]
+      setPlans(prev =>
+        prev.map(plan => (plan.id === planId && normalized ? { ...plan, ...normalized } : plan)),
+      )
+      return normalized ?? null
+    } catch (error) {
+      console.error('Failed to update task plan status', error)
+      throw error
+    }
   }, [])
+
+  const addTask = useCallback(
+    async (planId, data) => {
+      if (!planId) {
+        throw new Error('Plan id is required to add a task')
+      }
+
+      const creationPayload = {
+        title: (data.title || '').trim() || 'Untitled task',
+        description: data.description?.trim() || '',
+        priority: data.priority || 'medium',
+        dueDate: toIsoOrNull(data.dueDate),
+        estimatedHours: data.estimatedHours ?? 0,
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        dependencies: Array.isArray(data.dependencies) ? data.dependencies : [],
+        relatedBookId: data.relatedBookId ?? null,
+      }
+
+      try {
+        const createdTask = await taskPlanService.addTask(planId, creationPayload)
+        const patch = {
+          status: data.status ?? 'not-started',
+          createdAt: data.createdAt,
+          startAt: data.startAt,
+          dueDate: data.dueDate,
+          completedAt: data.completedAt,
+          trackedMinutes: data.trackedMinutes,
+        }
+        if (patch.status === 'completed' && !patch.completedAt) {
+          patch.completedAt = dayjs().toISOString()
+        }
+        const normalizedPatch = buildTaskUpdatePayload(patch)
+
+        let serverTask = createdTask
+        if (Object.keys(normalizedPatch).length > 0) {
+          const updated = await taskPlanService.updateTask(planId, createdTask.id, normalizedPatch)
+          serverTask = updated
+        }
+
+        const normalizedTask = normalizeTaskRecord(serverTask)
+        setPlans(prev =>
+          prev.map(plan => {
+            if (plan.id !== planId) {
+              return plan
+            }
+            const nextTasks = [normalizedTask, ...(plan.tasks ?? [])]
+            return {
+              ...plan,
+              tasks: nextTasks,
+              dueDate: computePlanDueDate(nextTasks, plan.dueDate ?? normalizedTask.dueDate),
+            }
+          }),
+        )
+
+        return normalizedTask
+      } catch (error) {
+        console.error('Failed to add task to plan', error)
+        throw error
+      }
+    },
+    [],
+  )
+
+  const updateTask = useCallback(
+    async (planId, taskId, updates) => {
+      if (!planId || !taskId) {
+        throw new Error('Plan id and task id are required to update a task')
+      }
+
+      const payload = buildTaskUpdatePayload(updates)
+
+      if (!Object.keys(payload).length) {
+        const currentPlan = plansRef.current?.find(plan => plan.id === planId)
+        return currentPlan?.tasks?.find(task => task.id === taskId) ?? null
+      }
+
+      try {
+        const response = await taskPlanService.updateTask(planId, taskId, payload)
+        const normalizedTask = normalizeTaskRecord(response)
+        setPlans(prev =>
+          prev.map(plan => {
+            if (plan.id !== planId) {
+              return plan
+            }
+            const nextTasks = (plan.tasks ?? []).map(task =>
+              task.id === taskId ? normalizedTask : task,
+            )
+            return {
+              ...plan,
+              tasks: nextTasks,
+              dueDate: computePlanDueDate(nextTasks, plan.dueDate ?? normalizedTask.dueDate),
+            }
+          }),
+        )
+        return normalizedTask
+      } catch (error) {
+        console.error('Failed to update task', error)
+        throw error
+      }
+    },
+    [],
+  )
+
+  const updateTaskStatus = useCallback(
+    async (planId, taskId, status) => {
+      if (!planId || !taskId) {
+        throw new Error('Plan id and task id are required to update task status')
+      }
+      const currentPlans = plansRef.current || []
+      const targetPlan = currentPlans.find(plan => plan.id === planId)
+      const previousTask =
+        targetPlan?.tasks?.find(task => task.id === taskId) ?? null
+      const nextTask = await updateTask(planId, taskId, {
+        status,
+        completedAt: status === 'completed' ? dayjs().toISOString() : null,
+      })
+
+      return { previousTask, nextTask }
+    },
+    [updateTask],
+  )
 
   const value = useMemo(
     () => ({

@@ -218,12 +218,23 @@ export default function Profile({
         setInterests(mapTagsToInterests(profileData.tags))
         
         // Fetch posts for this profile
-        const postsData = Array.isArray(postsProp)
-          ? postsProp
-          : profileData?.id
-            ? await postService.getPostsByUser(profileData.id)
-            : []
-        
+        let postsData = []
+        if (profileData?.id) {
+          try {
+            postsData = await postService.getPostsByUser(profileData.id)
+          } catch (postError) {
+            console.error('Error fetching user posts:', postError)
+            postsData = Array.isArray(postsProp)
+              ? postsProp.filter(post => {
+                  const authorId = post.userId || post.author?.id
+                  return authorId && authorId === profileData.id
+                })
+              : []
+          }
+        } else if (Array.isArray(postsProp)) {
+          postsData = postsProp
+        }
+
         setPosts(postsData)
         setError(null)
       } catch (err) {

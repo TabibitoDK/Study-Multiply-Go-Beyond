@@ -74,12 +74,23 @@ export const authenticate = async (req, res, next) => {
     }
 
     // Add user to request object
+    const normalizedId =
+      typeof user._id === 'string'
+        ? user._id
+        : user._id?.toString
+          ? user._id.toString()
+          : String(user._id);
+
     req.user = {
-      id: user._id,
+      id: normalizedId,
       username: user.username,
       email: user.email,
       name: user.name || user.username,
     };
+
+    if (!req.headers['x-user-id']) {
+      req.headers['x-user-id'] = normalizedId;
+    }
 
     next();
   } catch (error) {
